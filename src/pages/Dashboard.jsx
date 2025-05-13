@@ -1,0 +1,213 @@
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+import isToday from "dayjs/plugin/isToday";
+import isYesterday from "dayjs/plugin/isYesterday";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import FlipCard from "@/components/flipcard/Flipcard";
+
+//internal import
+import useAsync from "@/hooks/useAsync";
+import useFilter from "@/hooks/useFilter";
+import AnimatedContent from "@/components/common/AnimatedContent";
+import EmployeeServices from "@/services/EmployeeServices";
+// import { useSocket } from "@/context/SocketContext";
+
+// Import dashboard components
+//import LiveFeeds from "@/components/dashboard/LiveFeeds";
+import ActivityTimelineChart from "@/components/dashboard/ActivityTimelineChart";
+import PerformanceMetrics from "@/components/dashboard/PerformanceMetrics";
+import IncentivesChart from "@/components/dashboard/IncentivesChart";
+// import SocketStatusIndicator from "@/components/dashboard/SocketStatusIndicator";
+// import AttendanceCalendar from "@/components/attendance/AttendanceCalendar";
+
+const Dashboard = () => {
+  const { t } = useTranslation();
+  const [loadingLiveFeeds, setLoadingLiveFeeds] = useState(true);
+  const pollingIntervalRef = useRef(null);
+  
+  // Use the global socket context
+  // const { 
+  //   isConnected, 
+  //   socketError, 
+  //   liveData, 
+  //   reconnect,
+  //   updateFeeds 
+  // } = useSocket();
+
+  dayjs.extend(isBetween);  
+  dayjs.extend(isToday);
+  dayjs.extend(isYesterday);
+
+  const { data: dashboardAnalytics, loading: loadingDashboardAnalytics } = useAsync(
+    () => EmployeeServices.getDashboardAnalytics()
+  );
+
+  const { data: dashboardVisualResponse, loading: loadingVisualData } = useAsync(
+    () => EmployeeServices.getDashboardVisualData()
+  );
+
+  const { data: incentivesResponse, loading: loadingIncentivesData } = useAsync(
+    () => EmployeeServices.getIncentivesData()
+  );
+  
+  
+  // Extract the actual data from the response
+  const dashboardVisualData = dashboardVisualResponse?.data;
+  const incentivesData = incentivesResponse?.data;
+
+  console.log("dashboardVisualData", dashboardVisualData);
+  console.log("incentivesData", incentivesData);
+
+  // Format currency
+  const formatCurrency = (value) => {
+    if (!value) return "₹0";
+    return `₹${Number(value).toLocaleString('en-IN')}`;
+  };
+  
+  // // Function to fetch live feeds
+  // const fetchLiveFeeds = useCallback(async (afterTimestamp = null) => {
+  //   try {
+  //     setLoadingLiveFeeds(true);
+  //     const params = afterTimestamp ? { after: afterTimestamp } : {};
+  //     const response = await EmployeeServices.getRecentFeeds(params);
+      
+  //     if (response?.success && Array.isArray(response.data)) {
+  //       // Use the global updateFeeds function to update feeds in the SocketContext
+  //       if (response.data.length > 0) {
+  //         // Let the SocketContext handle feed management
+  //         // The SocketContext's updateFeeds will handle sorting, deduplication, etc.
+  //         updateFeeds(response.data);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching live feeds:", error);
+  //   } finally {
+  //     setLoadingLiveFeeds(false);
+  //   }
+  // }, [updateFeeds]);
+  
+  // // Initial fetch of live feeds
+  // useEffect(() => {
+  //   if (liveData.feeds.length === 0) {
+  //     fetchLiveFeeds();
+  //   } else {
+  //     setLoadingLiveFeeds(false);
+  //   }
+  // }, [fetchLiveFeeds, liveData.feeds.length]);
+  
+  // // Setup polling if WebSockets are disconnected
+  // useEffect(() => {
+  //   // Clear any existing interval
+  //   if (pollingIntervalRef.current) {
+  //     clearInterval(pollingIntervalRef.current);
+  //     pollingIntervalRef.current = null;
+  //   }
+    
+  //   // If WebSockets are not connected, use polling
+  //   if (!isConnected) {
+  //     pollingIntervalRef.current = setInterval(() => {
+  //       fetchLiveFeeds(liveData.lastUpdated);
+  //     }, 30000); // Poll every 30 seconds
+      
+  //     return () => {
+  //       if (pollingIntervalRef.current) {
+  //         clearInterval(pollingIntervalRef.current);
+  //         pollingIntervalRef.current = null;
+  //       }
+  //     };
+  //   }
+  // }, [isConnected, fetchLiveFeeds, liveData.lastUpdated]);
+  
+  return (
+    <AnimatedContent>
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Page Header */}
+        <header className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#1a5d96] dark:text-[#e2692c] flex items-center">
+            <span className="border-l-4 border-[#1a5d96] dark:border-[#e2692c] pl-3">{t("Dashboard Overview")}</span>
+          </h1>
+        </header>
+        
+        {/* Dashboard Overview - Stats Cards */}
+        <section className="mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-5">
+            <FlipCard 
+              title="Calls" 
+              data={dashboardAnalytics?.dashboardOverview?.totalCalls || 0} 
+              onTap={() => {window.location.href = "/call-details"}} 
+              loading={loadingDashboardAnalytics}
+            />
+            <FlipCard 
+              title="Lineups" 
+              data={dashboardAnalytics?.dashboardOverview?.totalLineups || 0} 
+              onTap={() => {window.location.href = "/lineups"}} 
+              loading={loadingDashboardAnalytics}
+            />
+            <FlipCard 
+              title="Joinings" 
+              data={dashboardAnalytics?.dashboardOverview?.totalJoinings || 0} 
+              onTap={() => {window.location.href = "/joinings"}} 
+              loading={loadingDashboardAnalytics}
+            />
+            <FlipCard 
+              title="Selections" 
+              data={dashboardAnalytics?.dashboardOverview?.totalSelections || 0}
+              loading={loadingDashboardAnalytics}
+            />
+            <FlipCard 
+              title="Offer Drops" 
+              data={dashboardAnalytics?.dashboardOverview?.offerDrops || 0} 
+              loading={loadingDashboardAnalytics}
+            />
+            <FlipCard 
+              title="Leaves" 
+              data={dashboardAnalytics?.dashboardOverview?.totalLeaves || 0} 
+              onTap={() => {window.location.href = "/leaves"}} 
+              loading={loadingDashboardAnalytics}
+            />
+            <FlipCard 
+              title="Time Spent" 
+              data={dashboardAnalytics?.dashboardOverview?.timeSpent || "0h"} 
+              loading={loadingDashboardAnalytics}
+            />
+            <FlipCard 
+              title="Incentives" 
+              data={formatCurrency(dashboardAnalytics?.dashboardOverview?.totalIncentives || 0)} 
+              loading={loadingDashboardAnalytics}
+            />
+          </div>
+        </section>
+
+        {/* Main Dashboard Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Performance Metrics - 1/3 width on large screens */}
+          <section className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+            <PerformanceMetrics 
+              data={dashboardVisualData?.performanceMetrics?.today || {}} 
+              loading={loadingVisualData} 
+            />
+          </section>
+
+          {/* Activity Timeline Chart - 2/3 width on large screens */}
+          <section className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+            <ActivityTimelineChart 
+              timeDistributions={dashboardVisualData?.timeDistributions || {}} 
+              loading={loadingVisualData} 
+            />
+          </section>
+        </div>
+
+        {/* Incentives Chart - Full width */}
+        <section className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+          <IncentivesChart 
+            incentivesData={incentivesData} 
+            loading={loadingIncentivesData} 
+          />
+        </section>
+      </div>
+    </AnimatedContent>
+  );
+};
+
+export default Dashboard;

@@ -1,0 +1,1039 @@
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import {
+  MdPerson,
+  MdSource,
+  MdPhone,
+  MdLocationOn,
+  MdMessage,
+  MdWork,
+  MdSchool,
+  MdTimer,
+  MdAccessTime,
+  MdNotes,
+  MdShare,
+  MdBusinessCenter,
+  MdWifiCalling3,
+  MdLocationCity,
+  MdWatch,
+  MdPublic,
+  MdOutlineWhatsapp,
+  MdClose,
+  MdError,
+  MdUpdate
+} from "react-icons/md";
+import { IoCashOutline } from "react-icons/io5";
+import EmployeeServices from "@/services/EmployeeServices";
+import { notifySuccess, notifyError } from "@/utils/toast";
+import Loader from "../sprinkleLoader/Loader";
+import { 
+  companyOptions as lineupCompanyOptions, 
+  processOptions as lineupProcessOptions, 
+
+  getProcessesByCompany
+} from "@/utils/optionsData";
+import ProcessSelector from "@/components/common/ProcessSelector";
+
+function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLocked, isRegisteredByMe }) {
+  const [darkMode, setDarkMode] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+  const [sameAsContact, setSameAsContact] = useState(false);
+  const contactInputRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+  const [duplicateInfo, setDuplicateInfo] = useState(null);
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const [filteredProcessOptions, setFilteredProcessOptions] = useState([{ value: "", label: "Select Process" }]);
+  
+  // State variables for dropdown data
+  const [qualifications, setQualifications] = useState([]);
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [localities, setLocalities] = useState([]);
+  const [loadingDropdownData, setLoadingDropdownData] = useState({
+    qualifications: false,
+    states: false,
+    cities: false,
+    localities: false
+  });
+
+  // Form data state
+  const [formData, setFormData] = useState({
+    candidateName: "",
+    source: "",
+    gender: "",
+    contactNumber: "",
+    whatsappNumber: "",
+    sameAsContact: false,
+    experience: "",
+    qualification: "",
+    state: "",
+    city: "",
+    locality: "",
+    salaryExpectations: "",
+    levelOfCommunication: "",
+    noticePeriod: "",
+    shiftPreference: "",
+    relocation: "",
+    companyProfile: "",
+    customCompanyProfile: "",
+    callStatus: "",
+    callSummary: "",
+    callDuration: "",
+    lineupCompany: "",
+    customLineupCompany: "",
+    lineupProcess: "",
+    customLineupProcess: "",
+    lineupDate: "",
+    interviewDate: "",
+    walkinDate: "",
+    remarks: ""
+  });
+
+  // Initialize form data when candidate data changes
+  useEffect(() => {
+    if (candidateData) {
+      const whatsappSameAsMobile = candidateData.whatsappNo === candidateData.mobileNo;
+      
+      setFormData({
+        candidateName: candidateData.name || "",
+        source: candidateData.source || "",
+        gender: candidateData.gender || "",
+        contactNumber: candidateData.mobileNo || "",
+        whatsappNumber: candidateData.whatsappNo || "",
+        sameAsContact: whatsappSameAsMobile,
+        experience: candidateData.experience || "",
+        qualification: candidateData.qualification || "",
+        state: candidateData.state || "",
+        city: candidateData.city || "",
+        locality: candidateData.locality || "",
+        salaryExpectations: candidateData.salaryExpectation || "",
+        levelOfCommunication: candidateData.communication || "",
+        noticePeriod: candidateData.noticePeriod || "",
+        shiftPreference: candidateData.shift || "",
+        relocation: candidateData.relocation || "",
+        companyProfile: candidateData.companyProfile || "",
+        customCompanyProfile: candidateData.customCompanyProfile || "",
+        callStatus: candidateData.callStatus || "",
+        callDuration: candidateData.callDuration || "",
+        lineupCompany: candidateData.lineupCompany || "",
+        customLineupCompany: candidateData.customLineupCompany || "",
+        lineupProcess: candidateData.lineupProcess || "",
+        customLineupProcess: candidateData.customLineupProcess || "",
+        lineupDate: candidateData.lineupDate || "",
+        interviewDate: candidateData.interviewDate || "",
+        walkinDate: candidateData.walkinDate || "",
+      });
+      
+      setSameAsContact(whatsappSameAsMobile);
+    }
+  }, [candidateData]);
+
+  // Update process options when company changes
+  useEffect(() => {
+    setFilteredProcessOptions(getProcessesByCompany(formData.lineupCompany));
+    
+    // Reset process selection when company changes (unless it's already a valid option)
+    if (formData.lineupProcess && !getProcessesByCompany(formData.lineupCompany).some(p => p.value === formData.lineupProcess)) {
+      setFormData(prev => ({ ...prev, lineupProcess: "" }));
+    }
+  }, [formData.lineupCompany]);
+
+  // Check for user's preferred theme and watch for changes
+  useEffect(() => {
+    const updateThemeState = () => {
+      const isDark = localStorage.theme === 'dark' || 
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      setDarkMode(isDark);
+    };
+
+    updateThemeState();
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'theme') {
+        updateThemeState();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class' && 
+            mutation.target === document.documentElement) {
+          updateThemeState();
+        }
+      });
+    });
+    
+    observer.observe(document.documentElement, { attributes: true });
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      observer.disconnect();
+    };
+  }, []);
+
+  // Fetch qualifications, states on component mount or when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const fetchInitialData = async () => {
+        try {
+          // Fetch qualifications
+          setLoadingDropdownData(prev => ({ ...prev, qualifications: true }));
+          const qualificationsRes = await EmployeeServices.getQualifications();
+          if (qualificationsRes && Array.isArray(qualificationsRes)) {
+            setQualifications(qualificationsRes);
+          }
+          setLoadingDropdownData(prev => ({ ...prev, qualifications: false }));
+
+          // Fetch states
+          setLoadingDropdownData(prev => ({ ...prev, states: true }));
+          const statesRes = await EmployeeServices.getStates();
+          if (statesRes && Array.isArray(statesRes)) {
+            setStates(statesRes);
+          }
+          setLoadingDropdownData(prev => ({ ...prev, states: false }));
+        } catch (error) {
+          console.error("Error fetching dropdown data:", error);
+          notifyError("Failed to load dropdown data");
+          setLoadingDropdownData({
+            qualifications: false,
+            states: false,
+            cities: false,
+            localities: false
+          });
+        }
+      };
+
+      fetchInitialData();
+    }
+  }, [isOpen]);
+
+  // Fetch cities when state changes
+  useEffect(() => {
+    const fetchCities = async () => {
+      if (!formData.state) {
+        setCities([]);
+        return;
+      }
+
+      try {
+        setLoadingDropdownData(prev => ({ ...prev, cities: true }));
+        
+        // Find the state code by looking up the selected state name in the states array
+        const selectedState = states.find(state => state.name === formData.state);
+        const stateCode = selectedState ? selectedState.code : formData.state;
+
+        const citiesRes = await EmployeeServices.getCities(stateCode);
+        if (citiesRes && Array.isArray(citiesRes)) {
+          setCities(citiesRes);
+        }
+        setLoadingDropdownData(prev => ({ ...prev, cities: false }));
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+        notifyError("Failed to load cities");
+        setCities([]);
+        setLoadingDropdownData(prev => ({ ...prev, cities: false }));
+      }
+    };
+
+    if (formData.state) {
+      fetchCities();
+    }
+  }, [formData.state, states]);
+
+  // Fetch localities when city is set to Indore
+  useEffect(() => {
+    const fetchLocalities = async () => {
+      if (formData.city.toLowerCase() !== "indore") {
+        setLocalities([]);
+        return;
+      }
+
+      try {
+        setLoadingDropdownData(prev => ({ ...prev, localities: true }));
+        const localitiesRes = await EmployeeServices.getLocalities();
+        if (localitiesRes && Array.isArray(localitiesRes)) {
+          setLocalities(localitiesRes);
+        }
+        setLoadingDropdownData(prev => ({ ...prev, localities: false }));
+      } catch (error) {
+        console.error("Error fetching localities:", error);
+        notifyError("Failed to load localities");
+        setLocalities([]);
+        setLoadingDropdownData(prev => ({ ...prev, localities: false }));
+      }
+    };
+
+    if (formData.city.toLowerCase() === "indore") {
+      fetchLocalities();
+    }
+  }, [formData.city]);
+
+  const handleChange = (field, value) => {
+    if (field === "contactNumber") {
+      // Validate phone number length
+      if (value.length > 0 && value.length !== 10) {
+        setPhoneError(`Phone number must be 10 digits. Current: ${value.length}`);
+        setDuplicateInfo(null);
+      } else {
+        setPhoneError("");
+        
+        // Check for duplicate when mobile number is exactly 10 digits
+        if (value.length === 10) {
+          checkDuplicateMobile(value);
+        } else {
+          setDuplicateInfo(null);
+        }
+      }
+      
+      // Update WhatsApp number if checkbox is checked
+      if (sameAsContact) {
+        setFormData(prev => ({ ...prev, [field]: value, whatsappNumber: value }));
+        return;
+      }
+    }
+    
+    if (field === "state") {
+      // When state changes, reset city and locality
+      setFormData(prev => ({ 
+        ...prev, 
+        [field]: value,
+        city: "",
+        locality: "" 
+      }));
+      return;
+    }
+    
+    if (field === "city") {
+      // If city changed and not Indore, clear the locality
+      if (value.toLowerCase() !== "indore") {
+        setFormData(prev => ({ ...prev, [field]: value, locality: "" }));
+      } else {
+        setFormData(prev => ({ ...prev, [field]: value }));
+      }
+      return;
+    }
+    
+    // If lineup company is set to others, also set lineup process to others
+    if (field === "lineupCompany" && value === "others") {
+      setFormData(prev => ({ 
+        ...prev, 
+        [field]: value,
+        lineupProcess: "others"
+      }));
+      return;
+    }
+    
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSameAsContactChange = (e) => {
+    const isChecked = e.target.checked;
+    setSameAsContact(isChecked);
+    
+    if (isChecked) {
+      // Copy contact number to WhatsApp number
+      setFormData(prev => ({ 
+        ...prev, 
+        sameAsContact: true,
+        whatsappNumber: prev.contactNumber
+      }));
+    } else {
+      // Clear the WhatsApp number when unchecked
+      setFormData(prev => ({ 
+        ...prev, 
+        sameAsContact: false,
+        whatsappNumber: ""
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      // Validate lineup fields if status is "lineup"
+      if (formData.callStatus === "Lineup" && 
+          (!formData.lineupCompany || !formData.lineupProcess || 
+           !formData.lineupDate || !formData.interviewDate || !formData.remarks)) {
+        notifyError("Please fill in all lineup fields including remarks");
+        setLoading(false);
+        return;
+      }
+
+      // Validate walkin date if status is "walkin"
+      if (formData.callStatus === "Walkin at Infidea" && (!formData.walkinDate || !formData.remarks)) {
+        notifyError("Please provide a walkin date and remarks");
+        setLoading(false);
+        return;
+      }
+
+      // Prepare candidate data for API
+      const updatedData = {
+        name: formData.candidateName,
+        whatsappNo: formData.whatsappNumber,
+        source: formData.source,
+        gender: formData.gender,
+        experience: formData.experience,
+        qualification: formData.qualification,
+        state: formData.state,
+        city: formData.city,
+        salaryExpectation: formData.salaryExpectations,
+        communication: formData.levelOfCommunication,
+        noticePeriod: formData.noticePeriod,
+        shift: formData.shiftPreference,
+        relocation: formData.relocation,
+        companyProfile: formData.companyProfile,
+        callStatus: formData.callStatus,
+        callDuration: formData.callDuration,
+        callSummary: formData.callSummary,
+        locality: formData.locality,
+        lineupCompany: formData.lineupCompany === "others" ? formData.customLineupCompany : formData.lineupCompany,
+        customCompanyProfile: formData.customCompanyProfile,
+        customLineupCompany: formData.customLineupCompany,
+        lineupProcess: formData.lineupProcess === "others" ? formData.customLineupProcess : formData.lineupProcess,
+        customLineupProcess: formData.customLineupProcess,
+        lineupDate: formData.lineupDate,
+        interviewDate: formData.interviewDate,
+        walkinDate: formData.walkinDate,
+        remarks: formData.remarks
+      };
+      
+      // Call API to update candidate data
+      const response = await EmployeeServices.updateCandidateData(candidateData._id,updatedData);
+      notifySuccess(response.message);
+
+      // Call the onUpdate callback to refresh the parent component's data
+      if (onUpdate) {
+        onUpdate(updatedData);
+      }
+      
+      // Close the modal
+      onClose();
+      setLoading(false);
+    } catch (error) {
+      notifyError(error?.response?.data?.message||error?.response?.data?.error || "Failed to update candidate data");
+      setLoading(false);
+    }
+  };
+
+  // Check for duplicate mobile numbers
+  const checkDuplicateMobile = async (mobileNumber) => {
+    try {
+      setCheckingDuplicate(true);
+      const response = await EmployeeServices.checkDuplicityOfCandidateData(mobileNumber);
+      
+      if (response && response.isDuplicate === true) {
+        setDuplicateInfo({
+          registeredBy: response.registeredBy.en,
+          remainingDays: response.remainingDays
+        });
+      } else {
+        setDuplicateInfo(null);
+      }
+    } catch (error) {
+      console.error("Error checking mobile number duplicity:", error);
+    } finally {
+      setCheckingDuplicate(false);
+    }
+  };
+
+  // Generate call duration options
+  const callDurationOptions = Array.from({ length: 30 }, (_, i) => ({
+    value: `${i + 1}`, 
+    label: `${i + 1} ${i === 0 ? 'Minute' : 'Minutes'}`
+  }));
+  callDurationOptions.unshift({ value: "", label: "Select Duration" });
+
+  // Create qualification options from API data
+  const qualificationOptions = [
+    { value: "", label: "Select Qualification" },
+    ...(qualifications?.map(qual => ({ 
+      value: qual.name || qual, 
+      label: qual.name || qual 
+    })) || [])
+  ];
+  
+  // Create state options from API data
+  const stateOptions = [
+    { value: "", label: "Select State" },
+    ...(states?.map(state => ({ 
+      value: state.name, 
+      label: state.name 
+    })) || [])
+  ];
+  
+  // Create city options from API data
+  const cityOptions = [
+    { value: "", label: "Select City" },
+    ...(cities?.map(city => ({ 
+      value: city.name || city, 
+      label: city.name || city 
+    })) || [])
+  ];
+  
+  // Create locality options from API data (for Indore only)
+  const localityOptions = [
+    { value: "", label: "Select Locality" },
+    ...(localities?.map(locality => ({ 
+      value: locality.name || locality, 
+      label: locality.name || locality 
+    })) || [])
+  ];
+
+  // All fields in a single flat array - organized as in CallInfo
+  const fields = [
+    { label: "Candidate's Name", key: "candidateName", icon: <MdPerson />, required: true, inputClass: "w-full" },
+    { 
+      label: "Mobile No.", 
+      key: "contactNumber", 
+      icon: <MdPhone />, 
+      type: "tel", 
+      pattern: "[0-9]{10}", 
+      maxLength: 10, 
+      required: true, 
+      inputClass: "w-full", 
+      ref: contactInputRef,
+      readOnly: true,
+    },
+    { 
+      label: "WhatsApp No.", 
+      key: "whatsappNumber", 
+      icon: <MdOutlineWhatsapp />, 
+      type: "tel", 
+      pattern: "[0-9]{10}", 
+      maxLength: 10, 
+      required: !sameAsContact, 
+      inputClass: "w-full",
+      disabled: sameAsContact,
+      hasCheckbox: true,
+      checkboxLabel: "Same as previous field"
+    },
+    { label: "Source", key: "source", icon: <MdSource />, type: "select", options: [
+      { value: "", label: "Select Source" },
+      { value: "Candidate Reference", label: "Candidate Reference" },
+      { value: "Indeed", label: "Indeed" },
+      { value: "Instagram", label: "Instagram" },
+      { value: "Internal Database", label: "Internal Database" },
+      { value: "Internshala", label: "Internshala" },
+      { value: "Linkedin", label: "LinkedIn" },
+      { value: "Missed Call", label: "Missed Call" },
+      { value: "Naukri", label: "Naukri.com" },
+      { value: "Other", label: "Other" },
+      { value: "Personal Reference", label: "Personal Reference" },
+      { value: "Walkin", label: "Walkin" },
+      { value: "Whatsapp", label: "WhatsApp" }
+    ], required: true, inputClass: "w-full" },
+    { label: "Gender", key: "gender", icon: <MdPerson />, type: "select", options: [
+      { value: "", label: "Select Gender" },
+      { value: "Male", label: "Male" },
+      { value: "Female", label: "Female" },
+      { value: "Others", label: "Others" }
+    ], required: true, inputClass: "w-full" },
+    { label: "Experience", key: "experience", icon: <MdWork />, type: "select", options: [
+      { value: "", label: "Select Experience" },
+      { value: "Fresher", label: "Fresher" },
+      { value: "Experienced", label: "Experienced" }
+    ], required: true, inputClass: "w-full" },
+    { label: "Qualification", key: "qualification", icon: <MdSchool />, type: "select", options: qualificationOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.qualifications },
+    { label: "State", key: "state", icon: <MdPublic />, type: "select", options: stateOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.states },
+    { label: "City", key: "city", icon: <MdLocationCity />, type: "select", options: cityOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.cities },
+    { label: "Salary Expectation", key: "salaryExpectations", icon: <IoCashOutline />, required: true, inputClass: "w-full" },
+    { label: "Communication", key: "levelOfCommunication", icon: <MdMessage />, type: "select", options: [
+      { value: "", label: "Select Level" },
+      { value: "Hindi", label: "Hindi" },
+      { value: "Below Average", label: "Below Average" },
+      { value: "Average", label: "Average" },
+      { value: "Above Average", label: "Above Average" },
+      { value: "Good", label: "Good" },
+      { value: "Excellent", label: "Excellent" }
+    ], required: true, inputClass: "w-full" },
+    { label: "Notice Period", key: "noticePeriod", icon: <MdTimer />, type: "select", options: [
+      { value: "", label: "Select Notice Period" },
+      { value: "Immediate", label: "Immediate Joiner" },
+      { value: "7 Days", label: "7 Days" },
+      { value: "15 Days", label: "15 Days" },
+      { value: "30 Days", label: "30 Days" },
+      { value: "45 Days", label: "45 Days" },
+      { value: "60 Days", label: "60 Days" },
+      { value: "90 Days", label: "90 Days" },
+      { value: "More than 90 Days", label: "More than 90 Days" }
+    ], required: true, inputClass: "w-full" },
+    { label: "Shift Preference", key: "shiftPreference", icon: <MdAccessTime />, type: "select", options: [
+      { value: "", label: "Select Shift" },
+      { value: "Day Shift", label: "Day Shift" },
+      { value: "Night Shift", label: "Night Shift" },
+      { value: "Any Shift", label: "Any Shift Works" }
+    ], required: true, inputClass: "w-full" },
+    { label: "Relocation", key: "relocation", icon: <MdShare />, type: "select", options: [
+      { value: "", label: "Select" },
+      { value: "Yes", label: "Yes" },
+      { value: "No", label: "No" }
+    ], required: true, inputClass: "w-full" },
+    { label: "Company/Profile", key: "companyProfile", icon: <MdBusinessCenter />, required: true, inputClass: "w-full" },
+    { label: "Call Status", key: "callStatus", icon: <MdWifiCalling3 />, type: "select", options: [
+      { value: "", label: "Select Status" },
+      { value: "Call Back Requested", label: "Call Back Requested" },
+      { value: "Client Call", label: "Client Call" },
+      { value: "Inhouse Hr In Touch", label: "Inhouse HR In Touch" },
+      { value: "Lineup", label: "Lineup" },
+      { value: "Not Aligned Anywhere", label: "Not Aligned Anywhere" },
+      { value: "Not Looking for Job", label: "Not Looking for Job" },
+      { value: "Not Picking Call", label: "Not Picking Call" },
+      { value: "Not Reachable", label: "Not Reachable" },
+      { value: "Walkin at Infidea", label: "Walkin at Infidea" }
+    ], required: true, inputClass: "w-full" },
+    { 
+      label: "Walkin Date", 
+      key: "walkinDate", 
+      icon: <MdAccessTime />, 
+      type: "date",
+      required: formData.callStatus === "Walkin at Infidea",
+      inputClass: "w-full",
+      hidden: formData.callStatus !== "Walkin at Infidea" 
+    },
+    { 
+      label: "Lineup Company", 
+      key: "lineupCompany", 
+      icon: <MdBusinessCenter />, 
+      type: "select", 
+      options: lineupCompanyOptions,
+      required: formData.callStatus === "Lineup",
+      inputClass: "w-full",
+      hidden: formData.callStatus !== "Lineup" 
+    },
+    { 
+      label: "Lineup Process", 
+      key: "lineupProcess", 
+      icon: <MdBusinessCenter />, 
+      type: "custom",
+      options: filteredProcessOptions,
+      required: formData.callStatus === "Lineup",
+      inputClass: "w-full",
+      hidden: formData.callStatus !== "Lineup",
+      render: ({ key, label, options, required, inputClass }) => (
+        <div className="flex flex-col relative">
+          <ProcessSelector
+            name={key}
+            value={formData[key] || ""}
+            onChange={(e) => handleChange(key, e.target.value)}
+            options={options}
+            required={required}
+            disabled={loading}
+            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
+                loading ? 'cursor-wait opacity-70' : ''
+              }`}
+            showInfoButton={true}
+          />
+          
+          {/* Custom inputs for "others" options */}
+          {(formData.lineupCompany.toLowerCase() === "others" || formData.lineupProcess.toLowerCase() === "others") && (
+            <input
+              type="text"
+              value={formData.customLineupProcess || ""}
+              onChange={(e) => handleChange("customLineupProcess", e.target.value)}
+              placeholder="Custom process"
+              required={required && (formData.lineupCompany.toLowerCase() === "others" || formData.lineupProcess.toLowerCase() === "others")}
+              className={`mt-1.5 px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full`}
+            />
+          )}
+        </div>
+      )
+    },
+    { 
+      label: "Lineup Date", 
+      key: "lineupDate", 
+      icon: <MdAccessTime />, 
+      type: "date",
+      required: formData.callStatus === "Lineup",
+      inputClass: "w-full",
+      hidden: formData.callStatus !== "Lineup" 
+    },
+    { 
+      label: "Interview Date", 
+      key: "interviewDate", 
+      icon: <MdAccessTime />, 
+      type: "date",
+      required: formData.callStatus === "Lineup",
+      inputClass: "w-full",
+      hidden: formData.callStatus !== "Lineup" 
+    },
+    { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: true, inputClass: "w-full" },
+    { 
+      label: "Remarks", 
+      key: "remarks", 
+      icon: <MdNotes />, 
+      type: "textarea",
+      required: formData.callStatus === "Lineup" || formData.callStatus === "Walkin at Infidea",
+      inputClass: "w-full",
+      hidden: formData.callStatus !== "Lineup" && formData.callStatus !== "Walkin at Infidea",
+      span: "md:col-span-4 lg:col-span-4"
+    },
+  ];
+
+  // Show locality field only when city is Indore
+  const showLocalityField = formData.city.toLowerCase() === "indore";
+
+  // If the modal is not open, don't render anything
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
+        onClick={onClose}
+      ></div>
+
+      {/* Modal content */}
+      <div className={`relative z-10 max-w-6xl w-11/12 max-h-[90vh] overflow-y-auto rounded-lg shadow-xl ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-800'}`}>
+        <div className={`sticky top-0 z-30 flex justify-between items-center p-4 border-b bg-white dark:bg-gray-900 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+          <h2 className={`text-xl font-bold ${darkMode ? 'text-[#e2692c]' : 'text-[#1a5d96]'}`}>
+            Edit Call Information
+          </h2>
+          <button
+            onClick={onClose}
+            className={`p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors`}
+          >
+            <MdClose className="text-2xl" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4">
+          {/* All fields in a grid layout */}
+          <div className="rounded-lg p-4 shadow-md border dark:bg-gray-800 dark:border-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3">
+              {fields.map(({ label, key, type, icon, inputClass, options, required, pattern, maxLength, ref, hasCheckbox, checkboxLabel, disabled, hidden, loading, readOnly, span, render }) => {
+                // Skip rendering if the field should be hidden
+                if (hidden) {
+                  return null;
+                }
+
+                // Use custom render function if provided (for ProcessSelector)
+                if (type === "custom" && render) {
+                  return (
+                    <div key={key} className={span || ""}>
+                      {render({ key, label, options, required, inputClass })}
+                    </div>
+                  );
+                }
+                
+                // Insert locality field right after city field when city is Indore
+                if (key === "city" && showLocalityField) {
+                  return (
+                    <React.Fragment key={key}>
+                      <div className="flex flex-col relative">
+                        <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <span className="text-base">{icon}</span>
+                          {label}
+                          {required && <span className="text-red-500">*</span>}
+                        </label>
+                        {type === "select" ? (
+                          <select
+                            value={formData[key]}
+                            onChange={(e) => handleChange(key, e.target.value)}
+                            required={required}
+                            disabled={loading}
+                            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
+                                loading ? 'cursor-wait opacity-70' : ''
+                              }`}
+                          >
+                            {options && options.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        ) : type === "textarea" ? (
+                          <textarea
+                            value={formData[key]}
+                            onChange={(e) => handleChange(key, e.target.value)}
+                            placeholder={`Enter ${label.toLowerCase()}...`}
+                            required={required}
+                            className={`px-2.5 py-1.5 h-24 text-sm rounded-md ${darkMode 
+                              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none ${inputClass}`}
+                          />
+                        ) : (
+                          <input
+                            type={type || "text"}
+                            value={formData[key]}
+                            onChange={(e) => handleChange(key, e.target.value)}
+                            placeholder={label}
+                            required={key === "whatsappNumber" ? !sameAsContact : required}
+                            pattern={pattern}
+                            maxLength={maxLength}
+                            ref={ref}
+                            disabled={disabled || (key === "contactNumber" && duplicateInfo !== null)}
+                            readOnly={key === "contactNumber" || undefined}
+                            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
+                                disabled || key === "contactNumber" || (key === "contactNumber" && duplicateInfo !== null) ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
+                              } ${(key === "contactNumber" && duplicateInfo !== null) ? 'border-red-500 dark:border-red-500' : ''}`}
+                          />
+                        )}
+                      </div>
+                      
+                      {/* Show validation error for contact number */}
+                      {key === "contactNumber" && phoneError && (
+                        <div className="text-xs text-red-500 mt-1">{phoneError}</div>
+                      )}
+                      
+                      {/* Locality Field as Dropdown */}
+                      <div className="flex flex-col">
+                        <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <span className="text-base"><MdLocationOn /></span>
+                          Locality
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={formData.locality}
+                          onChange={(e) => handleChange("locality", e.target.value)}
+                          required={true}
+                          disabled={loadingDropdownData.localities}
+                          className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                            ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full ${
+                              loadingDropdownData.localities ? 'cursor-wait opacity-70' : ''
+                            }`}
+                        >
+                          {localityOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </React.Fragment>
+                  );
+                }
+                
+                // Skip locality field as it's handled separately
+                if (key === "locality") return null;
+                
+                // Special handling for textarea type (remarks)
+                if (type === "textarea") {
+                  return (
+                    <div key={key} className={`flex flex-col relative ${span || "md:col-span-4 lg:col-span-4"}`}>
+                      <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <span className="text-base">{icon}</span>
+                        {label}
+                        {required && <span className="text-red-500">*</span>}
+                      </label>
+                      <textarea
+                        value={formData.remarks}
+                        onChange={(e) => handleChange(key, e.target.value)}
+                        placeholder={`Enter ${label.toLowerCase()}...`}
+                        required={required}
+                        className={`px-2.5 py-1.5 h-20 text-sm rounded-md ${darkMode 
+                          ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                          : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none ${inputClass}`}
+                      />
+                    </div>
+                  );
+                }
+                
+                return (
+                  <div key={key} className="flex flex-col relative">
+                    <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <span className="text-base">{icon}</span>
+                      {label}
+                      {required && <span className="text-red-500">*</span>}
+                    </label>
+                    
+                    {type === "select" ? (
+                      <>
+                        <select
+                          value={formData[key]}
+                          onChange={(e) => handleChange(key, e.target.value)}
+                          required={required}
+                          disabled={loading}
+                          className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                            ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
+                              loading ? 'cursor-wait opacity-70' : ''
+                            }`}
+                        >
+                          {options && options.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        
+                        {/* Custom inputs for "others" options */}
+                        {key === "lineupCompany" && (formData.lineupCompany.toLowerCase() === "others" || formData.lineupProcess.toLowerCase() === "others") && (
+                          <input
+                            type="text"
+                            value={formData.customLineupCompany || ""}
+                            onChange={(e) => handleChange("customLineupCompany", e.target.value)}
+                            placeholder="Custom company"
+                            required={required && formData.lineupCompany.toLowerCase() === "others"}
+                            className={`mt-1.5 px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full`}
+                          />
+                        )}
+                        
+                        {key === "lineupProcess" && (formData.lineupCompany.toLowerCase() === "others" || formData.lineupProcess.toLowerCase() === "others") && (
+                          <input
+                            type="text"
+                            value={formData.customLineupProcess || ""}
+                            onChange={(e) => handleChange("customLineupProcess", e.target.value)}
+                            placeholder="Custom process"
+                            required={required && formData.lineupProcess.toLowerCase() === "others"}
+                            className={`mt-1.5 px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full`}
+                          />
+                        )}
+                        
+                        {key === "companyProfile" && formData.companyProfile === "others" && (
+                          <input
+                            type="text"
+                            value={formData.customCompanyProfile || ""}
+                            onChange={(e) => handleChange("customCompanyProfile", e.target.value)}
+                            placeholder="Custom profile"
+                            required={required && formData.companyProfile === "others"}
+                            className={`mt-1.5 px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full`}
+                          />
+                        )}
+                      </>
+                    ) : type === "textarea" ? (
+                      <textarea
+                        value={formData[key]}
+                        onChange={(e) => handleChange(key, e.target.value)}
+                        placeholder={`Enter ${label.toLowerCase()}...`}
+                        required={required}
+                        className={`px-2.5 py-1.5 h-24 text-sm rounded-md ${darkMode 
+                          ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                          : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none ${inputClass}`}
+                      />
+                    ) : (
+                      <>
+                        <input
+                          type={type || "text"}
+                          value={formData[key]}
+                          onChange={(e) => handleChange(key, e.target.value)}
+                          placeholder={label}
+                          required={key === "whatsappNumber" ? !sameAsContact : required}
+                          pattern={pattern}
+                          maxLength={maxLength}
+                          disabled={disabled || (key === "contactNumber" && duplicateInfo !== null)}
+                          readOnly={key === "contactNumber" || undefined}
+                          className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                            ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
+                              disabled || key === "contactNumber" || (key === "contactNumber" && duplicateInfo !== null) ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
+                            } ${(key === "contactNumber" && duplicateInfo !== null) ? 'border-red-500 dark:border-red-500' : ''}`}
+                        />
+                        
+                        {/* Show duplicate info for contact number */}
+                        {key === "contactNumber" && duplicateInfo !== null && (
+                          <div className="text-xs text-red-500 mt-1 flex items-center">
+                            <MdError className="mr-1" />
+                            <span>
+                              Duplicate entry: Registered by {duplicateInfo.registeredBy || 'someone'} 
+                              {duplicateInfo.remainingDays !== undefined ? 
+                                ` (${duplicateInfo.remainingDays} days remaining)` : 
+                                ''}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Show validation error for contact number */}
+                        {key === "contactNumber" && phoneError && !duplicateInfo && (
+                          <div className="text-xs text-red-500 mt-1">{phoneError}</div>
+                        )}
+
+                        {/* Show loading indicator while checking for duplicates */}
+                        {key === "contactNumber" && checkingDuplicate && (
+                          <div className="text-xs text-blue-500 mt-1">Checking number...</div>
+                        )}
+                        
+                        {/* Checkbox for copying contact number to WhatsApp */}
+                        {hasCheckbox && (
+                          <div className="mt-0.5">
+                            <label
+                              className="flex items-center gap-1.5 text-xs cursor-pointer"
+                              tabIndex={0}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  handleSameAsContactChange({
+                                    target: { checked: !sameAsContact }
+                                  });
+                                }
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={sameAsContact}
+                                onChange={handleSameAsContactChange}
+                                className={`rounded h-3.5 w-3.5 ${darkMode ? 'text-[#e2692c] focus:ring-[#e2692c]' : 'text-[#1a5d96] focus:ring-[#1a5d96]'}`}
+                              />
+                              <span className="text-xs">{checkboxLabel}</span>
+                            </label>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Call Summary Field */}
+            <div className="mt-3 grid grid-cols-1">
+              <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <span className="text-base"><MdNotes /></span>
+                Call Summary
+                <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={formData.callSummary}
+                onChange={(e) => handleChange("callSummary", e.target.value)}
+                placeholder="Enter call summary..."
+                required
+                className={`px-2.5 py-1.5 h-20 w-full text-sm rounded-md ${darkMode 
+                  ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                  : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none`}
+              />
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-center mt-3">
+            {isLocked && isRegisteredByMe ? (
+              <div className="text-xs text-red-500">
+                You are not authorized to update this call.
+              </div>
+            ) : loading ? (
+              <Loader size="30" speed="1.75" />
+            ) : (
+              <button
+                type="submit"
+                className={`px-5 py-2.5 ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white rounded-md text-sm shadow-md flex items-center gap-1.5 transition-colors`}
+                disabled={loading || duplicateInfo !== null}
+              >
+                <MdUpdate className="text-base" />
+                Update
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default CallDetailsEditModal;

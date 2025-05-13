@@ -1,0 +1,294 @@
+import { TableBody, TableCell, TableRow } from "@windmill/react-ui";
+import { useState } from "react";
+import { FaEdit, FaEye, FaLock, FaUnlock, FaInfoCircle } from "react-icons/fa";
+
+// Internal imports
+import { formatLongDateAndTime } from "@/utils/dateFormatter";
+import { MdInfo } from "react-icons/md";
+
+
+
+const CandidatesTable = ({candidates, onView, onEdit}) => {
+
+  // Helper function to get status color
+  const getStatusColorClass = (status) => {
+    switch(status) {
+      case "Call Back Requested":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "Client Call":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
+      case "Inhouse Hr In Touch":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      case "Lineup":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "Not Aligned Anywhere":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+      case "Not Looking for Job":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+      case "Not Picking Call":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      case "Not Reachable":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      case "Walkin at Infidea":
+        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+    }
+  };
+
+  // Calculate total call duration from call history
+  const getTotalCallDuration = (employeeCallHistory) => {
+    if (!employeeCallHistory || employeeCallHistory.length === 0) return "No call made yet";
+    
+    const totalMinutes = employeeCallHistory.reduce((total, call) => {
+      // Extract numeric value from duration string (assuming format like "5 min")
+      const minutes = parseInt(call.duration?.split(' ')[0]) || 0;
+      return total + minutes;
+    }, 0);
+    
+    return totalMinutes <= 1 ? `${totalMinutes} minute` : `${totalMinutes} minutes`;
+  };
+
+  // Format individual call history for tooltip
+  const formatCallHistory = (employeeCallHistory) => {
+    if (!employeeCallHistory || employeeCallHistory.length === 0) return "No call history";
+    
+    // Sort the call history to show latest calls at the top (descending order by date)
+    const sortedHistory = [...employeeCallHistory].sort((a, b) => 
+      new Date(b.date) - new Date(a.date)
+    );
+    
+    return sortedHistory.sort((a, b) => new Date(b.date) - new Date(a.date)).map((call, index) => (
+      `Call ${employeeCallHistory.length - index}: ${call.duration<=1?`${call.duration} minute`:`${call.duration} minutes`} (${formatLongDateAndTime(call.date)})`
+    )).join('\n');
+  };
+
+  const formatCallSummary = (employeeCallHistory) => {
+    if (!employeeCallHistory || employeeCallHistory.length === 0) return "No call summary";
+    
+    return employeeCallHistory?.map((call) => call.summary).join('\n');
+  };
+
+  return (
+    <>
+      <TableBody className="dark:bg-gray-900">
+        {candidates?.map((candidate, i) => (
+          <TableRow key={i} className="text-center">
+        
+          {/* Actions*/}
+          <TableCell className="flex justify-center items-center">
+            <div className="flex space-x-2">
+              <button
+                onClick={() => onView(candidate)}
+                className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-blue-600 hover:text-blue-700 dark:hover:text-blue-500"
+                title="View details"
+              >
+                <FaEye className="w-3.5 h-3.5" />
+              </button>
+              {(!candidate?.isLocked || (candidate?.isLocked && candidate?.isLockedByMe)) && (
+                <button
+                  onClick={() => onEdit(candidate)}
+                  className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-green-600 hover:text-green-700 dark:hover:text-green-500"
+                  title="Edit"
+                >
+                  <FaEdit className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </TableCell>
+
+          {/*Entry By*/}
+          <TableCell>
+            <span className="text-sm">{candidate?.createdByName}</span>
+          </TableCell>
+
+          {/* Entry Date */}
+          <TableCell>
+            <span className="text-sm">{formatLongDateAndTime(candidate?.createdAt)}</span>
+          </TableCell>
+
+          {/* Updated Date */}
+          <TableCell>
+            <span className="text-sm">{formatLongDateAndTime(candidate?.updatedAt)}</span>
+          </TableCell>
+
+             {/* Locked */}
+             <TableCell>
+              {candidate?.isLocked ? (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 text-xs font-medium">
+                  <FaLock className="w-3 h-3 mr-1" />
+                  {candidate?.isLockedByMe ? 'Under me' : 'Locked'}
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 text-xs font-medium">
+                  <FaUnlock className="w-3 h-3 mr-1" />
+                  Open for All
+                </span>
+              )}
+            </TableCell>
+
+          
+             {/* Expiry */}
+             <TableCell>
+              {candidate?.remainingTime
+                ? (
+                  <span className="text-sm rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs font-medium px-1.5 py-0.5">
+                    {candidate.remainingTime}
+                  </span>
+                )
+                : candidate?.remainingDays
+                  ? (
+                    <span className="text-sm rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs font-medium px-1.5 py-0.5">
+                      {candidate.remainingDays==1?`${candidate.remainingDays} day`:`${candidate.remainingDays} days`}
+                    </span>
+                  )
+                  : (
+                    <span className="text-sm inline-flex items-center rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-300 text-xs font-medium px-1.5 py-0.5">
+                  Free to use
+                    </span>
+                  )
+                  
+              }
+            </TableCell>
+            
+
+          {/* Call Duration*/}
+          <TableCell>
+            <div className="flex items-center justify-center space-x-1">
+              <span className="text-sm">{getTotalCallDuration(candidate?.employeeCallHistory)}</span>
+              {candidate?.employeeCallHistory && candidate.employeeCallHistory.length > 0 && (
+                <div className="static inline-block">
+                  <MdInfo className="w-3.5 h-3.5 text-blue-500 cursor-help hover:text-blue-700" 
+                    onMouseEnter={(e) => {
+                      const tooltip = e.currentTarget.nextElementSibling;
+                      if (tooltip) tooltip.classList.remove('hidden');
+                    }}
+                    onMouseLeave={(e) => {
+                      const tooltip = e.currentTarget.nextElementSibling;
+                      if (tooltip) tooltip.classList.add('hidden');
+                    }}
+                  />
+                  <div className="hidden absolute z-[9999] w-64 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg transform -translate-x-1/2  text-left">
+                    <div className="text-xs font-medium text-gray-800 dark:text-gray-200 whitespace-pre-line overflow-y-auto max-h-40">
+                      {formatCallHistory(candidate.employeeCallHistory)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TableCell>
+
+          {/* Call Status*/}
+          <TableCell>
+          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColorClass(candidate?.callStatus)}`}>
+          {candidate?.callStatus}
+        </span>
+          </TableCell>
+
+{/* Name*/}
+<TableCell>
+          <span className="text-sm" >
+            {candidate?.name}
+          </span>
+        </TableCell>
+
+        {/* Contatc Number */}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.mobileNo}
+          </span>
+        </TableCell>
+
+        {/* WhatsApp Number*/}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.whatsappNo}
+          </span>
+        </TableCell>
+
+{/* Experience Level*/}
+<TableCell>
+          <span className="text-sm" >
+            {candidate?.experience}
+          </span>
+        </TableCell>
+
+        {/* Communication */}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.communication}
+          </span>
+        </TableCell>
+
+        {/* Company Profile */}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.companyProfile}
+          </span>
+        </TableCell>
+
+        {/* Salary Expectation */}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.salaryExpectation}
+          </span>
+        </TableCell>
+
+        {/* Work Shift*/}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.shift}
+          </span>
+        </TableCell>
+
+        {/* Notice Period*/}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.noticePeriod}
+          </span>
+        </TableCell>
+
+        {/* Gender*/}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.gender}
+          </span>
+        </TableCell>
+
+        {/* Call Source*/}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.source}
+          </span>
+        </TableCell>
+
+        {/* Call Summary*/}
+        <TableCell>
+          <span className="text-sm max-w-xs inline-block overflow-hidden text-ellipsis whitespace-nowrap" title={formatCallSummary(candidate?.callDurationHistory)}>
+            {formatCallSummary(candidate?.callDurationHistory) ? (formatCallSummary(candidate?.callDurationHistory).length > 50 ? formatCallSummary(candidate?.callDurationHistory).substring(0, 50) + '...' : formatCallSummary(candidate?.callDurationHistory)) : ''}
+          </span>
+        </TableCell>
+
+        {/* Status
+        <TableCell>
+          <span className={`text-sm font-semibold px-2 py-1 rounded-full ${
+            candidate?.status === "Not Picked" ? "bg-emerald-100 text-emerald-600" : 
+            candidate?.status === "Not Reachable" ? "bg-red-100 text-red-600" : 
+            candidate?.status === "Messaged" ? "bg-blue-100 text-blue-600" : 
+            candidate?.status === "Called" ? "bg-yellow-100 text-yellow-600" : 
+            candidate?.status === "Pending" ? "bg-orange-100 text-orange-600" :
+            "bg-gray-100 text-gray-600"
+          }`}>
+            {candidate?.status?.charAt(0).toUpperCase() + candidate?.status?.slice(1)}
+          </span>
+        </TableCell> */}
+        
+      
+      </TableRow>
+    ))}
+  </TableBody>
+</>
+);
+};
+
+export default CandidatesTable; 
