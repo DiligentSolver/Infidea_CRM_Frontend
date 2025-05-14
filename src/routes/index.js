@@ -2,20 +2,8 @@ import { lazy } from "react";
 
 // use lazy for better code splitting
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Staff = lazy(() => import("@/pages/Staff"));
-const Applicants = lazy(() => import("@/pages/Applicants"));
-const Users = lazy(() => import("@/pages/Users"));
-const JobSeeker = lazy(() => import("@/pages/User"));
-const Jobs = lazy(() => import("@/pages/Jobs"));
-const Job = lazy(() => import("@/pages/Job"));
-const PostJob = lazy(() => import("@/pages/PostJob"));
-const ManageCompanies = lazy(() => import("@/pages/ManageCompanies"));
-const Companies = lazy(() => import("@/pages/Companies"));
-// const Setting = lazy(() => import("@/pages/Setting"));
 const Page404 = lazy(() => import("@/pages/404"));
 const EditProfile = lazy(() => import("@/pages/EditProfile"));
-const Languages = lazy(() => import("@/pages/Languages"));
-const Setting = lazy(() => import("@/pages/Setting"));
 const Notifications = lazy(() => import("@/pages/Notifications"));
 const CallInfo = lazy(() => import("@/pages/Call_Info"));
 const CallDetails = lazy(() => import("@/pages/CallDetails"));
@@ -40,46 +28,6 @@ const routes = [
   {
     path: "/dashboard",
     component: Dashboard,
-  },
-  {
-    path: "/languages",
-    component: Languages,
-  },
-  {
-    path: "/users",
-    component: Users,
-  },
-  {
-    path: "/jobseeker/:id",
-    component: JobSeeker,
-  },
-  {
-    path: "/job/:id",
-    component: Job,
-  },
-  {
-    path: "/our-staff",
-    component: Staff,
-  },
-  {
-    path: "/companies",
-    component: Companies,
-  },
-  {
-    path: "/manage-companies",
-    component: ManageCompanies,
-  },
-  {
-    path: "/jobs",
-    component: Jobs,
-  },
-  {
-    path: "/post-job",
-    component: PostJob,
-  },
-  {
-    path: "/applicants",
-    component: Applicants,
   },
   {
     path: "/activities",
@@ -129,37 +77,9 @@ const routeAccessList = [
   //   value: "/",
   // },
   { label: "Dashboard", value: "dashboard" },
-  { label: "Products", value: "products" },
-  { label: "Categories", value: "categories" },
-  { label: "Attributes", value: "attributes" },
-  { label: "Coupons", value: "coupons" },
-  { label: "Users", value: "users" },
-  { label: "Applicants", value: "applicants" },
-  { label: "Orders", value: "orders" },
-  { label: "Staff", value: "our-staff" },
-  { label: "Settings", value: "settings" },
-  { label: "Languages", value: "languages" },
-  { label: "Currencies", value: "currencies" },
-  { label: "ViewStore", value: "store" },
-  { label: "StoreCustomization", value: "customization" },
-  { label: "StoreSettings", value: "store-settings" },
-  { label: "Product Details", value: "product" },
-  { label: "Order Invoice", value: "order" },
+  { label: "Notifications", value: "notifications" },
   { label: "Edit Profile", value: "edit-profile" },
-  { label: "Post a Job", value: "post-job" },
-  { label: "Companies", value: "companies" },
-  { label: "Manage Companies", value: "manage-companies" },
-  {
-    label: "JobSeeker",
-    value: "jobseeker",
-  },
-  {
-    label: "Job",
-    value: "job",
-  },
   { label: "Notification", value: "notifications" },
-  { label: "Coming Soon", value: "coming-soon" },
-  { label: "Jobs", value: "jobs" },
   { label: "Call Info", value: "call-info" },
   { label: "Call Details", value: "call-details" },
   { label: "Joinings", value: "joinings" },
