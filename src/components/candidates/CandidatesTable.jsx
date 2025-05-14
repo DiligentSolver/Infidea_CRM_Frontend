@@ -5,35 +5,15 @@ import { FaEdit, FaEye, FaLock, FaUnlock, FaInfoCircle } from "react-icons/fa";
 // Internal imports
 import { formatLongDateAndTime } from "@/utils/dateFormatter";
 import { MdInfo } from "react-icons/md";
-
-
+import { getStatusColorClass } from "@/utils/optionsData";
 
 const CandidatesTable = ({candidates, onView, onEdit}) => {
 
-  // Helper function to get status color
-  const getStatusColorClass = (status) => {
-    switch(status) {
-      case "Call Back Requested":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-      case "Client Call":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
-      case "Inhouse Hr In Touch":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case "Lineup":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      case "Not Aligned Anywhere":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
-      case "Not Looking for Job":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
-      case "Not Picking Call":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-      case "Not Reachable":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-      case "Walkin at Infidea":
-        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
-    }
+  // Use a wrapper function that handles null/undefined status values
+  const getStatusColor = (status) => {
+    // Ensure status is a non-empty string before applying color
+    if (!status) return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+    return getStatusColorClass(status);
   };
 
   // Calculate total call duration from call history
@@ -180,8 +160,8 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
 
           {/* Call Status*/}
           <TableCell>
-          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColorClass(candidate?.callStatus)}`}>
-          {candidate?.callStatus}
+          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(candidate?.callStatus)}`}>
+          {candidate?.callStatus || 'No status'}
         </span>
           </TableCell>
 

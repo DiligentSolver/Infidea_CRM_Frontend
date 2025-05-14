@@ -27,79 +27,15 @@ const sidebar = [
     icon: FiGrid, // icon
     name: "Dashboard", // name that appear in Sidebar
   },
-
   {
     path: "/call-info",
     icon: FiPhoneCall,
     name: "Call Info",
   },
-
-  {
-    path: "/users",
-    icon: FiUsers,
-    name: "Users",
-  },
-
-  {
-    path: "/jobs",
-    icon: FiBriefcase,
-    name: "Jobs",
-  },
-
-  {
-    path: "/applicants",
-    icon: IoDocument,
-    name: "Applicants",
-  },
-
-  {
-    path: "/our-staff",
-    icon: FiUser,
-    name: "OurStaff",
-  },
-
-  {
-    path: "/companies",
-    icon: FiBriefcase,
-    name: "Companies",
-  },
-
-  {
-    path: "/manage-companies",
-    icon: FiBriefcase,
-    name: "ManageCompanies",
-  },
-
-  {
-    path: "/post-job",
-    icon: BsFillBriefcaseFill,
-    name: "PostJob",
-  },
-
-  {
-    path: "/settings?settingTab=common-settings",
-    icon: FiSettings,
-    name: "Settings",
-  },
-  {
-    icon: FiGlobe,
-    name: "International",
-    routes: [
-      {
-        path: "/languages",
-        name: "Languages",
-      },
-    ],
-  },
   {
     path: "/call-details",
     icon: MdEditDocument,
     name: "Call Details",
-  },
-  {
-    path: "/joinings",
-    icon: MdJoinFull,
-    name: "Joinings",
   },
   {
     path: "/lineups",
@@ -111,18 +47,79 @@ const sidebar = [
     icon: MdDirectionsWalk,
     name: "Walkins",
   },
-
+  {
+    path: "/joinings",
+    icon: MdJoinFull,
+    name: "Joinings",
+  },
+  {
+    path: "/leaves",
+    icon: FiCalendar,
+    name: "Leaves",
+  },
   {
     path: "/activities",
     icon: FiActivity,
     name: "Activities",
   },
 
-  {
-    path: "/leaves",
-    icon: FiCalendar,
-    name: "Leaves",
-  },
+  // {
+  //   path: "/users",
+  //   icon: FiUsers,
+  //   name: "Users",
+  // },
+
+  // {
+  //   path: "/jobs",
+  //   icon: FiBriefcase,
+  //   name: "Jobs",
+  // },
+
+  // {
+  //   path: "/applicants",
+  //   icon: IoDocument,
+  //   name: "Applicants",
+  // },
+
+  // {
+  //   path: "/our-staff",
+  //   icon: FiUser,
+  //   name: "OurStaff",
+  // },
+
+  // {
+  //   path: "/companies",
+  //   icon: FiBriefcase,
+  //   name: "Companies",
+  // },
+
+  // {
+  //   path: "/manage-companies",
+  //   icon: FiBriefcase,
+  //   name: "ManageCompanies",
+  // },
+
+  // {
+  //   path: "/post-job",
+  //   icon: BsFillBriefcaseFill,
+  //   name: "PostJob",
+  // },
+
+  // {
+  //   path: "/settings?settingTab=common-settings",
+  //   icon: FiSettings,
+  //   name: "Settings",
+  // },
+  // {
+  //   icon: FiGlobe,
+  //   name: "International",
+  //   routes: [
+  //     {
+  //       path: "/languages",
+  //       name: "Languages",
+  //     },
+  //   ],
+  // },
 ];
 
 export default sidebar;

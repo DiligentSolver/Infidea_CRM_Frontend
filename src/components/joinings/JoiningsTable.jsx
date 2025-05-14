@@ -4,13 +4,20 @@ import { useTranslation } from "react-i18next";
 // Internal imports
 import { formatLongDate, formatLongDateAndTime } from "@/utils/dateFormatter";
 import { FaEdit, FaEye } from "react-icons/fa";
-import { joiningStatusOptions, getStatusColorClass } from "@/utils/optionsData";
+import { joiningStatusOptions } from "@/utils/optionsData";
 
 const JoiningsTable = ({joinings, onView}) => {
 
   // Helper function to get status color
   const getStatusColor = (status) => {
-    return getStatusColorClass(status);
+    // Ensure status is a non-empty string before applying color
+    if (!status) return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+    
+    // Use joiningStatusOptions instead of general statusOptions
+    const found = joiningStatusOptions.find((option) => option.value === status);
+    return found
+      ? found.colorClass
+      : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
   };
 
   return (
@@ -83,9 +90,13 @@ const JoiningsTable = ({joinings, onView}) => {
 
           {/* Status*/}
           <TableCell>
-          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(joining?.status)}`}>
-          {joining?.status}
-        </span>
+          {joining?.status ? (
+            <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(joining?.status)}`}>
+              {joining.status}
+            </span>
+          ) : (
+            <span className="text-sm text-gray-500">No status</span>
+          )}
           </TableCell>
 
           {/*Eligibility*/}
