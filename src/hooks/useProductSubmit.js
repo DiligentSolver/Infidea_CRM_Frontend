@@ -1,7 +1,7 @@
 import combinate from "combinate";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import swal from "sweetalert";
 
 //internal import

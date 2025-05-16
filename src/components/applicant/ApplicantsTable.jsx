@@ -1,7 +1,7 @@
 import { TableBody, TableCell, TableRow } from "@windmill/react-ui";
 import { useTranslation } from "react-i18next";
 import { FiDownload, FiUser} from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import Cookies from "js-cookie";
 import httpService from "@/services/httpService"; // Import your http service
 

@@ -14,7 +14,7 @@ import { Scrollbars } from "react-custom-scrollbars-2";
 import { MultiSelect } from "react-multi-select-component";
 import { Modal } from "react-responsive-modal";
 import "react-responsive-modal/styles.css";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { FiX } from "react-icons/fi";
 

@@ -3,7 +3,7 @@ import React, { useContext } from "react";
 import { FiTrash2 } from "react-icons/fi";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 //internal import
 import spinnerLoadingImage from "@/assets/img/spinner.gif";

@@ -4,11 +4,11 @@ import isToday from "dayjs/plugin/isToday";
 import isYesterday from "dayjs/plugin/isYesterday";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 import FlipCard from "@/components/flipcard/Flipcard";
 
 //internal import
 import useAsync from "@/hooks/useAsync";
-import useFilter from "@/hooks/useFilter";
 import AnimatedContent from "@/components/common/AnimatedContent";
 import EmployeeServices from "@/services/EmployeeServices";
 // import { useSocket } from "@/context/SocketContext";
@@ -23,6 +23,7 @@ import IncentivesChart from "@/components/dashboard/IncentivesChart";
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [loadingLiveFeeds, setLoadingLiveFeeds] = useState(true);
   const pollingIntervalRef = useRef(null);
   
@@ -63,6 +64,12 @@ const Dashboard = () => {
   const formatCurrency = (value) => {
     if (!value) return "₹0";
     return `₹${Number(value).toLocaleString('en-IN')}`;
+  };
+
+  // Handle navigation with filters
+  const handleNavigation = (path, params = {}) => {
+    const queryParams = new URLSearchParams(params).toString();
+    navigate(queryParams ? `${path}?${queryParams}` : path);
   };
   
   // // Function to fetch live feeds
@@ -135,35 +142,37 @@ const Dashboard = () => {
             <FlipCard 
               title="Calls" 
               data={dashboardAnalytics?.dashboardOverview?.totalCalls || 0} 
-              onTap={() => {window.location.href = "/call-details"}} 
+              onTap={() => handleNavigation("/call-details")} 
               loading={loadingDashboardAnalytics}
             />
             <FlipCard 
               title="Lineups" 
               data={dashboardAnalytics?.dashboardOverview?.totalLineups || 0} 
-              onTap={() => {window.location.href = "/lineups"}} 
+              onTap={() => handleNavigation("/lineups")} 
               loading={loadingDashboardAnalytics}
             />
             <FlipCard 
               title="Joinings" 
               data={dashboardAnalytics?.dashboardOverview?.totalJoinings || 0} 
-              onTap={() => {window.location.href = "/joinings"}} 
+              onTap={() => handleNavigation("/joinings")} 
               loading={loadingDashboardAnalytics}
             />
             <FlipCard 
               title="Selections" 
               data={dashboardAnalytics?.dashboardOverview?.totalSelections || 0}
+              onTap={() => handleNavigation("/lineups", { status: "selected" })}
               loading={loadingDashboardAnalytics}
             />
             <FlipCard 
               title="Offer Drops" 
               data={dashboardAnalytics?.dashboardOverview?.offerDrops || 0} 
+              onTap={() => handleNavigation("/lineups", { status: "offer drop" })}
               loading={loadingDashboardAnalytics}
             />
             <FlipCard 
               title="Leaves" 
               data={dashboardAnalytics?.dashboardOverview?.totalLeaves || 0} 
-              onTap={() => {window.location.href = "/leaves"}} 
+              onTap={() => handleNavigation("/leaves", { status: "approved" })} 
               loading={loadingDashboardAnalytics}
             />
             <FlipCard 
@@ -174,6 +183,7 @@ const Dashboard = () => {
             <FlipCard 
               title="Incentives" 
               data={formatCurrency(dashboardAnalytics?.dashboardOverview?.totalIncentives || 0)} 
+              onTap={() => handleNavigation("/joinings")}
               loading={loadingDashboardAnalytics}
             />
           </div>

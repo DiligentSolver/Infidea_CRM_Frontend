@@ -63,6 +63,15 @@ const EmployeeServices = {
   },
 
   /**
+   * Resend login OTP for employee authentication
+   * @param {Object} body - Request body
+   * @param {string} body.email - Employee email
+   */
+  resendLoginOtp: async (body) => {
+    return requests.post("/auth/employee/resend-login-otp", body);
+  },
+
+  /**
    * Get current authenticated Employee
    */
   getCurrentEmployee: async () => {
@@ -199,8 +208,13 @@ const EmployeeServices = {
    * Mark a candidate for the current employee
    * @param {string} mobileNo - Mobile number of the candidate
    */
+
   markCandidate: async (mobileNo) => {
     return requests.post(`/candidates/mark/${mobileNo}`);
+  },
+
+  checkDuplicityofInputField: async (mobileNo) => {
+    return requests.get(`/candidates/check-duplicate-input/${mobileNo}`);
   },
 
   bulkUploadCandidates: async (body) => {
@@ -309,6 +323,16 @@ const EmployeeServices = {
 
   logOut: async () => {
     return requests.post("/auth/employee/logout");
+  },
+
+  getEmployeeProfileImage: async () => {
+    return requests.get("/employee/employee-profile-image");
+  },
+
+  updateEmployeeProfileImage: async (body) => {
+    return requests.put(`/employee/update-employee-profile-image`, {
+      profileImage: body,
+    });
   },
 };
 export default EmployeeServices;

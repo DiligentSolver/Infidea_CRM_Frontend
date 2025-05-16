@@ -1,5 +1,5 @@
 import { Avatar, TableBody, TableCell, TableRow } from "@windmill/react-ui";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { IoRemoveSharp } from "react-icons/io5";
 
 //internal import

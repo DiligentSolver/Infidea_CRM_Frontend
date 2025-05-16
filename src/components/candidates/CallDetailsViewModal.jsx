@@ -1,8 +1,8 @@
 import { formatLongDate, formatLongDateAndTime } from "@/utils/dateFormatter";
-import { FaInfoCircle } from "react-icons/fa";
+import { FaPhoneAlt } from "react-icons/fa";
 import { MdInfo } from "react-icons/md";
 
-const CallDetailsViewModal = ({ call, onClose }) => {
+const CallDetailsViewModal = ({ call, onClose, onTryCall }) => {
   
 
   // Helper function to get status color
@@ -143,15 +143,25 @@ const formatCallHistory = (callDurationHistory) => {
       <div className="relative max-w-7xl mx-auto p-6 pr-8 rounded-xl shadow-lg w-full bg-white dark:bg-gray-800" style={{ maxHeight: '90vh', overflow: 'hidden' }}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-[#1a5d96] dark:text-[#e2692c]">Call Details</h2>
-          <button 
-            onClick={onClose} 
-            className="flex items-center justify-center w-10 h-10 rounded-full transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700"
-            aria-label="Close"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => onTryCall(call)} 
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 transition-colors text-white"
+              aria-label="Try a Call"
+            >
+              <FaPhoneAlt className="w-4 h-4" />
+              <span>Try a Call</span>
+            </button>
+            <button 
+              onClick={onClose} 
+              className="flex items-center justify-center w-10 h-10 rounded-full transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700"
+              aria-label="Close"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
         </div>
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
           <div className="rounded-xl p-5 shadow-lg border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-6">
@@ -169,7 +179,7 @@ const formatCallHistory = (callDurationHistory) => {
               })}
             </div>
           </div>
-          {call.employeeRemarksHistory.length > 0 && (
+          {call.employeeRemarksHistory && call.employeeRemarksHistory.length > 0 && (
             <>
               <hr className="my-6 border-gray-200 dark:border-gray-700" />
               <div className="rounded-xl p-5 shadow-lg border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-6">
@@ -178,7 +188,7 @@ const formatCallHistory = (callDurationHistory) => {
               </div>
             </>
           )}
-          {call.employeeCallHistory.length > 0 && (
+          {call.employeeCallHistory && call.employeeCallHistory.length > 0 && (
             <>
               <div className="rounded-xl p-5 shadow-lg border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-6">
                 <h3 className="text-lg font-semibold mb-3 text-[#1a5d96] dark:text-[#e2692c]">Call Summary</h3>

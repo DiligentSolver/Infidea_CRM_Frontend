@@ -1,5 +1,5 @@
 import notFound from "@/assets/img/404.svg";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { useEffect } from "react";
 
 const NotFoundPage = () => {

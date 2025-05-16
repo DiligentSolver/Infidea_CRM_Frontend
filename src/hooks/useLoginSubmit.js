@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useHistory, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import Cookies from "js-cookie";
 
 //internal import
@@ -14,7 +14,7 @@ const useLoginSubmit = () => {
   const [userId, setUserId] = useState(null);
   const [userEmail, setUserEmail] = useState("");
   const { dispatch } = useContext(AdminContext);
-  const history = useHistory();
+  const navigate = useNavigate();
   const location = useLocation();
   const {
     register,
@@ -72,7 +72,9 @@ const useLoginSubmit = () => {
             setUserId(null);
             setUserEmail("");
 
-            history.replace("/dashboard");
+            // Redirect to the intended page or dashboard
+            const redirectTo = location.state?.from || "/dashboard";
+            navigate(redirectTo, { replace: true });
           }
         } else {
           // Normal login flow
@@ -103,7 +105,10 @@ const useLoginSubmit = () => {
                 sameSite: "None",
                 secure: true,
               });
-              history.replace("/dashboard");
+
+              // Redirect to the intended page or dashboard
+              const redirectTo = location.state?.from || "/dashboard";
+              navigate(redirectTo, { replace: true });
             }
           }
         }
@@ -151,6 +156,13 @@ const useLoginSubmit = () => {
           emergencyContact,
           bankDetails,
         });
+
+        // Check if signup was successful and redirect to login page
+        if (res && res.success === true) {
+          notifySuccess(res.message || "Account created successfully!");
+          navigate("/login", { replace: true });
+          return res;
+        }
       }
 
       if (location.pathname === "/forgot-password") {
@@ -202,6 +214,20 @@ const useLoginSubmit = () => {
     setUserEmail("");
   };
 
+  // Resend Login OTP
+  const resendLoginOtp = async () => {
+    try {
+      if (!userEmail) {
+        return { success: false, message: "Email not found" };
+      }
+
+      const res = await EmployeeServices.resendLoginOtp({ email: userEmail });
+      return res;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   return {
     onSubmit,
     register,
@@ -213,6 +239,7 @@ const useLoginSubmit = () => {
     userEmail,
     resetOtpState,
     setValue,
+    resendLoginOtp,
   };
 };
 

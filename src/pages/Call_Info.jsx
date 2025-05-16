@@ -27,11 +27,10 @@ import { IoCashOutline } from "react-icons/io5";
 import EmployeeServices from "@/services/EmployeeServices";
 import { notifySuccess, notifyError } from "@/utils/toast";
 import Loader from "../components/sprinkleLoader/Loader";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import ProcessSelector from "@/components/common/ProcessSelector";
 import { 
   companyOptions as lineupCompanyOptions, 
-  processOptions as lineupProcessOptions, 
   callStatusOptions,
   noticePeriodOptions,
   shiftPreferenceOptions, 
@@ -91,6 +90,8 @@ function CallInfo() {
     callStatus: "",
     callSummary: "",
     callDuration: "",
+    jdReferenceCompany: "",
+    jdReferenceProcess: "",
     lineupCompany: "",
     customLineupCompany: "",
     lineupProcess: "",
@@ -285,6 +286,16 @@ function CallInfo() {
     }
   }, [formData.lineupCompany]);
 
+  // Add another useEffect to update process options when JD reference company changes
+  useEffect(() => {
+    setFilteredProcessOptions(getProcessesByCompany(formData.jdReferenceCompany || formData.lineupCompany));
+    
+    // Reset process selection when company changes (unless it's already a valid option)
+    if (formData.jdReferenceProcess && !getProcessesByCompany(formData.jdReferenceCompany).some(p => p.value === formData.jdReferenceProcess)) {
+      setFormData(prev => ({ ...prev, jdReferenceProcess: "" }));
+    }
+  }, [formData.jdReferenceCompany, formData.lineupCompany]);
+
   const handleChange = (field, value) => {
     if (field === "contactNumber") {
       // Validate phone number length
@@ -442,6 +453,8 @@ function CallInfo() {
         callStatus: "",
         callSummary: "",
         callDuration: "",
+        jdReferenceCompany: "",
+        jdReferenceProcess: "",
         lineupCompany: "",
         customLineupCompany: "",
         lineupProcess: "",
@@ -559,6 +572,8 @@ function CallInfo() {
         callStatus: "",
         callSummary: "",
         callDuration: "",
+        jdReferenceCompany: "",
+        jdReferenceProcess: "",
         lineupCompany: "",
         customLineupCompany: "",
         lineupProcess: "",
@@ -777,6 +792,48 @@ function CallInfo() {
       hidden: formData.callStatus !== "Lineup" 
     },
     { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: true, inputClass: "w-full" },
+    { 
+      label: "JD Reference - Company", 
+      key: "jdReferenceCompany", 
+      icon: <MdBusinessCenter />, 
+      type: "select", 
+      options: lineupCompanyOptions,
+      required: false,
+      inputClass: "w-full"
+    },
+    { 
+      label: "JD Reference - Process", 
+      key: "jdReferenceProcess", 
+      icon: <MdTask />, 
+      type: "custom", 
+      options: filteredProcessOptions,
+      required: false,
+      inputClass: "w-full",
+      render: ({ key, label, options, required, inputClass }) => (
+        <div className="flex flex-col relative">
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base"><MdTask /></span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
+          <ProcessSelector
+            name={key}
+            value={formData[key] || ""}
+            onChange={(e) => handleChange(key, e.target.value)}
+            options={options}
+            required={required}
+            disabled={loading || duplicateInfo !== null}
+            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
+                (loading || duplicateInfo !== null) ? 'cursor-not-allowed opacity-70' : ''
+              }`}
+            showInfoButton={true}
+            phoneNumber={formData.whatsappNumber}
+          />
+        </div>
+      )
+    },
     { 
       label: "Remarks", 
       key: "remarks", 

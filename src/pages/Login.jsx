@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router";
 import { Button } from "@windmill/react-ui";
 import { useTranslation } from "react-i18next";
 
@@ -10,6 +10,7 @@ import ImageLight from "@/assets/img/login-office.jpeg";
 import ImageDark from "@/assets/img/login-office-dark.jpeg";
 import useLoginSubmit from "@/hooks/useLoginSubmit";
 import Loader from "@/components/sprinkleLoader/Loader";
+import { notifyError, notifySuccess } from "@/utils/toast";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -21,13 +22,45 @@ const Login = () => {
     loading, 
     otpRequired, 
     userEmail, 
-    resetOtpState 
+    resetOtpState,
+    resendLoginOtp
   } = useLoginSubmit();
+  
+  const [resending, setResending] = useState(false);
+  const [timer, setTimer] = useState(30); // 30 seconds cooldown for resend
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSubmit(onSubmit)();
+  // Set up timer for OTP resend
+  useEffect(() => {
+    let interval = null;
+    if (otpRequired && timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer, otpRequired]);
+
+  // Reset timer when OTP verification is triggered
+  useEffect(() => {
+    if (otpRequired) {
+      setTimer(30);
+    }
+  }, [otpRequired]);
+
+  const handleResendOtp = async () => {
+    try {
+      setResending(true);
+      const res = await resendLoginOtp();
+      if (res && res.success) {
+        notifySuccess(res.message || "OTP resent successfully");
+        setTimer(30); // Reset the timer
+      } else {
+        notifyError(res?.message || "Failed to resend OTP");
+      }
+    } catch (err) {
+      notifyError(err?.response?.data?.message || err?.response?.data?.error || err?.message || "Failed to resend OTP");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -55,7 +88,7 @@ const Login = () => {
                 <h1 className="mb-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">
                   {otpRequired ? "Enter Verification Code" : "Welcome Back!"}
                 </h1>
-                <form onSubmit={handleSubmit(onSubmit)} onKeyDown={handleKeyDown}>
+                <form onSubmit={handleSubmit(onSubmit)}>
                   {otpRequired ? (
                     <>
                       <div className="mb-4">
@@ -79,6 +112,31 @@ const Login = () => {
                         placeholder="Enter verification code"
                       />
                       <Error errorName={errors.otp} />
+                      
+                      <div className="mb-4 mt-2">
+                        {timer > 0 ? (
+                          <div className="flex items-center">
+                            <p className="text-sm text-emerald-500 dark:text-emerald-400">
+                              Resend code in {timer} seconds
+                            </p>
+                          </div>
+                        ) : (
+                          <button 
+                            type="button" 
+                            onClick={handleResendOtp}
+                            disabled={resending}
+                            className="text-sm font-medium text-emerald-500 dark:text-emerald-400 hover:underline"
+                          >
+                            {resending ? (
+                              <span className="flex items-center">
+                                <Loader size="20" /> Sending...
+                              </span>
+                            ) : (
+                              "Resend verification code"
+                            )}
+                          </button>
+                        )}
+                      </div>
                       
                       <div className="flex flex-col space-y-4 mt-6">
                         <Button

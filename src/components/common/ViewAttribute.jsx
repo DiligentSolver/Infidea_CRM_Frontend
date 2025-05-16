@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FiX, FiZoomIn } from "react-icons/fi";
 import { Modal } from "react-responsive-modal";
 import "react-responsive-modal/styles.css";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 //internal import
 import Tooltip from "@/components/tooltip/Tooltip";

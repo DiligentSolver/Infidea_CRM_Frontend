@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { Modal, ModalBody, ModalFooter, Button } from "@windmill/react-ui";
 import { FiTrash2 } from "react-icons/fi";
 

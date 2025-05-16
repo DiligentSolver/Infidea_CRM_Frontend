@@ -7,7 +7,7 @@ import {
 } from "@windmill/react-ui";
 import { t } from "i18next";
 import { FiZoomIn } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 //internal import
 import MainDrawer from "@/components/drawer/MainDrawer";

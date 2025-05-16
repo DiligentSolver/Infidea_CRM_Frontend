@@ -12,7 +12,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  LabelList,
   Sector
 } from 'recharts';
 import Skeleton from 'react-loading-skeleton';
@@ -24,6 +23,7 @@ const mockIncentivesData = {
     today: 2500,
     week: 12700,
     month: 35600,
+    quarter: 48900,
     year: 78500,
     count: 24
   },
@@ -37,6 +37,19 @@ const mockIncentivesData = {
         count: Math.round(Math.random() * 3) + 1
       };
     }),
+    weekly: Array(12).fill(0).map((_, index) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (date.getDay() + 7 * (11 - index)));
+      const endDate = new Date(date);
+      endDate.setDate(date.getDate() + 6);
+      return {
+        weekStart: date.toISOString(),
+        weekEnd: endDate.toISOString(),
+        weekLabel: `${date.toLocaleString('default', { month: 'short' })} ${date.getDate()} - ${endDate.toLocaleString('default', { month: 'short' })} ${endDate.getDate()}, ${endDate.getFullYear()}`,
+        amount: Math.round(Math.random() * 4000) + 1500,
+        count: Math.round(Math.random() * 4) + 1
+      };
+    }),
     monthly: Array(12).fill(0).map((_, index) => {
       const date = new Date();
       date.setMonth(date.getMonth() - (11 - index));
@@ -46,6 +59,18 @@ const mockIncentivesData = {
         monthLabel: `${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`,
         amount: Math.round(Math.random() * 8000) + 3000,
         count: Math.round(Math.random() * 6) + 2
+      };
+    }),
+    quarterly: Array(8).fill(0).map((_, index) => {
+      const date = new Date();
+      const currentQuarter = Math.floor(date.getMonth() / 3);
+      const targetQuarter = (currentQuarter - (7 - index)) % 4;
+      const yearOffset = Math.floor((7 - index + (3 - currentQuarter)) / 4);
+      const year = date.getFullYear() - yearOffset;
+      return {
+        quarterLabel: `Q${targetQuarter + 1} ${year}`,
+        amount: Math.round(Math.random() * 15000) + 8000,
+        count: Math.round(Math.random() * 10) + 5
       };
     }),
     byProcess: [
@@ -69,7 +94,7 @@ const mockIncentivesData = {
 
 const IncentivesChart = ({ incentivesData, loading = false }) => {
   const { t } = useTranslation();
-  const [chartType, setChartType] = useState('monthly'); // 'monthly', 'byProcess', 'byCompany'
+  const [chartType, setChartType] = useState('monthly'); // 'monthly', 'quarterly', 'weekly', 'byProcess', 'byCompany'
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -109,6 +134,14 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
     monthly: {
       gradient: ['#A78BFA', '#8B5CF6', '#7C3AED'],
       bar: 'url(#monthlyGradient)'
+    },
+    weekly: {
+      gradient: ['#93C5FD', '#60A5FA', '#3B82F6'],
+      bar: 'url(#weeklyGradient)'
+    },
+    quarterly: {
+      gradient: ['#6EE7B7', '#34D399', '#10B981'],
+      bar: 'url(#quarterlyGradient)'
     },
     byProcess: ['#3B82F6', '#10B981', '#F97316', '#EC4899', '#8B5CF6', '#6366F1'],
     byCompany: ['#F97316', '#8B5CF6', '#10B981', '#6366F1', '#EC4899', '#3B82F1'],
@@ -211,19 +244,25 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
         />
         <text 
           x={cx} 
-          y={cy - 15} 
+          y={cy - 12} 
           textAnchor="middle" 
           fill={chartColors.text} 
-          className="font-medium text-sm"
+          className="font-medium text-xxs"
+          dominantBaseline="middle"
+          fontSize="10px"
         >
-          {payload.process || payload.company}
+          {(payload.process || payload.company || "").length > 15 
+            ? `${(payload.process || payload.company || "").substring(0, 15)}...` 
+            : (payload.process || payload.company)}
         </text>
         <text 
           x={cx} 
-          y={cy + 15} 
+          y={cy + 12} 
           textAnchor="middle" 
           fill={chartColors.text}
-          className="text-sm"
+          className="text-xxs"
+          dominantBaseline="middle"
+          fontSize="9px"
         >
           {formatCurrency(value)}
         </text>
@@ -286,6 +325,106 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
     );
   };
 
+  // Render weekly bar chart
+  const renderWeeklyChart = () => {
+    const data = displayData?.distributions?.weekly || [];
+    
+    return (
+      <ResponsiveContainer width="100%" height={280}>
+        <BarChart
+          data={data}
+          margin={{ top: 15, right: 10, left: 10, bottom: 30 }}
+          barGap={2}
+          barSize={18}
+        >
+          <defs>
+            <linearGradient id="weeklyGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={chartColors.weekly.gradient[0]} />
+              <stop offset="50%" stopColor={chartColors.weekly.gradient[1]} />
+              <stop offset="100%" stopColor={chartColors.weekly.gradient[2]} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 6" stroke={chartColors.grid} opacity={0.3} vertical={false} />
+          <XAxis 
+            dataKey="weekLabel" 
+            tick={{ fill: chartColors.text, fontSize: 11 }}
+            tickLine={false}
+            axisLine={{ stroke: chartColors.grid, strokeWidth: 1 }}
+            angle={-45}
+            textAnchor="end"
+            height={60}
+          />
+          <YAxis 
+            tick={{ fill: chartColors.text, fontSize: 11 }}
+            tickLine={false}
+            axisLine={{ stroke: chartColors.grid, strokeWidth: 1 }}
+            tickFormatter={formatCurrency}
+            width={60}
+          />
+          <Tooltip content={<CustomBarTooltip />} cursor={{ opacity: 0.15 }} />
+          <Bar 
+            dataKey="amount" 
+            name={t('Incentives')} 
+            fill={chartColors.weekly.bar}
+            radius={[4, 4, 0, 0]}
+            animationDuration={1500}
+            animationEasing="ease-in-out"
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  };
+
+  // Render quarterly bar chart
+  const renderQuarterlyChart = () => {
+    const data = displayData?.distributions?.quarterly || [];
+    
+    return (
+      <ResponsiveContainer width="100%" height={280}>
+        <BarChart
+          data={data}
+          margin={{ top: 15, right: 10, left: 10, bottom: 30 }}
+          barGap={2}
+          barSize={18}
+        >
+          <defs>
+            <linearGradient id="quarterlyGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={chartColors.quarterly.gradient[0]} />
+              <stop offset="50%" stopColor={chartColors.quarterly.gradient[1]} />
+              <stop offset="100%" stopColor={chartColors.quarterly.gradient[2]} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 6" stroke={chartColors.grid} opacity={0.3} vertical={false} />
+          <XAxis 
+            dataKey="quarterLabel" 
+            tick={{ fill: chartColors.text, fontSize: 11 }}
+            tickLine={false}
+            axisLine={{ stroke: chartColors.grid, strokeWidth: 1 }}
+            angle={-45}
+            textAnchor="end"
+            height={40}
+          />
+          <YAxis 
+            tick={{ fill: chartColors.text, fontSize: 11 }}
+            tickLine={false}
+            axisLine={{ stroke: chartColors.grid, strokeWidth: 1 }}
+            tickFormatter={formatCurrency}
+            width={60}
+          />
+          <Tooltip content={<CustomBarTooltip />} cursor={{ opacity: 0.15 }} />
+          <Bar 
+            dataKey="amount" 
+            name={t('Incentives')} 
+            fill={chartColors.quarterly.bar}
+            radius={[4, 4, 0, 0]}
+            animationDuration={1500}
+            animationEasing="ease-in-out"
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  };
+
   // Render process distribution pie chart
   const renderProcessChart = () => {
     const data = displayData?.distributions?.byProcess || [];
@@ -298,8 +437,8 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
             cx="50%"
             cy="50%"
             labelLine={false}
-            outerRadius={85}
-            innerRadius={50}
+            outerRadius={80}
+            innerRadius={45}
             fill="#8884d8"
             dataKey="amount"
             nameKey="process"
@@ -320,13 +459,13 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
           </Pie>
           <Tooltip content={<CustomPieTooltip />} />
           <Legend 
-            formatter={(value) => <span className="text-xs">{value}</span>}
+            formatter={(value) => <span style={{fontSize: '9px', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{value}</span>}
             layout="horizontal"
             verticalAlign="bottom"
             align="center"
-            wrapperStyle={{ paddingTop: '20px' }}
+            wrapperStyle={{ paddingTop: '20px', overflowWrap: 'break-word' }}
             iconType="circle"
-            iconSize={8}
+            iconSize={7}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -345,8 +484,8 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
             cx="50%"
             cy="50%"
             labelLine={false}
-            outerRadius={85}
-            innerRadius={50}
+            outerRadius={80}
+            innerRadius={45}
             fill="#8884d8"
             dataKey="amount"
             nameKey="company"
@@ -367,13 +506,13 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
           </Pie>
           <Tooltip content={<CustomPieTooltip />} />
           <Legend 
-            formatter={(value) => <span className="text-xs">{value}</span>}
+            formatter={(value) => <span style={{fontSize: '9px', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{value}</span>}
             layout="horizontal"
             verticalAlign="bottom"
             align="center"
-            wrapperStyle={{ paddingTop: '20px' }}
+            wrapperStyle={{ paddingTop: '20px', overflowWrap: 'break-word' }}
             iconType="circle"
-            iconSize={8}
+            iconSize={7}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -390,16 +529,7 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
       </div>
       
       {/* Summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex items-center mb-1">
-            <span className="w-3 h-3 rounded-full bg-purple-500 mr-2"></span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">{t("Today")}</span>
-          </div>
-          <div className="text-lg font-bold text-gray-900 dark:text-white">
-            {loading ? <Skeleton width={80} /> : formatCurrency(displayData?.summary?.today || 0)}
-          </div>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center mb-1">
             <span className="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
@@ -420,6 +550,15 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
         </div>
         <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center mb-1">
+            <span className="w-3 h-3 rounded-full bg-teal-500 mr-2"></span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{t("This Quarter")}</span>
+          </div>
+          <div className="text-lg font-bold text-gray-900 dark:text-white">
+            {loading ? <Skeleton width={80} /> : formatCurrency(displayData?.summary?.quarter || 0)}
+          </div>
+        </div>
+        <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-100 dark:border-gray-800 shadow-sm">
+          <div className="flex items-center mb-1">
             <span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
             <span className="text-xs text-gray-500 dark:text-gray-400">{t("This Year")}</span>
           </div>
@@ -432,9 +571,19 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
       {/* Chart type selector */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <button
-          className={`flex items-center text-xs px-3 py-1.5 rounded-full border transition-all duration-200 ${
+          className={`flex items-center text-xs px-3 py-1.5 rounded-full border${
+            chartType === 'weekly'
+              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium dark:text-gray-200'
+              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
+          }`}
+          onClick={() => setChartType('weekly')}
+        >
+          {t("Weekly")}
+        </button>
+        <button
+          className={`flex items-center text-xs px-3 py-1.5 rounded-full border  ${
             chartType === 'monthly'
-              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium'
+              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600  font-medium dark:text-gray-200'
               : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
           }`}
           onClick={() => setChartType('monthly')}
@@ -442,9 +591,19 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
           {t("Monthly")}
         </button>
         <button
-          className={`flex items-center text-xs px-3 py-1.5 rounded-full border transition-all duration-200 ${
+          className={`flex items-center text-xs px-3 py-1.5 rounded-full border  ${
+            chartType === 'quarterly'
+              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600  font-medium dark:text-gray-200'
+              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
+          }`}
+          onClick={() => setChartType('quarterly')}
+        >
+          {t("Quarterly")}
+        </button>
+        <button
+          className={`flex items-center text-xs px-3 py-1.5 rounded-full border ${
             chartType === 'byProcess'
-              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium'
+              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600  font-medium dark:text-gray-200'
               : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
           }`}
           onClick={() => setChartType('byProcess')}
@@ -452,9 +611,9 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
           {t("By Process")}
         </button>
         <button
-          className={`flex items-center text-xs px-3 py-1.5 rounded-full border transition-all duration-200 ${
+          className={`flex items-center text-xs px-3 py-1.5 rounded-full border ${
             chartType === 'byCompany'
-              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium'
+              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600  font-medium dark:text-gray-200'
               : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
           }`}
           onClick={() => setChartType('byCompany')}
@@ -471,7 +630,9 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
           </div>
         ) : (
           <>
+            {chartType === 'weekly' && renderWeeklyChart()}
             {chartType === 'monthly' && renderMonthlyChart()}
+            {chartType === 'quarterly' && renderQuarterlyChart()}
             {chartType === 'byProcess' && renderProcessChart()}
             {chartType === 'byCompany' && renderCompanyChart()}
           </>

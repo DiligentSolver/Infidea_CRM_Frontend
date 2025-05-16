@@ -1,5 +1,5 @@
 import { AdminContext } from "@/context/AdminContext";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { useContext, useEffect, useState } from "react";
 
 const useGetCData = () => {

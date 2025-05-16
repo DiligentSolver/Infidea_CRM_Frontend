@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Badge } from '@windmill/react-ui';
 import { FiTrash2, FiCheck, FiArrowRight } from 'react-icons/fi';
 import useUtilsFunction from '@/hooks/useUtilsFunction';
@@ -32,6 +32,8 @@ const NotificationItem = ({
         return <Badge type="warning">Candidate</Badge>;
       case 'system':
         return <Badge type="info">System</Badge>;
+      case 'candidate_marked':
+        return <Badge type="warning">Marked</Badge>;
       default:
         return <Badge type="neutral">Other</Badge>;
     }
@@ -73,28 +75,28 @@ const NotificationItem = ({
   const NotificationContent = () => (
     <>
       <div className="flex items-start justify-between">
-        <h6 className="font-medium text-gray-700 dark:text-gray-200 text-sm md:text-sm mb-1 line-clamp-2">
+        <h6 className="font-medium text-gray-700 dark:text-gray-200 text-xs sm:text-sm mb-1 line-clamp-2">
           {notification.message}
         </h6>
         {notification.status === 'unread' && !showActions && !isClicked && (
-          <span className="ml-2 mt-1.5 flex-shrink-0">
-            <div className="w-2 h-2 md:w-2 md:h-2 bg-blue-600 rounded-full"></div>
+          <span className="ml-2 mt-1 flex-shrink-0">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-600 rounded-full"></div>
           </span>
         )}
       </div>
 
-      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+      <div className="flex flex-wrap items-center text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1">
         {renderBadge()}
-        <span className="inline-flex items-center ml-2 text-xs">
+        <span className="inline-flex items-center ml-2 text-[10px] sm:text-xs">
           {formatLongDateAndTime(notification.createdAt)}
         </span>
         {notification.metadata?.link && (
           <a 
             href={notification.metadata.link}
-            className="ml-2 inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline"
+            className="ml-2 inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline text-[10px] sm:text-xs"
             onClick={(e) => e.stopPropagation()}
           >
-            View <FiArrowRight className="ml-1" size={12} />
+            View <FiArrowRight className="ml-1" size={10} />
           </a>
         )}
       </div>
@@ -103,7 +105,7 @@ const NotificationItem = ({
 
   // Apply class conditionally for visual feedback and status
   const getItemClass = () => {
-    let baseClass = "flex justify-between items-start py-3 px-3 md:px-4 border-b border-gray-100 dark:border-gray-700 transition-colors duration-150 hover:bg-gray-50";
+    let baseClass = "flex justify-between items-start py-2 px-2 sm:py-3 sm:px-3 border-b border-gray-100 dark:border-gray-700 transition-colors duration-150 hover:bg-gray-50";
     
     // Unread styling
     if (notification.status === 'unread' && !isClicked) {
@@ -113,6 +115,11 @@ const NotificationItem = ({
     // Visual feedback when clicked
     if (isClicked) {
       baseClass += " bg-green-50 dark:bg-green-900/10";
+    }
+    
+    // Add specific styling for dropdown items
+    if (inDropdown) {
+      baseClass += " last:border-b-0"; // Remove border on last item
     }
     
     baseClass += " hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 rounded-md";
@@ -125,43 +132,43 @@ const NotificationItem = ({
       {inDropdown ? (
         <Link 
           to="/notifications" 
-          className="flex items-start flex-1"
+          className="flex items-start flex-1 w-full"
           onClick={handleClick}
         >
-          <div className="notification-content flex-1 min-w-0">
+          <div className="notification-content flex-1 min-w-0 w-full">
             <NotificationContent />
           </div>
         </Link>
       ) : (
         <div 
-          className="flex items-start flex-1 cursor-pointer" 
+          className="flex items-start flex-1 cursor-pointer w-full" 
           onClick={handleClick}
         >
-          <div className="notification-content flex-1 min-w-0">
+          <div className="notification-content flex-1 min-w-0 w-full">
             <NotificationContent />
           </div>
         </div>
       )}
 
       {showActions && (
-        <div className="flex ml-3 mt-1">
+        <div className="flex ml-2 sm:ml-3 mt-1 flex-shrink-0">
           {notification.status === 'unread' && !isClicked && (
             <button
               type="button"
               onClick={handleMarkAsReadClick}
-              className="p-1 mr-1 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded focus:outline-none"
+              className="p-0.5 sm:p-1 mr-1 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded focus:outline-none"
               title="Mark as read"
             >
-              <FiCheck className="w-4 h-4" />
+              <FiCheck className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           )}
           <button
             type="button"
             onClick={handleDeleteClick}
-            className="p-1 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded focus:outline-none"
+            className="p-0.5 sm:p-1 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded focus:outline-none"
             title="Delete notification"
           >
-            <FiTrash2 className="w-4 h-4" />
+            <FiTrash2 className="w-3 h-3 sm:w-4 sm:h-4" />
           </button>
         </div>
       )}

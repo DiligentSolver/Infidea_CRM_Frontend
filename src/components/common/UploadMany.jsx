@@ -11,7 +11,7 @@ import {
   FiXCircle,
 } from "react-icons/fi";
 // import { ImFileExcel } from "react-icons/im";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 //internal import
 import spinnerLoadingImage from "@/assets/img/spinner.gif";

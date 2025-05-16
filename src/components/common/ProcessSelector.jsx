@@ -11,7 +11,7 @@ const ProcessSelector = ({
   required = false,
   disabled = false,
   className = "",
-  label = "Process",
+  label = "",
   error,
   showInfoButton = true,
   phoneNumber

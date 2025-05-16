@@ -6,6 +6,7 @@ import {
   TableContainer,
   TableHeader,
 } from "@windmill/react-ui";
+import { useLocation, useNavigate } from "react-router";
 
 import NotFound from "@/components/table/NotFound";
 
@@ -25,13 +26,17 @@ import {
   processOptions, 
   dateRangeTypeOptions, 
   resultsPerPageOptions, 
+  joiningTypeOptions,
   getStatusColorClass,
   getProcessesByCompany
 } from "@/utils/optionsData";
 
 
 
+
 function Lineups() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [lineups, setLineups] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -44,7 +49,11 @@ function Lineups() {
     lineupDate: "",
     interviewDate: "",
     status: "",
-    remarks: ""
+    remarks: "",
+    joiningDate: "",
+    joiningType: "",
+    salary: "",
+    joiningRemarks: ""
   });
   const [formErrors, setFormErrors] = useState({});
   const [selectedLineup, setSelectedLineup] = useState(null);
@@ -54,7 +63,7 @@ function Lineups() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filteredProcessOptions, setFilteredProcessOptions] = useState([{ value: "", label: "Select Process" }]);
-
+  
 
   const { setIsUpdate } = useContext(SidebarContext);
   // Add filter state
@@ -65,6 +74,36 @@ function Lineups() {
     name: "",
     contactNumber: ""
   });
+
+  // Read query parameters when component mounts
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const statusParam = queryParams.get('status');
+    
+    if (statusParam) {
+      setFilters(prev => ({
+        ...prev,
+        status: statusParam
+      }));
+    }
+  }, [location.search]);
+
+  // Update URL when filters change
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    
+    if (filters.status) {
+      queryParams.set('status', filters.status);
+    } else {
+      queryParams.delete('status');
+    }
+    
+    const newSearch = queryParams.toString();
+    const newPath = `${location.pathname}${newSearch ? `?${newSearch}` : ''}`;
+    
+    // Update URL without reloading the page
+    navigate(newPath, { replace: true });
+  }, [filters.status, location.pathname, navigate]);
 
    // Add a useEffect to reload data when refreshKey changes
    useEffect(() => {
@@ -261,7 +300,11 @@ function Lineups() {
       lineupDate: "",
       interviewDate: "",
       status: "",
-      remarks: ""
+      remarks: "",
+      joiningDate: "",
+      joiningType: "",
+      salary: "",
+      joiningRemarks: ""
     });
     setEditingId(null);
     setShowForm(true);
@@ -278,6 +321,7 @@ function Lineups() {
     // Convert dates to proper format for the form
     const lineupDate = lineup.lineupDate ? new Date(lineup.lineupDate).toISOString().split('T')[0] : '';
     const interviewDate = lineup.interviewDate ? new Date(lineup.interviewDate) : '';
+    const joiningDate = lineup.joiningDate ? new Date(lineup.joiningDate) : '';
     
     // Determine if we need to set custom company and process values
     const isCustomCompany = !companyOptions.some(option => option.value === lineup.company && option.value !== "others");
@@ -293,7 +337,11 @@ function Lineups() {
       lineupDate: lineupDate,
       interviewDate: interviewDate,
       status: lineup.status || "",
-      remarks: lineup.remarks || ""
+      remarks: lineup.remarks || "",
+      joiningDate: joiningDate,
+      joiningType: lineup.joiningType || "",
+      salary: lineup.salary || "",
+      joiningRemarks: lineup.joiningRemarks || ""
     });
     
     // Use the proper ID field from the API (_id for MongoDB, id for standard REST)
@@ -320,7 +368,11 @@ function Lineups() {
       lineupDate: "",
       interviewDate: "",
       status: "",
-      remarks: ""
+      remarks: "",
+      joiningDate: "",
+      joiningType: "",
+      salary: "",
+      joiningRemarks: ""
     });
     setEditingId(null);
     setShowForm(false);
@@ -368,7 +420,7 @@ function Lineups() {
                   <TableCell className="text-center" onClick={() => handleSortByField("name")}>Name {sortBy === "name" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("contactNumber")}>Contact {sortBy === "contactNumber" && (
+                  <TableCell className="text-center" onClick={() => handleSortByField("contactNumber")}>Contact Number {sortBy === "contactNumber" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
                   <TableCell className="text-center" onClick={() => handleSortByField("company")}>Company {sortBy === "company" && (
@@ -465,6 +517,21 @@ function Lineups() {
     if (!formData.status) {
       errors.status = 'Status is required';
     }
+
+    // Validate joining fields if status is "joined"
+    if (formData.status.toLowerCase() === "joined") {
+      if (!formData.joiningDate) {
+        errors.joiningDate = 'Joining date is required';
+      }
+      
+      if (!formData.joiningType) {
+        errors.joiningType = 'Joining type is required';
+      }
+      
+      if (!formData.salary) {
+        errors.salary = 'Salary is required';
+      }
+    }
     
     // If there are validation errors, show them and don't submit
     if (Object.keys(errors).length > 0) {
@@ -481,6 +548,11 @@ function Lineups() {
         ? formData.interviewDate.toISOString().split('T')[0]
         : formData.interviewDate;
 
+      // Format the joiningDate if it's a Date object and status is joined
+      const formattedJoiningDate = formData.joiningDate instanceof Date 
+        ? formData.joiningDate.toISOString().split('T')[0]
+        : formData.joiningDate;
+
       // Create lineup payload
       const lineupData = {
         name: formData.candidateName,
@@ -494,6 +566,14 @@ function Lineups() {
         status: formData.status,
         remarks: formData.remarks
       };
+
+      // Add joining details to payload if status is "joined"
+      if (formData.status.toLowerCase() === "joined") {
+        lineupData.joiningDate = formattedJoiningDate;
+        lineupData.joiningType = formData.joiningType;
+        lineupData.salary = formData.salary;
+        lineupData.joiningRemarks = formData.joiningRemarks;
+      }
 
       if (editingId !== null) {
         // Update existing lineup
@@ -518,7 +598,11 @@ function Lineups() {
         lineupDate: "",
         interviewDate: "",
         status: "",
-        remarks: ""
+        remarks: "",
+        joiningDate: "",
+        joiningType: "",
+        salary: "",
+        joiningRemarks: ""
       });
       setEditingId(null);
       setShowForm(false);
@@ -993,6 +1077,103 @@ function Lineups() {
               </div>
             </div>
             
+            {/* Joining Details section - shown only when status is "joined" */}
+            {formData.status.toLowerCase() === "joined" && (
+              <div className="mt-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <h3 className="text-lg font-medium dark:text-[#e2692c] text-[#1a5d96] mb-4">
+                  Joining Details
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700">
+                      Joining Date <span className="text-red-500">*</span>
+                    </label>
+                    <DatePicker
+                      selected={formData.joiningDate instanceof Date ? formData.joiningDate : formData.joiningDate ? new Date(formData.joiningDate) : null}
+                      onChange={(date) => {
+                        if (date) {
+                          setFormData({...formData, joiningDate: date});
+                          if (formErrors.joiningDate) {
+                            setFormErrors(prev => ({ ...prev, joiningDate: null }));
+                          }
+                        }
+                      }}
+                      dateFormat="dd-MMM-yyyy"
+                      className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm 
+                      dark:bg-gray-700 border-gray-600 dark:text-white bg-white border-gray-300 text-gray-900 px-3 py-2
+                      ${formErrors.joiningDate ? 'border-red-500 dark:border-red-500' : ''}`}
+                      placeholderText="Select joining date"
+                      required
+                    />
+                    {formErrors.joiningDate && (
+                      <p className="mt-1 text-xs text-red-500">{formErrors.joiningDate}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700">
+                      Joining Type <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="joiningType"
+                      value={formData.joiningType}
+                      onChange={handleChange}
+                      required
+                      className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm 
+                      dark:bg-gray-700 border-gray-600 dark:text-white bg-white border-gray-300 text-gray-900 px-3 py-2
+                      ${formErrors.joiningType ? 'border-red-500 dark:border-red-500' : ''}`}
+                    >
+                      <option value="">Select Type</option>
+                      {joiningTypeOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    {formErrors.joiningType && (
+                      <p className="mt-1 text-xs text-red-500">{formErrors.joiningType}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium dark:text-gray-300 text-gray-700">
+                      Salary <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="salary"
+                      value={formData.salary}
+                      onChange={handleChange}
+                      placeholder="Enter salary amount"
+                      className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm 
+                      dark:bg-gray-700 border-gray-600 dark:text-white bg-white border-gray-300 text-gray-900 px-3 py-2
+                      ${formErrors.salary ? 'border-red-500 dark:border-red-500' : ''}`}
+                      required
+                    />
+                    {formErrors.salary && (
+                      <p className="mt-1 text-xs text-red-500">{formErrors.salary}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="mt-4">
+                  <label className="block text-sm font-medium dark:text-gray-300 text-gray-700">
+                    Joining Remarks
+                  </label>
+                  <textarea
+                    name="joiningRemarks"
+                    value={formData.joiningRemarks || ""}
+                    onChange={handleChange}
+                    placeholder="Add any notes about joining conditions or special arrangements"
+                    rows="2"
+                    className="mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm 
+                    dark:bg-gray-700 border-gray-600 dark:text-white bg-white border-gray-300 text-gray-900 px-3 py-2"
+                  />
+                </div>
+              </div>
+            )}
+            
             <div className="mt-4">
               <label className="block text-sm font-medium dark:text-gray-300 text-gray-700">
                 Remarks
@@ -1135,18 +1316,47 @@ function Lineups() {
             </div>
           </div>
 
-          <div className="mt-4 p-4 rounded-lg dark:bg-gray-700 bg-gray-100">
-            <h3 className="text-lg font-semibold mb-2 dark:text-[#e2692c] text-[#1a5d96]">
-              Remarks
-            </h3>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm dark:text-gray-400 text-gray-500">Remarks:</span>
-              <span className={`px-3 py-1 text-sm font-semibold`}>
-                {selectedLineup.remarks}
-              </span>
+          {/* Display joining details in view modal if status is joined */}
+          {selectedLineup.status?.toLowerCase() === "joined" && (
+            <div className="mt-4 p-4 rounded-lg dark:bg-gray-700 bg-gray-100">
+              <h3 className="text-lg font-semibold mb-2 dark:text-[#e2692c] text-[#1a5d96]">
+                Joining Details
+              </h3>
+              <dl className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="flex flex-col">
+                  <dt className="text-sm dark:text-gray-400 text-gray-500">Joining Date</dt>
+                  <dd className="text-base font-medium dark:text-white text-gray-900">
+                    {selectedLineup.joiningDate ? new Date(selectedLineup.joiningDate).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    }) : "Not specified"}
+                  </dd>
+                </div>
+                <div className="flex flex-col">
+                  <dt className="text-sm dark:text-gray-400 text-gray-500">Joining Type</dt>
+                  <dd className="text-base font-medium dark:text-white text-gray-900">
+                    {selectedLineup.joiningType || "Not specified"}
+                  </dd>
+                </div>
+                <div className="flex flex-col">
+                  <dt className="text-sm dark:text-gray-400 text-gray-500">Salary</dt>
+                  <dd className="text-base font-medium dark:text-white text-gray-900">
+                    {selectedLineup.salary || "Not specified"}
+                  </dd>
+                </div>
+                {selectedLineup.joiningRemarks && (
+                  <div className="flex flex-col md:col-span-2">
+                    <dt className="text-sm dark:text-gray-400 text-gray-500">Joining Remarks</dt>
+                    <dd className="text-base font-medium dark:text-white text-gray-900">
+                      {selectedLineup.joiningRemarks}
+                    </dd>
+                  </div>
+                )}
+              </dl>
             </div>
-          </div>
-          
+          )}
+
           <div className="mt-6 flex justify-end space-x-3">
             <button
               onClick={() => {

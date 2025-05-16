@@ -29,7 +29,6 @@ import {
   getStatusColorClass,
   getProcessesByCompany
 } from "@/utils/optionsData";
-import ProcessSelector from "@/components/common/ProcessSelector";
 
 
 
@@ -490,10 +489,6 @@ function Joinings() {
     }
   };
 
-  // Update any functions that use these options
-  const getStatusColor = (status) => {
-    return getStatusColorClass(status);
-  };
 
   const [filteredProcessOptions, setFilteredProcessOptions] = useState([{ value: "", label: "Select Process" }]);
   
@@ -543,9 +538,20 @@ function Joinings() {
 
              {/* Incentives Summary - Row Layout */}
              <div className="flex flex-wrap items-center gap-2">
+
+              {/* Calendar-style UI for Month & Date */}
+              <div className="flex flex-col rounded-md overflow-hidden shadow-md h-10">
+                <div className="bg-blue-500 text-white text-xs font-medium text-center py-0.5">
+                  May
+                </div>
+                <div className="flex-1 bg-white dark:bg-gray-700 flex items-center justify-center px-3">
+                  <span className="text-base font-bold text-gray-800 dark:text-white">16</span>
+                </div>
+              </div>
+
                {/* Domestic Count */}
                <div className="flex items-center gap-2 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-md shadow-md">
-                 <span className="text-xs font-semibold">Domestic Count:</span>
+                 <span className="text-xs font-semibold">Domestic:</span>
                  <span className="text-base font-bold text-green-600 dark:text-green-400">
                    {data.incentiveSummary?.counts.domestic || 0}
                  </span>
@@ -553,31 +559,23 @@ function Joinings() {
                
                {/* International Count */}
                <div className="flex items-center gap-2 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-md shadow-md">
-                 <span className="text-xs font-semibold">Int'l Count:</span>
+                 <span className="text-xs font-semibold">International:</span>
                  <span className="text-base font-bold text-green-600 dark:text-green-400">
                    {data.incentiveSummary?.counts.international || 0}
                  </span>
                </div>
                
-               {/* Domestic Incentive */}
+               {/* Mid-Lateral Count*/}
                <div className="flex items-center gap-2 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-md shadow-md">
-                 <span className="text-xs font-semibold">Domestic Inc:</span>
+                 <span className="text-xs font-semibold">Mid-Lateral:</span>
                  <span className="text-base font-bold text-green-600 dark:text-green-400">
-                   ₹{data.incentiveSummary?.incentives.domestic || 0}
-                 </span>
-               </div>
-               
-               {/* International Incentive */}
-               <div className="flex items-center gap-2 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-2 rounded-md shadow-md">
-                 <span className="text-xs font-semibold">Int'l Inc:</span>
-                 <span className="text-base font-bold text-green-600 dark:text-green-400">
-                   ₹{data.incentiveSummary?.incentives.international || 0}
+                   {data.incentiveSummary?.counts.midLateral || 0}
                  </span>
                </div>
                
                {/* Total Incentive */}
                <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200 px-3 py-2 rounded-md shadow-md">
-                 <span className="text-xs font-semibold">Total Inc:</span>
+                 <span className="text-xs font-semibold">Total Incentives:</span>
                  <span className="text-base font-bold text-indigo-700 dark:text-indigo-400">
                    ₹{data.incentiveSummary?.incentives.total || 0}
                  </span>
@@ -914,17 +912,25 @@ function Joinings() {
               </div>
 
               <div>
-                <ProcessSelector
+                <label className="block text-sm font-medium dark:text-gray-300 text-gray-700">
+                  Process <span className="text-red-500">*</span>
+                </label>
+                <select
                   name="process"
                   value={formData.process}
                   onChange={handleChange}
-                  options={filteredProcessOptions}
                   required={true}
                   disabled={(loading==null)}
                   className={`px-2.5 py-1.5 h-9 text-sm rounded-md dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-[#e2692c] border focus:ring-1 dark:focus:ring-[#e2692c] ${
                     (loading==null) ? 'cursor-not-allowed opacity-70' : ''
                   } ${formErrors.process ? 'border-red-500 dark:border-red-500' : ''}`}
-                />
+                >
+                  {filteredProcessOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
                 {formErrors.process && (
                   <p className="mt-1 text-xs text-red-500">{formErrors.process}</p>
                 )}

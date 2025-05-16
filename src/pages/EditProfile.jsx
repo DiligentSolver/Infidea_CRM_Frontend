@@ -1,22 +1,27 @@
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { MdPerson, MdNumbers, MdWork, MdPhone, MdEmail, MdDateRange, MdHome, MdLocationOn, MdAccountBalance } from "react-icons/md";
 import { FaCamera, FaSave, FaEdit } from "react-icons/fa";
+import Cookies from "js-cookie";
 //internal import
 import EmployeeServices from "@/services/EmployeeServices";
 import AnimatedContent from "@/components/common/AnimatedContent";
 import { notifyError, notifySuccess } from "@/utils/toast";
 import { formatLongDate } from "@/utils/dateFormatter";
-import { uploadImage } from "@/services/CloudinaryService";
+import { uploadImage, deleteImage } from "@/services/CloudinaryService";
+import { AdminContext } from "@/context/AdminContext";
 
 
 const EditProfile = () => {
   const { t } = useTranslation();
+  const { state, dispatch } = useContext(AdminContext);
+  const { adminInfo } = state;
 
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [profile, setProfile] = useState({
     image: "",
+    imagePublicId: "",
     name: "",
     empCode: "",
     designation: "",
@@ -50,8 +55,29 @@ const EditProfile = () => {
           // Directly use the response object that contains employee data
           const employeeData = response.employee;
           
+          // Extract public ID from image URL if available
+          let imagePublicId = "";
+          if (employeeData.profileImage) {
+            try {
+              const url = new URL(employeeData.profileImage);
+              const pathParts = url.pathname.split('/');
+              const uploadIndex = pathParts.findIndex(part => part === 'upload');
+              
+              if (uploadIndex !== -1 && uploadIndex < pathParts.length - 2) {
+                let startIndex = uploadIndex + 1;
+                if (pathParts[startIndex].startsWith('v') && /^v\d+$/.test(pathParts[startIndex])) {
+                  startIndex++;
+                }
+                imagePublicId = pathParts.slice(startIndex).join('/').split('.')[0];
+              }
+            } catch (error) {
+              console.error("Error extracting public ID from profile image URL:", error);
+            }
+          }
+          
           setProfile({
             image: employeeData.profileImage || "",
+            imagePublicId: imagePublicId,
             name: employeeData.name?.en || "",
             empCode: employeeData.employeeCode || "",
             designation: employeeData.role || employeeData.designation || "",
@@ -103,14 +129,85 @@ const EditProfile = () => {
         };
         reader.readAsDataURL(file);
         
+        // Delete existing image if we have its public ID
+        if (profile.imagePublicId) {
+          try {
+            await deleteImage(profile.imagePublicId);
+            console.log("Previous profile image deleted successfully");
+          } catch (deleteError) {
+            console.error("Error deleting previous profile image:", deleteError);
+            // Continue with upload even if delete fails
+          }
+        } else if (profile.image && profile.image.startsWith('http')) {
+          // Fallback: Try to extract public ID from URL if not stored
+          try {
+            const url = new URL(profile.image);
+            const pathParts = url.pathname.split('/');
+            const uploadIndex = pathParts.findIndex(part => part === 'upload');
+            
+            if (uploadIndex !== -1 && uploadIndex < pathParts.length - 2) {
+              let startIndex = uploadIndex + 1;
+              if (pathParts[startIndex].startsWith('v') && /^v\d+$/.test(pathParts[startIndex])) {
+                startIndex++;
+              }
+              
+              const publicId = pathParts.slice(startIndex).join('/').split('.')[0];
+              
+              console.log("Extracted public ID:", publicId);
+              
+              if (publicId) {
+                await deleteImage(publicId);
+                console.log("Previous profile image deleted successfully");
+              }
+            } else {
+              console.warn("Could not extract public ID from URL:", profile.image);
+            }
+          } catch (deleteError) {
+            console.error("Error deleting previous profile image:", deleteError);
+            // Continue with upload even if delete fails
+          }
+        }
+        
         // Upload to Cloudinary
         const result = await uploadImage(file, 'profile-images', `employee-${profile.empCode || Date.now()}`);
         
         if (result && result.url) {
-          // Update profile with the Cloudinary URL
-          setProfile({ ...profile, image: result.url });
-          // We'll include this URL when saving the profile
-          notifySuccess("Profile image uploaded successfully!");
+          // Update profile with the Cloudinary URL and store the public ID
+          setProfile({ 
+            ...profile, 
+            image: result.url,
+            imagePublicId: result.publicId 
+          });
+          
+          // Update profile image immediately on API without waiting for save button
+          try {
+            const updated = await EmployeeServices.updateEmployeeProfileImage(result.url);
+            notifySuccess(updated.message);
+            
+            // Update adminInfo Cookie with the new profile image
+            if (adminInfo) {
+              const updatedAdminInfo = { 
+                ...adminInfo,
+                user: { 
+                  ...adminInfo.user,
+                  profileImage: result.url 
+                }
+              };
+              
+              // Update the adminInfo context
+              dispatch({ type: "USER_LOGIN", payload: updatedAdminInfo });
+              
+              // Update the cookie
+              Cookies.set("adminInfo", JSON.stringify(updatedAdminInfo), {
+                expires: 1, // 1 day expiry
+                sameSite: "None",
+                secure: true,
+              });
+            }
+          } catch (updateError) {
+            console.error("Error updating profile image on API:", updateError);
+            notifyError(updateError?.response?.data?.message || "Failed to update profile image");
+          }
         }
       } catch (error) {
         notifyError(error?.message || "Failed to upload image");
@@ -153,6 +250,8 @@ const EditProfile = () => {
         },
         // Include profileImage if it has been updated
         ...(profile.image && profile.image.startsWith('http') && { profileImage: profile.image }),
+        // Include imagePublicId if available (for future reference)
+        ...(profile.imagePublicId && { imagePublicId: profile.imagePublicId }),
       };
 
       // Call the update API with the profile ID
@@ -162,8 +261,29 @@ const EditProfile = () => {
       
       // Transform the returned employee data to match the profile state format
       if (updated.employee) {
+        // Get public ID from response or try to extract it from the image URL if not provided
+        let imagePublicId = updated.employee.imagePublicId || "";
+        if (!imagePublicId && updated.employee.profileImage) {
+          try {
+            const url = new URL(updated.employee.profileImage);
+            const pathParts = url.pathname.split('/');
+            const uploadIndex = pathParts.findIndex(part => part === 'upload');
+            
+            if (uploadIndex !== -1 && uploadIndex < pathParts.length - 2) {
+              let startIndex = uploadIndex + 1;
+              if (pathParts[startIndex].startsWith('v') && /^v\d+$/.test(pathParts[startIndex])) {
+                startIndex++;
+              }
+              imagePublicId = pathParts.slice(startIndex).join('/').split('.')[0];
+            }
+          } catch (error) {
+            console.error("Error extracting public ID from profile image URL:", error);
+          }
+        }
+        
         setProfile({
           image: updated.employee.profileImage || "",
+          imagePublicId: imagePublicId,
           name: updated.employee.name?.en,
           empCode: updated.employee.employeeCode,
           designation: updated.employee.designation,
@@ -182,6 +302,27 @@ const EditProfile = () => {
           reAccountNumber: updated.employee.bankDetails?.accountNumber,
           beneficiaryAddress: updated.employee.bankDetails?.beneficiaryAddress,
         });
+        
+        // Update profile image in adminInfo cookie if it has changed
+        if (adminInfo && updated.employee.profileImage) {
+          const updatedAdminInfo = { 
+            ...adminInfo,
+            user: { 
+              ...adminInfo.user,
+              profileImage: updated.employee.profileImage 
+            }
+          };
+          
+          // Update the adminInfo context
+          dispatch({ type: "USER_LOGIN", payload: updatedAdminInfo });
+          
+          // Update the cookie
+          Cookies.set("adminInfo", JSON.stringify(updatedAdminInfo), {
+            expires: 1, // 1 day expiry
+            sameSite: "None",
+            secure: true,
+          });
+        }
       }
     } catch (error) {
       notifyError(error?.response?.data?.message || "Failed to update profile");

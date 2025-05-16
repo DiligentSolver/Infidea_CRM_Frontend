@@ -1,7 +1,7 @@
 import { Button, Card, CardBody } from "@windmill/react-ui";
 import React, { useContext } from "react";
 import { FiPlus } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
 //internal import

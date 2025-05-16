@@ -16,6 +16,7 @@ import {
   ModalBody,
   ModalFooter
 } from "@windmill/react-ui";
+import { useLocation, useNavigate } from "react-router";
 import PageTitle from "@/components/Typography/PageTitle";
 import moment from "moment";
 import EmployeeServices from "@/services/EmployeeServices";
@@ -36,6 +37,8 @@ import {
 } from "@/utils/optionsData";
 
 const Leaves = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [leaves, setLeaves] = useState([]);
   const [filteredLeaves, setFilteredLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -301,6 +304,36 @@ const Leaves = () => {
       reset(); // Reset form when opening modal
     }
   };
+
+  // Read query parameters when component mounts
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const statusParam = queryParams.get('status');
+    
+    if (statusParam) {
+      setFilters(prev => ({
+        ...prev,
+        status: statusParam
+      }));
+    }
+  }, [location.search]);
+
+  // Update URL when filters change
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    
+    if (filters.status) {
+      queryParams.set('status', filters.status);
+    } else {
+      queryParams.delete('status');
+    }
+    
+    const newSearch = queryParams.toString();
+    const newPath = `${location.pathname}${newSearch ? `?${newSearch}` : ''}`;
+    
+    // Update URL without reloading the page
+    navigate(newPath, { replace: true });
+  }, [filters.status, location.pathname, navigate]);
 
   return (
     <>

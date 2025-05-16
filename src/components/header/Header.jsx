@@ -12,7 +12,7 @@ import {
   FiSettings,
   FiClock,
 } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
 //internal import
@@ -102,7 +102,7 @@ const Header = () => {
           <button
             type="button"
             onClick={() => setNavBar(!navBar)}
-            className="hidden lg:block outline-0 focus:outline-none"
+            className="hidden lg:block outline-0 focus:outline-none p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
           >
             <svg
               className="w-4 h-4"
@@ -122,7 +122,7 @@ const Header = () => {
 
           {/* <!-- Mobile hamburger --> */}
           <button
-            className="p-1 mr-2 md:mr-5 -ml-1 rounded-md lg:hidden focus:outline-none"
+            className="p-1 mr-2 md:mr-5 -ml-1 rounded-md lg:hidden focus:outline-none hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
             onClick={toggleSidebar}
             aria-label="Menu"
           >
@@ -133,19 +133,19 @@ const Header = () => {
 
           <div className="items-center mr-2 md:mr-5">
             <div className="flex items-center space-x-2 md:space-x-3">
-              <span className="text-stone-600 text-[10px] sm:text-xs md:text-sm font-semibold font-mono dark:text-stone-300">{formatDayNameDate(onDeskData.date)}</span>
+              <span className="text-stone-600 hidden sm:hidden md:inline text-[10px] sm:text-xs md:text-sm font-semibold font-mono dark:text-stone-300">{formatDayNameDate(onDeskData.date)}</span>
             </div>
           </div>
 
           <ul className="flex justify-end items-center flex-shrink-0 space-x-1 md:space-x-6">
             {/* <!-- On Desk Information --> */}
             <li className="flex items-center text-[10px] sm:text-xs md:text-sm">
-              <div className="flex items-center space-x-1 md:space-x-3">
+              <div className="flex items-center px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-md">
                 <div className="flex items-center">
-                  <FiClock className="text-emerald-500 dark:text-emerald-200 w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                  <FiClock className="text-emerald-500 dark:text-emerald-300 w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                   <Link to="/activities">
                     <span 
-                      className="font-medium text-emerald-600 dark:text-emerald-200 cursor-pointer hover:underline" 
+                      className="font-medium text-emerald-600 dark:text-emerald-300 cursor-pointer hover:underline" 
                     >
                       {onDeskData.formattedProductiveTime}
                     </span>
@@ -162,7 +162,7 @@ const Header = () => {
             {/* <!-- Theme toggler --> */}
             <li className="flex">
               <button
-                className="rounded-md focus:outline-none"
+                className="rounded-md focus:outline-none p-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
                 onClick={toggleMode}
                 aria-label="Toggle color mode"
               >
@@ -182,51 +182,62 @@ const Header = () => {
             {/* <!-- Profile menu --> */}
             <li className="relative inline-block text-left" ref={pRef}>
               <button
-                className="rounded-full dark:bg-gray-500 bg-emerald-500 text-white h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 font-medium mx-auto focus:outline-none flex items-center justify-center"
+                className="rounded-full bg-gray-100 dark:bg-gray-600 text-white h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 font-medium mx-auto focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-emerald-500 dark:focus:ring-offset-gray-800 flex items-center justify-center overflow-hidden"
                 onClick={handleProfileOpen}
               >
                 {adminInfo?.user.profileImage ? (
                   <Avatar
-                    className="align-middle"
+                    className="align-middle h-full w-full object-cover"
                     src={`${adminInfo.user.profileImage}`}
                     aria-hidden="true"
                   />
                 ) : (
-                  <span className="text-[10px] sm:text-xs md:text-sm flex items-center justify-center leading-none">{adminInfo.user.email[0].toUpperCase()}</span>
+                  <span className="text-xs sm:text-sm md:text-base flex items-center justify-center leading-none text-gray-600 dark:text-gray-200">{adminInfo.user.name.en[0].toUpperCase()}</span>
                 )}
               </button>
 
               {profileOpen && (
-                <ul className="origin-top-right absolute right-0 mt-2 w-48 md:w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 focus:outline-none">
-                  <li className="justify-between font-serif font-medium py-2 pl-4 transition-colors duration-150 hover:bg-gray-100 text-gray-500 hover:text-emerald-500 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200">
-                    <Link to="/dashboard">
-                      <span className="flex items-center text-xs md:text-sm">
-                        <FiGrid className="w-3 h-3 md:w-4 md:h-4 mr-2 md:mr-3" aria-hidden="true" />
-                        <span>{t("Dashboard")}</span>
-                      </span>
-                    </Link>
+                <ul className="origin-top-right absolute right-0 mt-2 w-48 md:w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 dark:divide-gray-700 focus:outline-none">
+                  <li className="px-4 py-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        {adminInfo?.user.profileImage ? (
+                          <img
+                            className="h-10 w-10 rounded-full"
+                            src={`${adminInfo.user.profileImage}`}
+                            alt="Profile"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-700 flex items-center justify-center">
+                            <span className="text-sm font-medium text-emerald-600 dark:text-emerald-200">
+                              {adminInfo.user.name.en[0].toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                          {adminInfo.user.name.en}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {adminInfo.user.employeeCode}
+                        </p>
+                      </div>
+                    </div>
                   </li>
-
-                  <li className="justify-between font-serif font-medium py-2 pl-4 transition-colors duration-150 hover:bg-gray-100 text-gray-500 hover:text-emerald-500 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200">
-                    <Link to="/edit-profile">
-                      <span className="flex items-center text-xs md:text-sm">
-                        <FiSettings
-                          className="w-3 h-3 md:w-4 md:h-4 mr-2 md:mr-3"
-                          aria-hidden="true"
-                        />
-                        <span>{t("EditProfile")}</span>
-                      </span>
-                    </Link>
+                  <li className="px-4 py-3">
+                    <p className="text-xs italic text-gray-500 dark:text-gray-400 leading-relaxed">
+                      "Every logout is a step toward balance. Great work today—let's make tomorrow even better!"
+                    </p>
                   </li>
-
-                  <li
-                    onClick={handleLogOut}
-                    className="cursor-pointer justify-between font-serif font-medium py-2 pl-4 transition-colors duration-150 hover:bg-gray-100 text-gray-500 hover:text-emerald-500 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                  >
-                    <span className="flex items-center text-xs md:text-sm">
-                      <FiLogOut className="w-3 h-3 md:w-4 md:h-4 mr-2 md:mr-3" aria-hidden="true" />
+                  <li>
+                    <button
+                      onClick={handleLogOut}
+                      className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
+                    >
+                      <FiLogOut className="w-4 h-4 mr-3 text-gray-500 dark:text-gray-400" aria-hidden="true" />
                       <span>{t("LogOut")}</span>
-                    </span>
+                    </button>
                   </li>
                 </ul>
               )}

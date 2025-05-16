@@ -5,7 +5,7 @@ import {
   TableHeader,
 } from "@windmill/react-ui";
 import React, { useState, useContext, useEffect, useRef } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 //internal import
 import TableLoading from "@/components/preloader/TableLoading";
@@ -55,6 +55,8 @@ const CallDetails = () => {
     noticePeriod: [],
     relocation: [],
     source: [],
+    qualification: [],
+    locality: [],
   });
   const [mobileNumber, setMobileNumber] = useState("");
   const [mobileError, setMobileError] = useState("");
@@ -82,12 +84,39 @@ const CallDetails = () => {
 
   console.log(data);
 
+  // Add states for API data
+  const [qualifications, setQualifications] = useState([]);
+  const [localities, setLocalities] = useState([]);
 
   // Add a useEffect to reload data when refreshKey changes
   useEffect(() => {
     // This will trigger the useAsync hook to refetch data
     setIsUpdate(true);
   }, [refreshKey, setIsUpdate]);
+
+  // Add useEffect to fetch qualifications and localities
+  useEffect(() => {
+    const fetchFilterData = async () => {
+      try {
+        // Fetch qualifications
+        const qualificationsRes = await EmployeeServices.getQualifications();
+        if (qualificationsRes && Array.isArray(qualificationsRes)) {
+          setQualifications(qualificationsRes);
+        }
+        
+        // Fetch localities (for Indore)
+        const localitiesRes = await EmployeeServices.getLocalities();
+        if (localitiesRes && Array.isArray(localitiesRes)) {
+          setLocalities(localitiesRes);
+        }
+      } catch (error) {
+        console.error("Error fetching filter data:", error);
+        toast.error("Failed to load filter options");
+      }
+    };
+
+    fetchFilterData();
+  }, []);
 
   const {
     candidateRef,  
@@ -106,7 +135,7 @@ const CallDetails = () => {
     setDateRange,
   } = useFilter(data?.candidates);
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [duplicityCheckCount, setDuplicityCheckCount] = useState(0);
 
@@ -128,6 +157,8 @@ const CallDetails = () => {
       noticePeriod: [],
       relocation: [],
       source: [],
+      qualification: [],
+      locality: [],
     });
     setItemsPerPage(DEFAULT_ITEMS_PER_PAGE);
     setCurrentPage(1);
@@ -183,14 +214,11 @@ const CallDetails = () => {
     setMobileError("");
     
     try {
-      const response = await EmployeeServices.markCandidate(number);
-      
-      if (response.status === "success") {
-        toast.success("Candidate marked successfully");
-        setDuplicateInfo(null);
-        setRefreshKey(prev => prev + 1); // Refresh table data
-      }
-      
+      const response = await EmployeeServices.checkDuplicityofInputField(number);
+
+      setShowViewModal(true);
+      setSelectedCall(response.candidate);
+
     } catch (error) {
       console.log("Error in duplicity check:", error);
       
@@ -198,8 +226,7 @@ const CallDetails = () => {
         // Candidate not found
         if (error.response.status === 404 && error.response.data.message === "Candidate not found") {
           // Redirect to call-info and prefill the number
-          history.push({
-            pathname: "/call-info",
+          navigate("/call-info", {
             state: { prefillNumber: number }
           });
           return;
@@ -326,7 +353,7 @@ const CallDetails = () => {
   };
 
   const navigateToCallInfo = () => {
-    history.push("/call-info");
+    navigate("/call-info");
   };
 
   // Bulk upload handlers
@@ -483,6 +510,18 @@ const CallDetails = () => {
     }
   };
 
+  // Create qualification options from API data
+  const qualificationOptions = qualifications.map(qual => ({
+    value: qual.name || qual,
+    label: qual.name || qual
+  }));
+
+  // Create locality options from API data
+  const localityOptions = localities.map(locality => ({
+    value: locality.name || locality,
+    label: locality.name || locality
+  }));
+
   // Filter column options
   const filterColumns = [
     {
@@ -524,6 +563,16 @@ const CallDetails = () => {
       name: "source",
       label: "Source",
       options: sourceOptions
+    },
+    {
+      name: "qualification",
+      label: "Qualification",
+      options: qualificationOptions
+    },
+    {
+      name: "locality",
+      label: "Locality",
+      options: localityOptions
     }
   ];
 
@@ -1007,10 +1056,19 @@ const CallDetails = () => {
                   <TableCell className="text-center" onClick={() => handleSortByField("name")}>Name {sortBy === "name" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("mobile")}>Phone{sortBy === "mobile" && (
+                  <TableCell className="text-center" onClick={() => handleSortByField("mobile")}>Contact Number{sortBy === "mobile" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("whatsapp")}>WhatsApp {sortBy === "whatsapp" && (
+                  <TableCell className="text-center" onClick={() => handleSortByField("whatsapp")}>WhatsApp Number {sortBy === "whatsapp" && (
+                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}</TableCell>
+                     <TableCell className="text-center" onClick={() => handleSortByField("qualification")}>Qualification {sortBy === "qualification" && (
+                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}</TableCell>
+                     <TableCell className="text-center" onClick={() => handleSortByField("location")}>Location {sortBy === "location" && (
+                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}</TableCell>
+                     <TableCell className="text-center" onClick={() => handleSortByField("locality")}>Locality {sortBy === "locality" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
                   <TableCell className="text-center" onClick={() => handleSortByField("experience")}>Experience {sortBy === "experience" && (
@@ -1075,6 +1133,10 @@ const CallDetails = () => {
           onClose={() => {
             setShowViewModal(false);
             setSelectedCall(null);
+          }}
+          onTryCall={(call) => {
+            setShowViewModal(false);
+            handleEdit(call);
           }}
         />
       )}

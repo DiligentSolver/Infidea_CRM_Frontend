@@ -1,13 +1,12 @@
-import React, { useContext, useState } from "react";
-import { NavLink, Route } from "react-router-dom";
+import React, { useContext } from "react";
+import { NavLink } from "react-router";
 import Cookies from "js-cookie";
 import { useTranslation } from "react-i18next";
-import { Button, WindmillContext } from "@windmill/react-ui";
-import { IoLogOutOutline } from "react-icons/io5";
+import { WindmillContext } from "@windmill/react-ui";
+import { IoLogOutOutline, IoSettingsOutline, IoPersonOutline } from "react-icons/io5";
 
 //internal import
 import sidebar from "@/routes/sidebar";
-// import SidebarSubMenu from "SidebarSubMenu";
 import logoDark from "@/assets/img/logo/infidea_icon.png";
 import logoLight from "@/assets/img/logo/infidea_icon.png";
 import { AdminContext } from "@/context/AdminContext";
@@ -17,7 +16,8 @@ import useGetCData from "@/hooks/useGetCData";
 const SidebarContent = () => {
   const { t } = useTranslation();
   const { mode } = useContext(WindmillContext);
-  const { dispatch } = useContext(AdminContext);
+  const { state, dispatch } = useContext(AdminContext);
+  const { adminInfo } = state || {};
   const { accessList } = useGetCData();
 
   const handleLogOut = () => {
@@ -31,7 +31,6 @@ const SidebarContent = () => {
       if (route.routes) {
         const validSubRoutes = route.routes.filter((subRoute) => {
           const routeKey = subRoute.path.split("?")[0].split("/")[1];
-          // console.log("subRoute", routeKey);
           return accessList.includes(routeKey);
         });
 
@@ -48,45 +47,77 @@ const SidebarContent = () => {
     .filter(Boolean);
 
   return (
-    <div className="py-4 text-gray-500 dark:text-gray-400">
-      <a className=" text-gray-900 dark:text-gray-200" href="/dashboard">
+    <div className="flex flex-col h-full justify-between py-4 text-gray-500 dark:text-gray-400">
+      <div>
+        <div className="px-12 py-1">
+          <a className=" text-gray-900 dark:text-gray-200" href="/dashboard">
         {mode === "dark" ? (
-          <img src={logoLight} alt="kachabazar" width="135" className="pl-6" />
+          <img src={logoLight} alt="Infidea" width="135" className="pl-6" />
         ) : (
-          <img src={logoDark} alt="kachabazar" width="135" className="pl-6" />
+          <img src={logoDark} alt="Infidea" width="135" className="pl-6" />
         )}
       </a>
-      <ul className="mt-8">
-        {updatedSidebar?.map((route) =>
-          route.routes ? (
-            <SidebarSubMenu route={route} key={route.name} />
-          ) : (
-            <li className="relative" key={route.name}>
-              <NavLink
-                exact
-                to={route.path}
-                target={`${route?.outside ? "_blank" : "_self"}`}
-                className="px-6 py-4 inline-flex items-center w-full text-sm font-semibold transition-colors duration-150 hover:text-emerald-700 dark:hover:text-gray-200"
-                // activeClassName="text-emerald-500 dark:text-gray-100"
-                activeStyle={{
-                  color: "#0d9e6d",
-                }}
-                rel="noreferrer"
-              >
-                <Route path={route.path} exact={route.exact}>
-                  <span
-                    className="absolute inset-y-0 left-0 w-1 bg-emerald-500 rounded-tr-lg rounded-br-lg"
-                    aria-hidden="true"
-                  ></span>
-                </Route>
-                <route.icon className="w-5 h-5" aria-hidden="true" />
-                <span className="ml-4">{t(`${route.name}`)}</span>
-              </NavLink>
-            </li>
-          )
-        )}
-      </ul>
+      </div>
+        
+       
+        <ul className="mt-6 overflow-y-auto max-h-[calc(100vh-250px)]">
+          {updatedSidebar?.map((route) =>
+            route.routes ? (
+              <SidebarSubMenu route={route} key={route.name} />
+            ) : (
+              <li className="relative px-2 mx-4" key={route.name}>
+                <NavLink
+                  to={route.path}
+                  target={`${route?.outside ? "_blank" : "_self"}`}
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 mb-1 text-sm font-medium rounded-lg ${
+                      isActive 
+                        ? 'bg-emerald-50 text-emerald-600 dark:bg-gray-700 dark:text-emerald-400' 
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
+                    }`
+                  }
+                  rel="noreferrer"
+                >
+                  {({ isActive }) => (
+                    <>
+                      <route.icon className={`w-5 h-5 ${isActive ? 'text-emerald-500' : ''}`} />
+                      <span className="ml-4">{t(`${route.name}`)}</span>
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            )
+          )}
+        </ul>
+      </div>
       
+      {adminInfo && (
+        <div className="mt-auto border-t dark:border-gray-700 pt-3 px-6">
+          <div className="py-2 mb-2">
+            <NavLink
+              to="/profile"
+              className={({ isActive }) => 
+                `flex items-center p-2 rounded-lg ${
+                  isActive 
+                    ? 'bg-emerald-50 text-emerald-600 dark:bg-gray-700 dark:text-emerald-400' 
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
+                }`
+              }
+            >
+            </NavLink>
+          </div>
+          
+          <div className="flex items-center justify-between space-x-2 pb-4">
+            <NavLink
+              to="/edit-profile"
+              className="flex-1 flex items-center justify-center p-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+            >
+              <IoSettingsOutline className="w-5 h-5" />
+              <span className="ml-2">{t("Edit Profile")}</span>
+            </NavLink>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

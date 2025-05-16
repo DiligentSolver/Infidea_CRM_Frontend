@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 //internal import
 import useDisableForDemo from "./useDisableForDemo";

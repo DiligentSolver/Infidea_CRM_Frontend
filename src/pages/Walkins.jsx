@@ -290,7 +290,7 @@ function Walkins() {
                   <TableCell className="text-center" onClick={() => handleSortByField("name")}>Name {sortBy === "name" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("contactNumber")}>Contact {sortBy === "contactNumber" && (
+                  <TableCell className="text-center" onClick={() => handleSortByField("contactNumber")}>Contact Number{sortBy === "contactNumber" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
         

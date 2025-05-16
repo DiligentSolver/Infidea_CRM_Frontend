@@ -192,11 +192,7 @@ const ActivityTimelineChart = ({ timeDistributions = {}, loading = false }) => {
     return null;
   };
 
-  // Get the active data key based on selected type
-  const getActiveDataKey = useCallback(() => {
-    if (activeType === "all") return null;
-    return activeType;
-  }, [activeType]);
+ 
 
   // Modern, clean design
   return (
@@ -234,9 +230,9 @@ const ActivityTimelineChart = ({ timeDistributions = {}, loading = false }) => {
           {activityTypes.map((type) => (
             <button
               key={type.id}
-              className={`flex items-center text-xs px-3 py-1.5 rounded-full border transition-all duration-200 ${
+              className={`flex items-center text-xs px-3 py-1.5 rounded-full border  ${
                 activeType === type.id
-                  ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium'
+                  ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium dark:text-gray-200'
                   : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
               }`}
               onClick={() => setActiveType(type.id)}

@@ -1,7 +1,7 @@
 import { TableBody, TableCell, TableRow } from "@windmill/react-ui";
 import { useTranslation } from "react-i18next";
 import {FiDownload, FiBriefcase} from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 // Internal imports
 import Tooltip from "@/components/tooltip/Tooltip";

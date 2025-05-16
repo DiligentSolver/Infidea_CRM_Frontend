@@ -121,8 +121,10 @@ const AttendanceCalendar = ({ leaves = [], loading: parentLoading = false, refre
         new Date().getMonth() === month - 1 && 
         new Date().getFullYear() === year;
       const isSelected = selectedDay === day;
-      const isPending = dayData.status.toLowerCase().includes("pending");
-      const isRejected = dayData.status.toLowerCase().includes("rejected");
+      const isPending = dayData.status.toLowerCase().includes("pending") || 
+                       (dayData.leaveDetails && dayData.leaveDetails.status === "Pending");
+      const isRejected = dayData.status.toLowerCase().includes("rejected") ||
+                        (dayData.leaveDetails && dayData.leaveDetails.status === "Rejected");
       
       // Get day name
       const dayOfWeek = new Date(year, month - 1, day).getDay();
@@ -133,7 +135,10 @@ const AttendanceCalendar = ({ leaves = [], loading: parentLoading = false, refre
       let icon = null;
       let statusClass = null;
       let statusText = null;
-      if(dayData.type==='P'||dayData?.attendanceDetails?.present){
+      if (isPending && dayData.type !== 'P' && dayData.type !== 'WO' && dayData.type !== 'NR') {
+        icon = <FaSyncAlt className="text-orange-500 dark:text-orange-400 animate-spin-slow text-[8px] md:text-[12px] lg:text-[14px]" />;
+        statusText = "Pending";
+      } else if(dayData.type==='P'||dayData?.attendanceDetails?.present){
         icon = <FaCheck className="text-green-500 dark:text-green-400 text-[8px] md:text-[12px] lg:text-[14px]" />;
         statusText = "Present";
       }
@@ -162,8 +167,6 @@ const AttendanceCalendar = ({ leaves = [], loading: parentLoading = false, refre
       // Handle approval status
       if (isRejected && dayData.type !== 'P' && dayData.type !== 'WO' && dayData.type !== 'U') {
         icon = <FaBan className="text-red-500 dark:text-red-400 text-[8px] md:text-[12px] lg:text-[14px]" />;
-      } else if (isPending && dayData.type !== 'P' && dayData.type !== 'WO') {
-        icon = <FaSyncAlt className="text-orange-500 dark:text-orange-400 animate-spin-slow text-[8px] md:text-[12px] lg:text-[14px]" />;
       }
       
       // Add indicators for half-day and early logout
@@ -218,11 +221,7 @@ const AttendanceCalendar = ({ leaves = [], loading: parentLoading = false, refre
         }
       }
       
-      if(dayData.approved===false&&dayData.type.includes('CL')){
-        badges.push(
-          <FaUmbrella size={10} className="text-red-500 dark:text-red-400 absolute bottom-0.5 right-0.5 sm:bottom-1 sm:right-1 text-[8px] md:text-[12px] lg:text-[14px]" />
-        );
-      }if(dayData.approved===false&&dayData.type.includes('PL')){
+     if(dayData.approved===false&&dayData.type.includes('PL')){
         badges.push(
           <FaPlane size={10} className="text-blue-500 dark:text-blue-400 absolute bottom-0.5 right-0.5 sm:bottom-1 sm:right-1 text-[8px] md:text-[12px] lg:text-[14px]" />
         );
@@ -270,6 +269,11 @@ const AttendanceCalendar = ({ leaves = [], loading: parentLoading = false, refre
         cellClasses += " border-1 sm:border-2 border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900 hover:-translate-y-1";
       }
 
+      // Add pending status visual indicator
+      if (isPending) {
+        cellClasses += " bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800";
+      }
+
       calendarCells.push(
         <div
           key={`day-${day}`}
@@ -301,13 +305,13 @@ const AttendanceCalendar = ({ leaves = [], loading: parentLoading = false, refre
       { icon: <FaCheck className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-green-50 dark:bg-green-900/20 text-green-500 dark:text-green-400", text: "Present" },
       { icon: <FaHome className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400", text: "Week Off" },
       { icon: <MdHourglassEmpty className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400", text: "No Record" },
+      { icon: <FaSyncAlt className="text-[8px] md:text-[12px] lg:text-[14px] animate-spin-slow" />, color: "bg-orange-50 dark:bg-orange-900/20 text-orange-500 dark:text-orange-400", text: "Pending" },
+      { icon: <FaBan className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400", text: "Rejected" },
       { icon: <FaBed className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400", text: "Sick" },
       { icon: <FaUmbrella className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-amber-50 dark:bg-amber-900/20 text-amber-500 dark:text-amber-400", text: "Casual" },
       { icon: <FaPlane className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400", text: "Privilege" },
       { icon: <FaClock className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 dark:text-indigo-400", text: "Half Day" },
       { icon: <FaRunning className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400", text: "Early Out" },
-      { icon: <FaSyncAlt className="text-[8px] md:text-[12px] lg:text-[14px] animate-spin-slow" />, color: "bg-orange-50 dark:bg-orange-900/20 text-orange-500 dark:text-orange-400", text: "Pending" },
-      { icon: <FaBan className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400", text: "Rejected" },
       { icon: <FaHamburger className="text-[8px] md:text-[12px] lg:text-[14px]" />, color: "bg-amber-100 dark:bg-amber-900/30 text-orange-500 dark:text-orange-400", text: "Sandwich" },
     ];
     

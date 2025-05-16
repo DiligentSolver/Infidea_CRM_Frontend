@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { Button } from "@windmill/react-ui";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 
 //internal import
 import Error from "@/components/form/others/Error";
@@ -16,13 +15,13 @@ import Loader from "@/components/sprinkleLoader/Loader";
 const ForgotPassword = () => {
   const { t } = useTranslation();
   const { onSubmit, register, handleSubmit, errors, loading } = useLoginSubmit();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleEmailSubmit = async (data) => {
     try {
       const res = await onSubmit(data);
       if (res) {
-        window.location.href = `/reset-password?email=${encodeURIComponent(data.email)}`;
+        navigate(`/reset-password?email=${encodeURIComponent(data.email)}`);
       } else {
         notifyError(res?.data?.message || res?.data?.error || "Failed to send OTP. Please try again.");
       }

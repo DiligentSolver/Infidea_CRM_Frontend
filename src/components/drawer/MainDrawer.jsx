@@ -1,7 +1,7 @@
 import Drawer from "rc-drawer";
 import React, { useContext, useEffect, useState } from "react";
 import { FiX } from "react-icons/fi";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 //internal import
 import { SidebarContext } from "@/context/SidebarContext";

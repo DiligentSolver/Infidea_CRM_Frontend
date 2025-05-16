@@ -1,9 +1,8 @@
 import { Button, Input } from "@windmill/react-ui";
 import React, { useRef, useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 
 //internal import
 import Error from "@/components/form/others/Error";
@@ -17,7 +16,7 @@ import Loader from "@/components/sprinkleLoader/Loader";
 const ResetPassword = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const history = useHistory();
+  const navigate = useNavigate();
   const password = useRef("");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -69,7 +68,7 @@ const ResetPassword = () => {
       setLoading(false);
       // Redirect to login after successful reset
       setTimeout(() => {
-        history.push('/login');
+        navigate('/login');
       }, 1500);
     } catch (err) {
       setLoading(false);

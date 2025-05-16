@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import Switch from "react-switch";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 //internal import
 import { SidebarContext } from "@/context/SidebarContext";

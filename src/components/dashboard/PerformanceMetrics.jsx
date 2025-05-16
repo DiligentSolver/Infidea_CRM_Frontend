@@ -115,7 +115,7 @@ const PerformanceMetrics = ({ data = {}, loading = false }) => {
               <div 
                 key={index} 
                 className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800
-                   hover:shadow-md transform hover:translate-x-1 transition-all duration-200"
+                   hover:shadow-md transform hover:translate-x-1 "
               >
                 <div className="flex items-center">
                   <div className={`p-2.5 rounded-lg ${metric.color} mr-4`}>

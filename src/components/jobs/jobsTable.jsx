@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { t } from "i18next";
 import React from "react";
 import { FiZoomIn, FiDownload, FiBriefcase } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useState } from "react";
 
 //internal import

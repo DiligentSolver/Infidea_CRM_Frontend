@@ -49,6 +49,9 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
     return employeeCallHistory?.map((call) => call.summary).join('\n');
   };
 
+  // State to track which tooltip is currently visible
+  const [visibleTooltip, setVisibleTooltip] = useState(null);
+
   return (
     <>
       <TableBody className="dark:bg-gray-900">
@@ -134,25 +137,23 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
 
           {/* Call Duration*/}
           <TableCell>
-            <div className="flex items-center justify-center space-x-1">
+            <div className="relative flex items-center justify-center space-x-1">
               <span className="text-sm">{getTotalCallDuration(candidate?.employeeCallHistory)}</span>
               {candidate?.employeeCallHistory && candidate.employeeCallHistory.length > 0 && (
-                <div className="static inline-block">
-                  <MdInfo className="w-3.5 h-3.5 text-blue-500 cursor-help hover:text-blue-700" 
-                    onMouseEnter={(e) => {
-                      const tooltip = e.currentTarget.nextElementSibling;
-                      if (tooltip) tooltip.classList.remove('hidden');
-                    }}
-                    onMouseLeave={(e) => {
-                      const tooltip = e.currentTarget.nextElementSibling;
-                      if (tooltip) tooltip.classList.add('hidden');
-                    }}
+                <div className="relative inline-block">
+                  <MdInfo 
+                    className="w-3.5 h-3.5 text-blue-500 cursor-help hover:text-blue-700" 
+                    onMouseEnter={() => setVisibleTooltip(`call-${i}`)}
+                    onMouseLeave={() => setVisibleTooltip(null)}
                   />
-                  <div className="hidden absolute z-[9999] w-64 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg transform -translate-x-1/2  text-left">
-                    <div className="text-xs font-medium text-gray-800 dark:text-gray-200 whitespace-pre-line overflow-y-auto max-h-40">
-                      {formatCallHistory(candidate.employeeCallHistory)}
+                  {visibleTooltip === `call-${i}` && (
+                    <div className="absolute z-[9999] w-64 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg -translate-x-1/2 left-1/2 bottom-full mb-2 text-left">
+                      <div className="text-xs font-medium text-gray-800 dark:text-gray-200 whitespace-pre-line overflow-y-auto max-h-40">
+                        {formatCallHistory(candidate.employeeCallHistory)}
+                      </div>
+                      <div className="absolute w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white dark:border-t-gray-800 -bottom-2 left-1/2 -translate-x-1/2"></div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
@@ -183,6 +184,27 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
         <TableCell>
           <span className="text-sm" >
             {candidate?.whatsappNo}
+          </span>
+        </TableCell>
+
+          {/* Qualification*/}
+          <TableCell>
+          <span className="text-sm" >
+            {candidate?.qualification}
+          </span>
+        </TableCell>
+
+        {/* Location*/}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.city}
+          </span>
+        </TableCell>
+
+        {/* Locality*/}
+        <TableCell>
+          <span className="text-sm" >
+            {candidate?.locality||"-"}
           </span>
         </TableCell>
 
