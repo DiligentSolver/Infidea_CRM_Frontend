@@ -29,13 +29,15 @@ const LineupsTable = ({lineups, onView, onEdit}) => {
               >
                 <FaEye className="w-3.5 h-3.5" />
               </button>
-              <button
-                onClick={() => onEdit(lineup)}
-                className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-green-600 hover:text-green-700 dark:hover:text-green-500"
-                title="Edit"
+              {lineup.editable && (
+                <button
+                  onClick={() => onEdit(lineup)}
+                  className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-green-600 hover:text-green-700 dark:hover:text-green-500"
+                  title="Edit"
               >
                 <FaEdit className="w-3.5 h-3.5" />
               </button>
+              )}
             </div>
           </TableCell>
 

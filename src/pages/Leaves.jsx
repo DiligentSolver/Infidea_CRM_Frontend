@@ -23,7 +23,7 @@ import EmployeeServices from "@/services/EmployeeServices";
 import LeavesTable from "@/components/leaves/LeavesTable";
 import TableLoading from "@/components/preloader/TableLoading";
 import NotFound from "@/components/table/NotFound";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FaTimesCircle, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import DatePicker from "react-datepicker";
@@ -67,7 +67,8 @@ const Leaves = () => {
     reset, 
     watch,
     setValue,
-    formState: { errors } 
+    formState: { errors },
+    control
   } = useForm();
 
   // Selected leave type to show remaining balance
@@ -638,10 +639,10 @@ const Leaves = () => {
                 <div className="mb-6">
                   <Label className="font-medium">
                     <span>Today's Date (Auto-selected)</span>
-                    <Input 
-                      type="date" 
-                      className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300"
-                      value={moment().format("YYYY-MM-DD")}
+                    <DatePicker 
+                      selected={moment().toDate()}
+                      className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300 px-3 py-2 rounded-md"
+                      dateFormat="dd-MMM-yyyy"
                       disabled
                     />
                     <HelperText>Early logout is only applicable for today's date</HelperText>
@@ -652,11 +653,20 @@ const Leaves = () => {
                   <Label className="font-medium">
                     <span>Date</span>
                     <div className="relative">
-                      <Input 
-                        type="date" 
-                        className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300"
-                        min={moment().format("YYYY-MM-DD")}
-                        {...register("singleDate", { required: "Date is required" })}
+                      <Controller
+                        control={control}
+                        name="singleDate"
+                        rules={{ required: "Date is required" }}
+                        render={({ field }) => (
+                          <DatePicker 
+                            selected={field.value ? moment(field.value).toDate() : null}
+                            onChange={(date) => field.onChange(moment(date).format("YYYY-MM-DD"))}
+                            className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300 px-3 py-2 rounded-md"
+                            minDate={moment().toDate()}
+                            dateFormat="dd-MMM-yyyy"
+                            placeholderText="Select date"
+                          />
+                        )}
                       />
                     </div>
                     {errors.singleDate && (
@@ -666,18 +676,27 @@ const Leaves = () => {
                 </div>
               )}
 
-              {selectedLeaveType !== "Early Logout" && (
+              {selectedLeaveType !== "Early Logout" && isSingleDateMode !== true && (
                 <>
                   <div className="grid gap-4 sm:grid-cols-2 mb-6">
                     <div>
                       <Label className="font-medium">
                         <span>Start Date</span>
                         <div className="relative">
-                          <Input 
-                            type="date" 
-                            className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300"
-                            min={moment().format("YYYY-MM-DD")}
-                            {...register("startDate", { required: !isSingleDateMode && "Start date is required" })}
+                          <Controller
+                            control={control}
+                            name="startDate"
+                            rules={{ required: !isSingleDateMode && "Start date is required" }}
+                            render={({ field }) => (
+                              <DatePicker 
+                                selected={field.value ? moment(field.value).toDate() : null}
+                                onChange={(date) => field.onChange(moment(date).format("YYYY-MM-DD"))}
+                                className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300 px-3 py-2 rounded-md"
+                                minDate={moment().toDate()}
+                                dateFormat="dd-MMM-yyyy"
+                                placeholderText="Select start date"
+                              />
+                            )}
                           />
                         </div>
                         {errors.startDate && (
@@ -689,12 +708,21 @@ const Leaves = () => {
                       <Label className="font-medium">
                         <span>End Date</span>
                         <div className="relative">
-                          <Input 
-                            type="date" 
-                            className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300"
-                            min={moment().format("YYYY-MM-DD")}
-                            disabled={isOneDay}
-                            {...register("endDate", { required: !isSingleDateMode && "End date is required" })}
+                          <Controller
+                            control={control}
+                            name="endDate"
+                            rules={{ required: !isSingleDateMode && "End date is required" }}
+                            render={({ field }) => (
+                              <DatePicker 
+                                selected={field.value ? moment(field.value).toDate() : null}
+                                onChange={(date) => field.onChange(moment(date).format("YYYY-MM-DD"))}
+                                className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300 px-3 py-2 rounded-md"
+                                minDate={startDate ? moment(startDate).toDate() : moment().toDate()}
+                                dateFormat="dd-MMM-yyyy"
+                                placeholderText="Select end date"
+                                disabled={isOneDay}
+                              />
+                            )}
                           />
                         </div>
                         {errors.endDate && (

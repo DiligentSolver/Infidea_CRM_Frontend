@@ -19,7 +19,8 @@ import {
   MdOutlineWhatsapp,
   MdClose,
   MdError,
-  MdUpdate
+  MdUpdate,
+  MdInfo
 } from "react-icons/md";
 import { IoCashOutline } from "react-icons/io5";
 import EmployeeServices from "@/services/EmployeeServices";
@@ -32,7 +33,7 @@ import {
   getProcessesByCompany
 } from "@/utils/optionsData";
 import ProcessSelector from "@/components/common/ProcessSelector";
-
+import { formatLongDateAndTime } from "@/utils/dateFormatter";
 function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLocked, isRegisteredByMe }) {
   const [darkMode, setDarkMode] = useState(false);
   const [phoneError, setPhoneError] = useState("");
@@ -48,11 +49,13 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [localities, setLocalities] = useState([]);
+  const [jobProfiles, setJobProfiles] = useState([]);
   const [loadingDropdownData, setLoadingDropdownData] = useState({
     qualifications: false,
     states: false,
     cities: false,
-    localities: false
+    localities: false,
+    jobProfiles: false
   });
 
   // Form data state
@@ -85,8 +88,12 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
     lineupDate: "",
     interviewDate: "",
     walkinDate: "",
-    remarks: ""
+    lineupRemarks: "",
+    walkinRemarks: "",
+    workMode: ""
   });
+
+  const [showCallSummaryTooltip, setShowCallSummaryTooltip] = useState(null);
 
   // Initialize form data when candidate data changes
   useEffect(() => {
@@ -121,6 +128,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         lineupDate: candidateData.lineupDate || "",
         interviewDate: candidateData.interviewDate || "",
         walkinDate: candidateData.walkinDate || "",
+        lineupRemarks: candidateData.lineupRemarks || "",
+        walkinRemarks: candidateData.walkinRemarks || "",
+        workMode: candidateData.workMode || ""
       });
       
       setSameAsContact(whatsappSameAsMobile);
@@ -192,6 +202,14 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
             setStates(statesRes);
           }
           setLoadingDropdownData(prev => ({ ...prev, states: false }));
+          
+          // Fetch job profiles
+          setLoadingDropdownData(prev => ({ ...prev, jobProfiles: true }));
+          const jobProfilesRes = await EmployeeServices.getJobProfiles();
+          if (jobProfilesRes && Array.isArray(jobProfilesRes)) {
+            setJobProfiles(jobProfilesRes);
+          }
+          setLoadingDropdownData(prev => ({ ...prev, jobProfiles: false }));
         } catch (error) {
           console.error("Error fetching dropdown data:", error);
           notifyError("Failed to load dropdown data");
@@ -199,7 +217,8 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
             qualifications: false,
             states: false,
             cities: false,
-            localities: false
+            localities: false,
+            jobProfiles: false
           });
         }
       };
@@ -314,6 +333,26 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       return;
     }
     
+    // If company profile is changed
+    if (field === "companyProfile") {
+      if (value.toLowerCase() === "others") {
+        // When others is selected, clear the custom profile field to ensure it's filled in newly
+        setFormData(prev => ({ 
+          ...prev, 
+          [field]: value,
+          customCompanyProfile: ""
+        }));
+      } else {
+        // When a specific profile is selected, clear the custom profile field
+        setFormData(prev => ({ 
+          ...prev, 
+          [field]: value,
+          customCompanyProfile: ""
+        }));
+      }
+      return;
+    }
+    
     // If lineup company is set to others, also set lineup process to others
     if (field === "lineupCompany" && value === "others") {
       setFormData(prev => ({ 
@@ -355,14 +394,14 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       // Validate lineup fields if status is "lineup"
       if (formData.callStatus === "Lineup" && 
           (!formData.lineupCompany || !formData.lineupProcess || 
-           !formData.lineupDate || !formData.interviewDate || !formData.remarks)) {
+           !formData.lineupDate || !formData.interviewDate || !formData.lineupRemarks)) {
         notifyError("Please fill in all lineup fields including remarks");
         setLoading(false);
         return;
       }
 
       // Validate walkin date if status is "walkin"
-      if (formData.callStatus === "Walkin at Infidea" && (!formData.walkinDate || !formData.remarks)) {
+      if (formData.callStatus === "Walkin at Infidea" && (!formData.walkinDate || !formData.walkinRemarks)) {
         notifyError("Please provide a walkin date and remarks");
         setLoading(false);
         return;
@@ -383,7 +422,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         noticePeriod: formData.noticePeriod,
         shift: formData.shiftPreference,
         relocation: formData.relocation,
-        companyProfile: formData.companyProfile,
+        companyProfile: formData.companyProfile === "others" ? formData.customCompanyProfile : formData.companyProfile,
         callStatus: formData.callStatus,
         callDuration: formData.callDuration,
         callSummary: formData.callSummary,
@@ -396,7 +435,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         lineupDate: formData.lineupDate,
         interviewDate: formData.interviewDate,
         walkinDate: formData.walkinDate,
-        remarks: formData.remarks
+        lineupRemarks: formData.lineupRemarks,
+        walkinRemarks: formData.walkinRemarks,
+        workMode: formData.workMode
       };
       
       // Call API to update candidate data
@@ -480,6 +521,16 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       label: locality.name || locality 
     })) || [])
   ];
+
+  // Create job profile options from API data
+  const jobProfileOptions = useMemo(() => [
+    { value: "", label: "Select Job Profile" },
+    ...(jobProfiles?.map(profile => ({ 
+      value: profile.name || profile, 
+      label: profile.name || profile 
+    })) || []),
+    { value: "others", label: "Others" }
+  ], [jobProfiles]);
 
   // All fields in a single flat array - organized as in CallInfo
   const fields = [
@@ -570,7 +621,13 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       { value: "Yes", label: "Yes" },
       { value: "No", label: "No" }
     ], required: true, inputClass: "w-full" },
-    { label: "Company/Profile", key: "companyProfile", icon: <MdBusinessCenter />, required: true, inputClass: "w-full" },
+    { label: "Work Mode", key: "workMode", icon: <MdBusinessCenter />, type: "select", options: [
+      { value: "", label: "Select Work Mode" },
+      { value: "Office", label: "Office" },
+      { value: "Hybrid", label: "Hybrid" },
+      { value: "Any Mode", label: "Any Mode" }
+    ], required: true, inputClass: "w-full" },
+    { label: "Job Profile", key: "companyProfile", icon: <MdBusinessCenter />, type: "select", options: jobProfileOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.jobProfiles },
     { label: "Call Status", key: "callStatus", icon: <MdWifiCalling3 />, type: "select", options: [
       { value: "", label: "Select Status" },
       { value: "Call Back Requested", label: "Call Back Requested" },
@@ -611,8 +668,13 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       required: formData.callStatus === "Lineup",
       inputClass: "w-full",
       hidden: formData.callStatus !== "Lineup",
-      render: ({ key, label, options, required, inputClass }) => (
+      render: ({ key, label, icon, options, required, inputClass }) => (
         <div className="flex flex-col relative">
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base">{icon}</span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
           <ProcessSelector
             name={key}
             value={formData[key] || ""}
@@ -664,19 +726,43 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
     },
     { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: true, inputClass: "w-full" },
     { 
-      label: "Remarks", 
-      key: "remarks", 
+      label: "Lineup Remarks", 
+      key: "lineupRemarks", 
       icon: <MdNotes />, 
       type: "textarea",
-      required: formData.callStatus === "Lineup" || formData.callStatus === "Walkin at Infidea",
+      required: formData.callStatus === "Lineup",
       inputClass: "w-full",
-      hidden: formData.callStatus !== "Lineup" && formData.callStatus !== "Walkin at Infidea",
+      hidden: formData.callStatus !== "Lineup",
+      span: "md:col-span-4 lg:col-span-4"
+    },
+    { 
+      label: "Walkin Remarks", 
+      key: "walkinRemarks", 
+      icon: <MdNotes />, 
+      type: "textarea",
+      required: formData.callStatus === "Walkin at Infidea",
+      inputClass: "w-full",
+      hidden: formData.callStatus !== "Walkin at Infidea",
       span: "md:col-span-4 lg:col-span-4"
     },
   ];
 
   // Show locality field only when city is Indore
   const showLocalityField = formData.city.toLowerCase() === "indore";
+
+  // Format individual call history for tooltip
+  const formatCallHistory = (employeeCallHistory) => {
+    if (!employeeCallHistory || employeeCallHistory.length === 0) return "No call history";
+    
+    // Sort the call history to show latest calls at the top (descending order by date)
+    const sortedHistory = [...employeeCallHistory].sort((a, b) => 
+      new Date(b.date) - new Date(a.date)
+    );
+    
+    return sortedHistory.map((call, index) => (
+      `${formatLongDateAndTime(call.date)} - ${call.summary}`
+    )).join('\n');
+  };
 
   // If the modal is not open, don't render anything
   if (!isOpen) return null;
@@ -717,7 +803,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
                 if (type === "custom" && render) {
                   return (
                     <div key={key} className={span || ""}>
-                      {render({ key, label, options, required, inputClass })}
+                      {render({ key, label, icon, options, required, inputClass })}
                     </div>
                   );
                 }
@@ -828,7 +914,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
                         {required && <span className="text-red-500">*</span>}
                       </label>
                       <textarea
-                        value={formData.remarks}
+                        value={formData[key]}
                         onChange={(e) => handleChange(key, e.target.value)}
                         placeholder={`Enter ${label.toLowerCase()}...`}
                         required={required}
@@ -994,11 +1080,28 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
 
             {/* Call Summary Field */}
             <div className="mt-3 grid grid-cols-1">
-              <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                <span className="text-base"><MdNotes /></span>
-                Call Summary
-                <span className="text-red-500">*</span>
-              </label>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <label className={`flex items-center gap-1.5 text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <span className="text-base"><MdNotes /></span>
+                  Call Summary
+                  <span className="text-red-500">*</span>
+                </label>
+                <div className="relative inline-block">
+                  <MdInfo 
+                    className="w-3.5 h-3.5 text-blue-500 cursor-help hover:text-blue-700" 
+                    onMouseEnter={() => setShowCallSummaryTooltip(true)}
+                    onMouseLeave={() => setShowCallSummaryTooltip(false)}
+                  />
+                  {showCallSummaryTooltip && (
+                    <div className="absolute z-[9999] w-64 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg -translate-x-1/2 left-1/2 bottom-full mb-2 text-left">
+                      <div className="text-xs font-medium text-gray-800 dark:text-gray-200 whitespace-pre-line overflow-y-auto max-h-40">
+                        {formatCallHistory(candidateData?.employeeCallHistory)}
+                      </div>
+                      <div className="absolute w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white dark:border-t-gray-800 -bottom-2 left-1/2 -translate-x-1/2"></div>
+                    </div>
+                  )}
+                </div>
+              </div>
               <textarea
                 value={formData.callSummary}
                 onChange={(e) => handleChange("callSummary", e.target.value)}

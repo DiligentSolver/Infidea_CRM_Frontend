@@ -82,13 +82,13 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
 
           {/*Entry By*/}
           <TableCell>
-            <span className="text-sm">{candidate?.createdByName}</span>
+            <span className="text-sm">{candidate?.lastRegisteredByName}</span>
           </TableCell>
 
           {/* Entry Date */}
-          <TableCell>
+          {/* <TableCell>
             <span className="text-sm">{formatLongDateAndTime(candidate?.createdAt)}</span>
-          </TableCell>
+          </TableCell> */}
 
           {/* Updated Date */}
           <TableCell>
@@ -137,36 +137,25 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
 
           {/* Call Duration*/}
           <TableCell>
-            <div className="relative flex items-center justify-center space-x-1">
+            <div className="flex items-center justify-center space-x-1">
               <span className="text-sm">{getTotalCallDuration(candidate?.employeeCallHistory)}</span>
               {candidate?.employeeCallHistory && candidate.employeeCallHistory.length > 0 && (
-                <div className="relative inline-block">
+                <div className="group inline-block">
                   <MdInfo 
                     className="w-3.5 h-3.5 text-blue-500 cursor-help hover:text-blue-700" 
-                    onMouseEnter={() => setVisibleTooltip(`call-${i}`)}
-                    onMouseLeave={() => setVisibleTooltip(null)}
                   />
-                  {visibleTooltip === `call-${i}` && (
-                    <div className="absolute z-[9999] w-64 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg -translate-x-1/2 left-1/2 bottom-full mb-2 text-left">
-                      <div className="text-xs font-medium text-gray-800 dark:text-gray-200 whitespace-pre-line overflow-y-auto max-h-40">
-                        {formatCallHistory(candidate.employeeCallHistory)}
-                      </div>
-                      <div className="absolute w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white dark:border-t-gray-800 -bottom-2 left-1/2 -translate-x-1/2"></div>
+                  <div className="hidden group-hover:block fixed z-[9000] w-64 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg text-left transform -translate-y-full -translate-x-1/2 mt-1">
+                    <div className="text-xs font-medium text-gray-800 dark:text-gray-200 whitespace-pre-line overflow-y-auto max-h-40">
+                      {formatCallHistory(candidate.employeeCallHistory)}
                     </div>
-                  )}
+                    <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white dark:border-t-gray-800 mx-auto"></div>
+                  </div>
                 </div>
               )}
             </div>
           </TableCell>
 
-          {/* Call Status*/}
-          <TableCell>
-          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(candidate?.callStatus)}`}>
-          {candidate?.callStatus || 'No status'}
-        </span>
-          </TableCell>
-
-{/* Name*/}
+          {/* Name*/}
 <TableCell>
           <span className="text-sm" >
             {candidate?.name}
@@ -179,6 +168,15 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
             {candidate?.mobileNo}
           </span>
         </TableCell>
+
+          {/* Call Status*/}
+          <TableCell>
+          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(candidate?.callStatus)}`}>
+          {candidate?.callStatus || 'No status'}
+        </span>
+          </TableCell>
+
+
 
         {/* WhatsApp Number*/}
         <TableCell>

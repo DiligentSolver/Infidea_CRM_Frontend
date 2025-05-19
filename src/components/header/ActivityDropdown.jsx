@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useActivity } from "@/components/ActivityContext";
 import { FiActivity, FiClock, FiChevronDown, FiAlertTriangle } from "react-icons/fi";
+import { MdHistory } from "react-icons/md";
 
 const ActivityDropdown = ({ onDeskCount }) => {
   const { currentActivity, startActivity, isLoading, isTimeLimitExceeded } = useActivity();
@@ -93,7 +94,7 @@ const ActivityDropdown = ({ onDeskCount }) => {
         {isTimeLimitExceeded ? (
           <FiAlertTriangle className={`w-3 h-3 sm:w-4 sm:h-4 ${getActivityColor(currentActivity)}`} />
         ) : (
-          <FiActivity className={`w-3 h-3 sm:w-4 sm:h-4 ${getActivityColor(currentActivity)}`} />
+          <MdHistory className={`w-3 h-3 sm:w-4 sm:h-4 ${getActivityColor(currentActivity)}`} />
         )}
         <span className={`${getActivityColor(currentActivity)} ${isTimeLimitExceeded ? 'font-bold' : ''} whitespace-nowrap`}>
           {currentActivity}
@@ -119,7 +120,7 @@ const ActivityDropdown = ({ onDeskCount }) => {
                   {currentActivity === activity && isTimeLimitExceeded ? (
                     <FiAlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                   ) : (
-                    <FiActivity className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                    <MdHistory className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                   )}
                   <span className="truncate">{activity}</span>
                   {currentActivity === activity && (

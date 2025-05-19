@@ -18,14 +18,13 @@ import EmployeeServices from "@/services/EmployeeServices";
 import ActivityTimelineChart from "@/components/dashboard/ActivityTimelineChart";
 import PerformanceMetrics from "@/components/dashboard/PerformanceMetrics";
 import IncentivesChart from "@/components/dashboard/IncentivesChart";
+import RotatingThoughts from "@/components/dashboard/RotatingThoughts";
 // import SocketStatusIndicator from "@/components/dashboard/SocketStatusIndicator";
 // import AttendanceCalendar from "@/components/attendance/AttendanceCalendar";
 
 const Dashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [loadingLiveFeeds, setLoadingLiveFeeds] = useState(true);
-  const pollingIntervalRef = useRef(null);
   
   // Use the global socket context
   // const { 
@@ -135,6 +134,11 @@ const Dashboard = () => {
             <span className="border-l-4 border-[#1a5d96] dark:border-[#e2692c] pl-3">{t("Dashboard Overview")}</span>
           </h1>
         </header>
+        
+        {/* Thoughts of the Day */}
+        <section className="mb-6">
+          <RotatingThoughts />
+        </section>
         
         {/* Dashboard Overview - Stats Cards */}
         <section className="mb-8">

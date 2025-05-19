@@ -160,6 +160,24 @@ const ActivityLockScreen = () => {
     }
   };
 
+  // Get the primary activity icon for the circle
+  const getActivityPrimaryIcon = () => {
+    switch (currentActivity) {
+      case "Lunch Break":
+        return <FaUtensils className="w-10 h-10 mb-4" />;
+      case "Team Meeting":
+        return <FaUsers className="w-10 h-10 mb-4" />;
+      case "Client Meeting":
+        return <FaUserTie className="w-10 h-10 mb-4" />;
+      case "Office Celebration":
+        return <FaBirthdayCake className="w-10 h-10 mb-4" />;
+      case "Interview Session":
+        return <FaUserPlus className="w-10 h-10 mb-4" />;
+      default:
+        return <FaQuestion className="w-10 h-10 mb-4" />;
+    }
+  };
+
   // Generate fixed positions for floating elements
   const generateFloatingElements = () => {
     const icons = getActivityIcons();
@@ -287,7 +305,9 @@ const ActivityLockScreen = () => {
             {isTimeLimitExceeded ? (
               <FiAlertTriangle className="w-16 h-16 mb-4 animate-pulse" />
             ) : (
-              <FiActivity className="w-16 h-16 mb-4" />
+              <>
+                {getActivityPrimaryIcon()}
+              </>
             )}
             <div className="text-4xl font-bold mb-2">{elapsedTime}</div>
             <div className="text-xl mb-1">{currentActivity}</div>

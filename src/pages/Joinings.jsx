@@ -545,7 +545,7 @@ function Joinings() {
                   May
                 </div>
                 <div className="flex-1 bg-white dark:bg-gray-700 flex items-center justify-center px-3">
-                  <span className="text-base font-bold text-gray-800 dark:text-white">16</span>
+                  <span className="text-base font-bold text-gray-800 dark:text-white">{data.incentiveSummary?.counts.total || 0}</span>
                 </div>
               </div>
 

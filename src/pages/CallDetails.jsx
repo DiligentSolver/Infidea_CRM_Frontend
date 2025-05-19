@@ -635,11 +635,11 @@ const CallDetails = () => {
         {/* Fixed position search and filter container */}
         <div className="sticky top-0 left-0 right-0 z-30 pb-4">
           {/* Compact Search Bar with Add New Call Button */}
-          <div className="mb-3 flex flex-col sm:flex-row gap-2">
+          <div className="mb-3 flex flex-col sm:flex-row md:flex-row gap-2">
           {/* Duplicity Check */}
-            <div className="flex flex-col flex-1">
+            <div className="flex flex-col flex-1 md:max-w-md">
               <div className="flex h-10">
-                <div className="relative flex items-center shadow-md bg-white dark:bg-gray-700 rounded-l-md w-full sm:w-96">
+                <div className="relative flex items-center shadow-md bg-white dark:bg-gray-700 rounded-l-md w-full">
                   <input
                     type="text"
                     placeholder="Enter mobile number..."
@@ -707,8 +707,8 @@ const CallDetails = () => {
                 )}
               </div>
             </div>
-            <div className="flex flex-1">
-              <div className="relative flex items-center shadow-md bg-white dark:bg-gray-700 rounded-l-md w-full sm:w-96 h-10">
+            <div className="flex flex-1 md:flex-row">
+              <div className="relative flex items-center shadow-md bg-white dark:bg-gray-700 rounded-l-md w-full sm:w-full md:w-96 h-10">
                 <FaSearch className="text-gray-500 dark:text-gray-400 ml-4" />
                 <input
                   type="text"
@@ -751,7 +751,7 @@ const CallDetails = () => {
               </div>
               
               {/* Enhanced filter dropdown with all columns and ref for click outside */}
-              <div className="w-full sm:w-auto sm:flex-none sm:min-w-[150px] relative" ref={dropdownRef}>
+              <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:min-w-[150px] relative" ref={dropdownRef}>
                 <button
                   onClick={toggleFilterDropdown}
                   className="flex items-center justify-between w-full px-2.5 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -841,7 +841,7 @@ const CallDetails = () => {
                 )}
               </div>
               
-              <div className="w-full sm:w-auto sm:flex-none sm:min-w-[120px]">
+              <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:min-w-[120px]">
                 <select 
                   value={dateRangeType}
                   onChange={(e) => handleDateRangeTypeChange(e.target.value)}
@@ -858,7 +858,7 @@ const CallDetails = () => {
               {/* Date Range Picker */}
               {dateRangeType === 'year' ? (
                 <>
-                  <div className="w-full sm:w-auto sm:flex-none sm:min-w-[120px]">
+                  <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:min-w-[120px]">
                     <DatePicker
                       selected={dateRange.startDate}
                       onChange={(date) => handleDateRangeChange(date, dateRange.endDate)}
@@ -869,10 +869,10 @@ const CallDetails = () => {
                       showYearPicker
                       className="w-full px-2.5 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1"
                       placeholderText="Start Year"
-                      popperClassName="z-50"
+                      popperClassName="z-[10000]"
                     />
                   </div>
-                  <div className="w-full sm:w-auto sm:flex-none sm:min-w-[120px]">
+                  <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:min-w-[120px]">
                     <DatePicker
                       selected={dateRange.endDate}
                       onChange={(date) => handleDateRangeChange(dateRange.startDate, date)}
@@ -883,13 +883,13 @@ const CallDetails = () => {
                       showYearPicker
                       className="w-full px-2.5 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1"
                       placeholderText="End Year"
-                      popperClassName="z-50"
+                      popperClassName="z-[10000]"
                     />
                   </div>
                 </>
               ) : dateRangeType === 'month' ? (
                 <>
-                  <div className="w-full sm:w-auto sm:flex-none sm:min-w-[130px]">
+                  <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:min-w-[130px]">
                     <DatePicker
                       selected={dateRange.startDate}
                       onChange={(date) => handleDateRangeChange(date, dateRange.endDate)}
@@ -900,10 +900,10 @@ const CallDetails = () => {
                       showMonthYearPicker
                       className="w-full px-2.5 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1"
                       placeholderText="Start Month"
-                      popperClassName="z-50"
+                      popperClassName="z-[10000]"
                     />
                   </div>
-                  <div className="w-full sm:w-auto sm:flex-none sm:min-w-[130px]">
+                  <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:min-w-[130px]">
                     <DatePicker
                       selected={dateRange.endDate}
                       onChange={(date) => handleDateRangeChange(dateRange.startDate, date)}
@@ -914,13 +914,13 @@ const CallDetails = () => {
                       showMonthYearPicker
                       className="w-full px-2.5 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1"
                       placeholderText="End Month"
-                      popperClassName="z-50"
+                      popperClassName="z-[10000]"
                     />
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="w-full sm:w-auto sm:flex-none sm:min-w-[130px]">
+                  <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:min-w-[130px]">
                     <DatePicker
                       selected={dateRange.startDate}
                       onChange={(date) => handleDateRangeChange(date, dateRange.endDate)}
@@ -930,10 +930,10 @@ const CallDetails = () => {
                       dateFormat="dd-MMM-yyyy"
                       className="w-full px-2.5 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1"
                       placeholderText="Start Date"
-                      popperClassName="z-50"
+                      popperClassName="z-[10000]"
                     />
                   </div>
-                  <div className="w-full sm:w-auto sm:flex-none sm:min-w-[130px]">
+                  <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:min-w-[130px]">
                     <DatePicker
                       selected={dateRange.endDate}
                       onChange={(date) => handleDateRangeChange(dateRange.startDate, date)}
@@ -943,14 +943,14 @@ const CallDetails = () => {
                       dateFormat="dd-MMM-yyyy"
                       className="w-full px-2.5 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1"
                       placeholderText="End Date"
-                      popperClassName="z-50"
+                      popperClassName="z-[10000]"
                     />
                   </div>
                 </>
               )}
               
               {/* Items per page selector */}
-              <div className="w-full sm:w-auto sm:flex-none sm:min-w-[100px]">
+              <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:min-w-[100px]">
                 <select
                   value={itemsPerPage}
                   onChange={(e) => {
@@ -968,8 +968,8 @@ const CallDetails = () => {
               
               {/* Pagination controls - moved from bottom to top */}
               {filteredData.length > 0 && (
-                <div className="w-full sm:w-auto sm:flex-none sm:ml-auto">
-                  <div className="flex items-center justify-center sm:justify-end space-x-1">
+                <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:ml-auto">
+                  <div className="flex items-center justify-center sm:justify-end md:justify-end space-x-1">
                     <button
                       onClick={goToPrevPage}
                       disabled={currentPage === 1}
@@ -1032,12 +1032,12 @@ const CallDetails = () => {
                   <TableCell className="text-center">
                   Actions
                   </TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("entryby")}>Entry By {sortBy === "entryby" && (
+                  <TableCell className="text-center" onClick={() => handleSortByField("lastRegisteredByName")}>Last Registered By {sortBy === "lastRegisteredByName" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("entrydate")}>Entry Date {sortBy === "entrydate" && (
+                  {/* <TableCell className="text-center" onClick={() => handleSortByField("entrydate")}>Entry Date {sortBy === "entrydate" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
-                  )}</TableCell>
+                  )}</TableCell> */}
                   <TableCell className="text-center" onClick={() => handleSortByField("updateddate")}>Updated Date {sortBy === "updateddate" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
@@ -1050,13 +1050,13 @@ const CallDetails = () => {
                   <TableCell className="text-center" onClick={() => handleSortByField("timespent")}>Time Spent {sortBy === "timespent" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("callStatus")}>Status{sortBy === "callStatus" && (
-                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
-                  )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("name")}>Name {sortBy === "name" && (
+                       <TableCell className="text-center" onClick={() => handleSortByField("name")}>Name {sortBy === "name" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
                   <TableCell className="text-center" onClick={() => handleSortByField("mobile")}>Contact Number{sortBy === "mobile" && (
+                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}</TableCell>
+                  <TableCell className="text-center" onClick={() => handleSortByField("callStatus")}>Status{sortBy === "callStatus" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
                   <TableCell className="text-center" onClick={() => handleSortByField("whatsapp")}>WhatsApp Number {sortBy === "whatsapp" && (
@@ -1157,8 +1157,8 @@ const CallDetails = () => {
 
       {/* Bulk Upload Modal */}
       {showBulkUploadModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-xl w-full" style={{ maxHeight: '90vh' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-xl mx-auto" style={{ maxHeight: '90vh' }}>
             <div className="flex justify-between items-center px-4 py-3 border-b dark:border-gray-700">
               <h3 className="text-lg font-bold dark:text-[#e2692c] text-[#1a5d96]">
                 Bulk Upload Candidates
@@ -1276,7 +1276,7 @@ const CallDetails = () => {
                         Upload Results
                       </h4>
                       
-                      <div className="grid grid-cols-3 gap-2 mb-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-2 mb-2">
                         <div className="p-2 bg-green-100 dark:bg-green-800 rounded-md text-center">
                           <div className="text-base font-bold text-green-700 dark:text-green-200">
                             {uploadResult.results.successful || 0}

@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { TableHeader, TableContainer, TableCell, Table } from "@windmill/react-ui";
 import PageTitle from "@/components/Typography/PageTitle";
 import moment from "moment";
 import EmployeeServices from "@/services/EmployeeServices";
-import { SidebarContext } from "@/context/SidebarContext";
 import ActivitiesTable from "@/components/activities/ActivitiesTable";
 import TableLoading from "@/components/preloader/TableLoading";
 import NotFound from "@/components/table/NotFound";
@@ -24,7 +23,6 @@ const Activities = () => {
     status: "",
   });
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const { setIsUpdate } = useContext(SidebarContext);
   const [refreshKey, setRefreshKey] = useState(0);
   
   // Using useFilter hook for filtering and sorting

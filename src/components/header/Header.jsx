@@ -45,7 +45,7 @@ const Header = () => {
 
   const handleLogOut = async () => {
     try {
-      await EmployeeServices.logOut();
+      await EmployeeServices.logoutEmployee();
       dispatch({ type: "USER_LOGOUT" });
       Cookies.remove("adminInfo");
     } catch (err) {

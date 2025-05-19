@@ -399,7 +399,7 @@ const EditProfile = () => {
       maxLength: 50,
     },
     { 
-      label: "Emergency Contact No.", 
+      label: "Emergency Contact Number", 
       key: "emergencyContactNumber", 
       icon: <MdPhone />, 
       type: "tel",
@@ -510,7 +510,7 @@ const EditProfile = () => {
                   <>
                     <label
                       htmlFor="imageUpload"
-                      className={`absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center cursor-pointer ${loading ? 'opacity-70' : 'opacity-0 group-hover:opacity-100'} transition-opacity duration-300`}
+                      className={`absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center cursor-pointer ${loading ? 'opacity-70' : 'opacity-100'} transition-opacity duration-300`}
                     >
                       {loading ? (
                         <span className="text-white text-xs">Uploading...</span>

@@ -564,7 +564,8 @@ function Lineups() {
         lineupDate: formData.lineupDate,
         interviewDate: formattedInterviewDate,
         status: formData.status,
-        remarks: formData.remarks
+        joiningRemarks: formData.joiningRemarks,
+        lineupRemarks: formData.lineupRemarks
       };
 
       // Add joining details to payload if status is "joined"
@@ -599,6 +600,7 @@ function Lineups() {
         interviewDate: "",
         status: "",
         remarks: "",
+        lineupRemarks: "",
         joiningDate: "",
         joiningType: "",
         salary: "",
@@ -1176,11 +1178,11 @@ function Lineups() {
             
             <div className="mt-4">
               <label className="block text-sm font-medium dark:text-gray-300 text-gray-700">
-                Remarks
+               Lineup Remarks
               </label>
               <textarea
-                name="remarks"
-                value={formData.remarks || ""}
+                name="lineupRemarks"
+                value={formData.lineupRemarks || ""}
                 onChange={handleChange}
                 placeholder="Add any additional notes or remarks"
                 rows="3"
@@ -1316,7 +1318,16 @@ function Lineups() {
             </div>
           </div>
 
-          {/* Display joining details in view modal if status is joined */}
+          <div className="mt-4 p-4 rounded-lg dark:bg-gray-700 bg-gray-100">
+            <h3 className="text-lg font-semibold mb-2 dark:text-[#e2692c] text-[#1a5d96]">
+              Lineup Remarks
+            </h3>
+            <p className="text-sm dark:text-gray-400 text-gray-500">
+              {selectedLineup.lineupRemarks}
+            </p>
+          </div>
+
+          {/* Display joining details in view modal if status is joined
           {selectedLineup.status?.toLowerCase() === "joined" && (
             <div className="mt-4 p-4 rounded-lg dark:bg-gray-700 bg-gray-100">
               <h3 className="text-lg font-semibold mb-2 dark:text-[#e2692c] text-[#1a5d96]">
@@ -1355,7 +1366,7 @@ function Lineups() {
                 )}
               </dl>
             </div>
-          )}
+          )} */}
 
           <div className="mt-6 flex justify-end space-x-3">
             <button

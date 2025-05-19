@@ -61,13 +61,13 @@ const formatCallHistory = (callDurationHistory) => {
   const formatCallSummary = (callDurationHistory) => {
     if (!callDurationHistory || callDurationHistory.length === 0) return "No call summary";
     
-    return callDurationHistory?.map((call) => call.summary).join('\n');
+    return callDurationHistory?.sort((a, b) => new Date(b.date) - new Date(a.date)).map((call) => `${formatLongDateAndTime(call.date)} - ${call.summary}`).join('\n');
   };
 
   const formatCallRemarks = (callRemarksHistory) => {
     if (!callRemarksHistory || callRemarksHistory.length === 0) return "No remarks";
     
-    return callRemarksHistory?.map((call) => call.remark).join('\n');
+    return callRemarksHistory?.sort((a, b) => new Date(b.date) - new Date(a.date)).map((call) => `${formatLongDateAndTime(call.date)} - ${call.remark}`).join('\n');
   };
   
   // Helper function to render field values based on type
@@ -126,6 +126,7 @@ const formatCallHistory = (callDurationHistory) => {
     { label: "Salary Expectation", key: "salaryExpectations", value: call.salaryExpectation ? `₹${call.salaryExpectation}` : "Not Specified" },
     { label: "Communication", key: "levelOfCommunication", value: call.communication },
     { label: "Notice Period", key: "noticePeriod", value: call.noticePeriod },
+    { label: "Work Mode", key: "workMode", value: call.workMode || "Not Specified" },
     { label: "Shift Preference", key: "shiftPreference", value: call.shift },
     { label: "Relocation", key: "relocation", value: call.relocation },
     { label: "Call Date", key: "callDate", value: call.createdAt ? formatLongDate(call.createdAt) : "Not Specified" },

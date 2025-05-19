@@ -356,7 +356,7 @@ export const joiningTypeOptions = [
 export const callStatusOptions = [
   { value: "", label: "Select Call Status" },
   { value: "Call Back Requested", label: "Call Back Requested" },
-  { value: "Client Call", label: "Client Call" },
+  { value: "Pipeline", label: "Pipeline" },
   { value: "Inhouse Hr In Touch", label: "Inhouse HR In Touch" },
   { value: "Lineup", label: "Lineup" },
   { value: "Not Aligned Anywhere", label: "Not Aligned Anywhere" },
@@ -424,6 +424,7 @@ export const relocationOptions = [
 export const sourceOptions = [
   { value: "", label: "Select Source" },
   { value: "Candidate Reference", label: "Candidate Reference" },
+  { value: "Incoming Call", label: "Incoming Call" },
   { value: "Indeed", label: "Indeed" },
   { value: "Instagram", label: "Instagram" },
   { value: "Internal Database", label: "Internal Database" },
@@ -517,4 +518,5 @@ export const activitiesStatusOptions = [
   { value: "teammeeting", label: "Team Meeting" },
   { value: "clientmeeting", label: "Client Meeting" },
   { value: "officecelebration", label: "Office Celebration" },
+  { value: "logout", label: "Logout" },
 ];

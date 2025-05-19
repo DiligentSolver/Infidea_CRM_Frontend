@@ -49,15 +49,15 @@ const SidebarContent = () => {
   return (
     <div className="flex flex-col h-full justify-between py-4 text-gray-500 dark:text-gray-400">
       <div>
-        <div className="px-12 py-1">
-          <a className=" text-gray-900 dark:text-gray-200" href="/dashboard">
-        {mode === "dark" ? (
-          <img src={logoLight} alt="Infidea" width="135" className="pl-6" />
-        ) : (
-          <img src={logoDark} alt="Infidea" width="135" className="pl-6" />
-        )}
-      </a>
-      </div>
+        <div className="flex justify-center items-center py-3">
+          <a className="text-gray-900 dark:text-gray-200" href="/dashboard">
+            {mode === "dark" ? (
+              <img src={logoLight} alt="Infidea" width="100" />
+            ) : (
+              <img src={logoDark} alt="Infidea" width="100" />
+            )}
+          </a>
+        </div>
         
        
         <ul className="mt-6 overflow-y-auto max-h-[calc(100vh-250px)]">

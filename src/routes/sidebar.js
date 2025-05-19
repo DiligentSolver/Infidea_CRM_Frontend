@@ -12,7 +12,13 @@ import {
   FiCalendar,
 } from "react-icons/fi";
 import { IoDocument } from "react-icons/io5";
-import { MdEditDocument, MdDirectionsWalk, MdJoinFull } from "react-icons/md";
+import {
+  MdEditDocument,
+  MdDirectionsWalk,
+  MdJoinFull,
+  MdLocalActivity,
+  MdHistory,
+} from "react-icons/md";
 
 /**
  * ⚠ These are used just to render the Sidebar!
@@ -59,7 +65,7 @@ const sidebar = [
   },
   {
     path: "/activities",
-    icon: FiActivity,
+    icon: MdHistory,
     name: "Activities",
   },
 

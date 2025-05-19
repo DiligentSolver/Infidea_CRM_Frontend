@@ -57,11 +57,13 @@ function CallInfo() {
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [localities, setLocalities] = useState([]);
+  const [jobProfiles, setJobProfiles] = useState([]);
   const [loadingDropdownData, setLoadingDropdownData] = useState({
     qualifications: false,
     states: false,
     cities: false,
-    localities: false
+    localities: false,
+    jobProfiles: false
   });
 
   // Add a new state for filtered process options
@@ -99,7 +101,9 @@ function CallInfo() {
     lineupDate: "",
     interviewDate: "",
     walkinDate: "",
-    remarks: ""
+    lineupRemarks: "",
+    walkinRemarks: "",
+    workMode: ""
   });
 
   // Prefill contact number if redirected from duplicity check
@@ -204,6 +208,14 @@ function CallInfo() {
           setStates(statesRes);
         }
         setLoadingDropdownData(prev => ({ ...prev, states: false }));
+        
+        // Fetch job profiles
+        setLoadingDropdownData(prev => ({ ...prev, jobProfiles: true }));
+        const jobProfilesRes = await EmployeeServices.getJobProfiles();
+        if (jobProfilesRes && Array.isArray(jobProfilesRes)) {
+          setJobProfiles(jobProfilesRes);
+        }
+        setLoadingDropdownData(prev => ({ ...prev, jobProfiles: false }));
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
         notifyError("Failed to load dropdown data");
@@ -211,7 +223,8 @@ function CallInfo() {
           qualifications: false,
           states: false,
           cities: false,
-          localities: false
+          localities: false,
+          jobProfiles: false
         });
       }
     };
@@ -341,6 +354,26 @@ function CallInfo() {
       return;
     }
     
+    // If company profile is changed
+    if (field === "companyProfile") {
+      if (value.toLowerCase() === "others") {
+        // When others is selected, clear the custom profile field to ensure it's filled in newly
+        setFormData(prev => ({ 
+          ...prev, 
+          [field]: value,
+          customCompanyProfile: ""
+        }));
+      } else {
+        // When a specific profile is selected, clear the custom profile field
+        setFormData(prev => ({ 
+          ...prev, 
+          [field]: value,
+          customCompanyProfile: ""
+        }));
+      }
+      return;
+    }
+    
     // If lineup company is changed
     if (field === "lineupCompany") {
       if (value.toLowerCase() === "others") {
@@ -379,26 +412,6 @@ function CallInfo() {
           [field]: value,
           // Only clear if company is not others
           ...(prev.lineupCompany.toLowerCase() !== "others" ? { customLineupProcess: "" } : {})
-        }));
-      }
-      return;
-    }
-    
-    // If company profile is changed
-    if (field === "companyProfile") {
-      if (value.toLowerCase() === "others") {
-        // When others is selected, clear the custom profile field to ensure it's filled in newly
-        setFormData(prev => ({ 
-          ...prev, 
-          [field]: value,
-          customCompanyProfile: ""
-        }));
-      } else {
-        // When a specific profile is selected, clear the custom profile field
-        setFormData(prev => ({ 
-          ...prev, 
-          [field]: value,
-          customCompanyProfile: ""
         }));
       }
       return;
@@ -449,7 +462,6 @@ function CallInfo() {
         shiftPreference: "",
         relocation: "",
         companyProfile: "",
-        customCompanyProfile: "",
         callStatus: "",
         callSummary: "",
         callDuration: "",
@@ -462,7 +474,9 @@ function CallInfo() {
         lineupDate: "",
         interviewDate: "",
         walkinDate: "",
-        remarks: ""
+        lineupRemarks: "",
+        walkinRemarks: "",
+        workMode: ""
       });
       setSameAsContact(false);
       setDuplicateInfo(null);
@@ -478,12 +492,6 @@ function CallInfo() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Prevent submission if duplicate is detected
-    if (duplicateInfo !== null) {
-      notifyError("Cannot submit duplicate entry");
-      return;
-    }
-    
     // Check if mandatory fields are required based on callStatus
     const requiresMandatoryFields = ["Lineup", "Walkin at Infidea", "Not Aligned Anywhere"].includes(formData.callStatus);
     
@@ -492,14 +500,14 @@ function CallInfo() {
       // Validate lineup fields if status is "lineup"
       if (formData.callStatus === "Lineup" && 
           (!formData.lineupCompany || !formData.lineupProcess || 
-           !formData.lineupDate || !formData.interviewDate || !formData.remarks)) {
+           !formData.lineupDate || !formData.interviewDate || !formData.lineupRemarks)) {
         notifyError("Please fill in all lineup fields including remarks");
         setLoading(false);
         return;
       }
 
       // Validate walkin date if status is "walkin"
-      if (formData.callStatus === "Walkin at Infidea" && (!formData.walkinDate || !formData.remarks)) {
+      if (formData.callStatus === "Walkin at Infidea" && (!formData.walkinDate || !formData.walkinRemarks)) {
         notifyError("Please provide a walkin date and remarks");
         setLoading(false);
         return;
@@ -531,7 +539,7 @@ function CallInfo() {
         noticePeriod: formData.noticePeriod,
         shift: formData.shiftPreference,
         relocation: formData.relocation,
-        companyProfile: formData.companyProfile,
+        companyProfile: formData.companyProfile === "others" ? formData.customCompanyProfile : formData.companyProfile,
         callStatus: formData.callStatus,
         callDuration: formData.callDuration,
         callSummary: formData.callSummary,
@@ -544,7 +552,9 @@ function CallInfo() {
         lineupDate: formData.lineupDate,
         interviewDate: formData.interviewDate,
         walkinDate: formData.walkinDate,
-        remarks: formData.remarks
+        lineupRemarks: formData.lineupRemarks,
+        walkinRemarks: formData.walkinRemarks,
+        workMode: formData.workMode
       };
       // Call API
       const response = await EmployeeServices.createCandidateData(candidateData);
@@ -581,7 +591,9 @@ function CallInfo() {
         lineupDate: "",
         interviewDate: "",
         walkinDate: "",
-        remarks: ""
+        lineupRemarks: "",
+        walkinRemarks: "",
+        workMode: ""
       });
       setSameAsContact(false);
       
@@ -663,11 +675,21 @@ function CallInfo() {
     })) || [])
   ];
 
+  // Create job profile options from API data
+  const jobProfileOptions = useMemo(() => [
+    { value: "", label: "Select Job Profile" },
+    ...(jobProfiles?.map(profile => ({ 
+      value: profile.name || profile, 
+      label: profile.name || profile 
+    })) || []),
+    { value: "others", label: "Others" }
+  ], [jobProfiles]);
+
   // All fields in a single flat array - rearranged as requested
   const fields = [
     { label: "Candidate's Name", key: "candidateName", icon: <MdPerson />, required: true, inputClass: "w-full" },
     { 
-      label: "Mobile No.", 
+      label: "Contact Number", 
       key: "contactNumber", 
       icon: <MdPhone />, 
       type: "tel", 
@@ -678,7 +700,7 @@ function CallInfo() {
       ref: contactInputRef,
     },
     { 
-      label: "WhatsApp No.", 
+      label: "WhatsApp Number", 
       key: "whatsappNumber", 
       icon: <MdOutlineWhatsapp />, 
       type: "tel", 
@@ -690,7 +712,7 @@ function CallInfo() {
       hasCheckbox: true,
       checkboxLabel: "Same as previous field"
     },
-    { label: "Source", key: "source", icon: <MdSource />, type: "select", options: sourceOptions, required: true, inputClass: "w-full" },
+    { label: "Sourced", key: "source", icon: <MdSource />, type: "select", options: sourceOptions, required: true, inputClass: "w-full" },
     { label: "Gender", key: "gender", icon: <MdPerson />, type: "select", options: [
       { value: "", label: "Select Gender" },
       { value: "Male", label: "Male" },
@@ -706,7 +728,13 @@ function CallInfo() {
     { label: "Notice Period", key: "noticePeriod", icon: <MdTimer />, type: "select", options: noticePeriodOptions, required: true, inputClass: "w-full" },
     { label: "Shift Preference", key: "shiftPreference", icon: <MdAccessTime />, type: "select", options: shiftPreferenceOptions, required: true, inputClass: "w-full" },
     { label: "Relocation", key: "relocation", icon: <MdShare />, type: "select", options: relocationOptions, required: true, inputClass: "w-full" },
-    { label: "Company/Profile", key: "companyProfile", icon: <MdBusinessCenter />, required: true, inputClass: "w-full" },
+    { label: "Work Mode", key: "workMode", icon: <MdBusinessCenter />, type: "select", options: [
+      { value: "", label: "Select Work Mode" },
+      { value: "Office", label: "Office" },
+      { value: "Hybrid", label: "Hybrid" },
+      { value: "Any Mode", label: "Any Mode" }
+    ], required: true, inputClass: "w-full" },
+    { label: "Job Profile", key: "companyProfile", icon: <MdBusinessCenter />, type: "select", options: jobProfileOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.jobProfiles },
     { label: "Call Status", key: "callStatus", icon: <MdWifiCalling3 />, type: "select", options: callStatusOptions, required: true, inputClass: "w-full" },
     { 
       label: "Walkin Date", 
@@ -736,19 +764,24 @@ function CallInfo() {
       required: formData.callStatus === "Lineup",
       inputClass: "w-full",
       hidden: formData.callStatus !== "Lineup",
-      render: ({ key, label, options, required, inputClass }) => (
+      render: ({ key, label, icon, options, required, inputClass }) => (
         <div className="flex flex-col relative">
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base">{icon}</span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
           <ProcessSelector
             name={key}
             value={formData[key] || ""}
             onChange={(e) => handleChange(key, e.target.value)}
             options={options}
             required={required}
-            disabled={loading || duplicateInfo !== null}
+            disabled={loading}
             className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
-                (loading || duplicateInfo !== null) ? 'cursor-not-allowed opacity-70' : ''
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
+                loading ? 'cursor-not-allowed opacity-70' : ''
               }`}
             showInfoButton={true}
             phoneNumber={formData.whatsappNumber}
@@ -762,11 +795,11 @@ function CallInfo() {
               onChange={(e) => handleChange("customLineupProcess", e.target.value)}
               placeholder="Enter specific process"
               required={required && (formData.lineupCompany.toLowerCase() === "others" || formData.lineupProcess.toLowerCase() === "others")}
-              disabled={loading || duplicateInfo !== null}
+              disabled={loading}
               className={`mt-2 px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                 ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                 : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full ${
-                  (loading || duplicateInfo !== null) ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
+                  loading ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
                 }`}
             />
           )}
@@ -793,7 +826,7 @@ function CallInfo() {
     },
     { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: true, inputClass: "w-full" },
     { 
-      label: "JD Reference - Company", 
+      label: "Company JD", 
       key: "jdReferenceCompany", 
       icon: <MdBusinessCenter />, 
       type: "select", 
@@ -802,7 +835,7 @@ function CallInfo() {
       inputClass: "w-full"
     },
     { 
-      label: "JD Reference - Process", 
+      label: "JD Process", 
       key: "jdReferenceProcess", 
       icon: <MdTask />, 
       type: "custom", 
@@ -822,11 +855,11 @@ function CallInfo() {
             onChange={(e) => handleChange(key, e.target.value)}
             options={options}
             required={required}
-            disabled={loading || duplicateInfo !== null}
+            disabled={loading}
             className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
-                (loading || duplicateInfo !== null) ? 'cursor-not-allowed opacity-70' : ''
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
+                loading ? 'cursor-not-allowed opacity-70' : ''
               }`}
             showInfoButton={true}
             phoneNumber={formData.whatsappNumber}
@@ -835,13 +868,23 @@ function CallInfo() {
       )
     },
     { 
-      label: "Remarks", 
-      key: "remarks", 
+      label: "Lineup Remarks", 
+      key: "lineupRemarks", 
       icon: <MdComment />, 
       type: "textarea",
-      required: formData.callStatus === "Lineup" || formData.callStatus === "Walkin at Infidea",
+      required: formData.callStatus === "Lineup",
       inputClass: "w-full",
-      hidden: formData.callStatus !== "Lineup" && formData.callStatus !== "Walkin at Infidea",
+      hidden: formData.callStatus !== "Lineup",
+      span: "lg:col-span-5 md:col-span-3"
+    },
+    { 
+      label: "Walkin Remarks", 
+      key: "walkinRemarks", 
+      icon: <MdComment />, 
+      type: "textarea",
+      required: formData.callStatus === "Walkin at Infidea",
+      inputClass: "w-full",
+      hidden: formData.callStatus !== "Walkin at Infidea",
       span: "lg:col-span-5 md:col-span-3"
     },
   ];
@@ -905,11 +948,11 @@ function CallInfo() {
                             value={formData[key]}
                             onChange={(e) => handleChange(key, e.target.value)}
                             required={isFieldRequired}
-                            disabled={loading || duplicateInfo !== null}
+                            disabled={loading}
                             className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
-                                (loading || duplicateInfo !== null) ? 'cursor-not-allowed opacity-70' : ''
+                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
+                                loading ? 'cursor-not-allowed opacity-70' : ''
                               }`}
                           >
                             {options && options.map(option => (
@@ -928,11 +971,11 @@ function CallInfo() {
                             pattern={pattern}
                             maxLength={maxLength}
                             ref={ref}
-                            disabled={disabled || duplicateInfo !== null}
+                            disabled={disabled}
                             className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
-                                disabled || duplicateInfo !== null ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
+                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
+                                disabled ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
                               } ${(key === "contactNumber" && duplicateInfo !== null) ? 'border-red-500 dark:border-red-500' : ''}`}
                           />
                         )}
@@ -954,11 +997,11 @@ function CallInfo() {
                           value={formData.locality}
                           onChange={(e) => handleChange("locality", e.target.value)}
                           required={requiresMandatoryFields}
-                          disabled={loadingDropdownData.localities || duplicateInfo !== null}
+                          disabled={loadingDropdownData.localities}
                           className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                             ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                             : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full ${
-                              (loadingDropdownData.localities || duplicateInfo !== null) ? 'cursor-wait opacity-70' : ''
+                              loadingDropdownData.localities ? 'cursor-wait opacity-70' : ''
                             }`}
                         >
                           {localityOptions.map(option => (
@@ -979,7 +1022,7 @@ function CallInfo() {
                 if (type === "custom" && render) {
                   return (
                     <div key={key} className={span || ""}>
-                      {render({ key, label, options, required, inputClass })}
+                      {render({ key, label, icon, options, required, inputClass })}
                     </div>
                   );
                 }
@@ -998,12 +1041,10 @@ function CallInfo() {
                         onChange={(e) => handleChange(key, e.target.value)}
                         placeholder={`Enter ${label.toLowerCase()}...`}
                         required={isFieldRequired}
-                        disabled={duplicateInfo !== null}
+                        disabled={false}
                         className={`px-2.5 py-1.5 h-20 text-sm rounded-md ${darkMode 
                           ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                          : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none ${
-                            duplicateInfo !== null ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
-                          } ${inputClass}`}
+                          : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none ${inputClass || ''}`}
                       />
                     </div>
                   );
@@ -1023,11 +1064,11 @@ function CallInfo() {
                           value={formData[key]}
                           onChange={(e) => handleChange(key, e.target.value)}
                           required={isFieldRequired}
-                          disabled={loading || duplicateInfo !== null}
+                          disabled={loading}
                           className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                             ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
-                              (loading || duplicateInfo !== null) ? 'cursor-not-allowed opacity-70' : ''
+                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
+                              loading ? 'cursor-not-allowed opacity-70' : ''
                             }`}
                         >
                           {options && options.map(option => (
@@ -1087,11 +1128,11 @@ function CallInfo() {
                           required={key === "whatsappNumber" ? (!sameAsContact && isFieldRequired) : isFieldRequired}
                           pattern={pattern}
                           maxLength={maxLength}
-                          disabled={disabled || duplicateInfo !== null}
+                          disabled={disabled}
                           className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                             ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
-                              disabled || duplicateInfo !== null ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
+                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
+                              disabled ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
                             } ${(key === "contactNumber" && duplicateInfo !== null) ? 'border-red-500 dark:border-red-500' : ''}`}
                         />
                         
@@ -1162,12 +1203,10 @@ function CallInfo() {
                 onChange={(e) => handleChange("callSummary", e.target.value)}
                 placeholder="Enter call summary..."
                 required={true}
-                disabled={duplicateInfo !== null}
+                disabled={false}
                 className={`px-2.5 py-1.5 h-20 w-full text-sm rounded-md ${darkMode 
                   ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                  : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none ${
-                    duplicateInfo !== null ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
-                  }`}
+                  : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none`}
               />
             </div>
           </div>
@@ -1180,7 +1219,7 @@ function CallInfo() {
               <button
                 type="submit"
                 className={`px-5 py-2.5 ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white rounded-md text-sm shadow-md flex items-center gap-1.5 transition-colors`}
-                disabled={loading || duplicateInfo !== null}
+                disabled={loading}
               >
                 <FaSave className="text-base" />
                 Submit

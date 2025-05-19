@@ -334,5 +334,8 @@ const EmployeeServices = {
       profileImage: body,
     });
   },
+  getJobProfiles: async () => {
+    return requests.get("/jobprofiles");
+  },
 };
 export default EmployeeServices;
