@@ -63,7 +63,11 @@ const ResetPassword = () => {
     formState: { errors },
   } = useForm();
 
-  password.current = watch("newPassword");
+  const newPassword = watch("newPassword");
+  
+  useEffect(() => {
+    password.current = newPassword;
+  }, [newPassword]);
 
   const submitHandler = async ({ otp, newPassword }) => {
     setLoading(true);
@@ -225,6 +229,18 @@ const ResetPassword = () => {
                       <Input
                         {...register("newPassword", {
                           required: "New password is required!",
+                          minLength: {
+                            value: 8,
+                            message: "Password must be at least 8 characters",
+                          },
+                          maxLength: {
+                            value: 50,
+                            message: "Password cannot exceed 50 characters",
+                          },
+                          pattern: {
+                            value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                            message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+                          }
                         })}
                         type={showPassword ? "text" : "password"}
                         placeholder="New password"

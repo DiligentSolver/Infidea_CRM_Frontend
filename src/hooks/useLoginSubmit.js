@@ -150,11 +150,6 @@ const useLoginSubmit = () => {
           mobile,
           role,
           employeeCode,
-          designation,
-          address,
-          dateOfBirth,
-          emergencyContact,
-          bankDetails,
         });
 
         // Check if signup was successful and redirect to login page

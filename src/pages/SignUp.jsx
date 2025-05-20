@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, Input } from "@windmill/react-ui";
 import { Link } from "react-router";
 import { useForm } from "react-hook-form";
@@ -6,16 +6,26 @@ import { useTranslation } from "react-i18next";
 
 // Internal imports
 import Error from "@/components/form/others/Error";
-import useCompanySubmit from "@/hooks/useCompanySubmit";
 import ImageLight from "@/assets/img/create-account-office.jpeg";
 import ImageDark from "@/assets/img/create-account-office-dark.jpeg";
 import Loader from "@/components/sprinkleLoader/Loader";
+import useLoginSubmit from "@/hooks/useLoginSubmit";
 
 const SignUp = () => {
   const { t } = useTranslation();
-  const { onSubmit, register, handleSubmit, errors, loading } = useCompanySubmit();
+  const { onSubmit, loading } = useLoginSubmit();
+  const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Add a password ref to track the password value
+  const password = useRef("");
+  const passwordValue = watch("password");
+  
+  // Update the ref whenever password changes
+  useEffect(() => {
+    password.current = passwordValue;
+  }, [passwordValue]);
   
   // Toggle password visibility
   const togglePasswordVisibility = () => {
@@ -91,7 +101,7 @@ const SignUp = () => {
                 {/* Company Name Field */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-0.5">
-                    Company Name
+                    Employee Name
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -100,15 +110,55 @@ const SignUp = () => {
                       </svg>
                     </div>
                     <Input
-                      {...register("companyName", {
-                        required: "Company name is required!",
+                      {...register("name", {
+                        required: "Employee name is required!",
+                        minLength: {
+                          value: 2,
+                          message: "Name must be at least 2 characters",
+                        },
+                        maxLength: {
+                          value: 50,
+                          message: "Name cannot exceed 50 characters",
+                        },
+                        pattern: {
+                          value: /^[A-Za-z\s.'-]+$/,
+                          message: "Name can only contain letters and spaces",
+                        }
                       })}
                       type="text"
-                      placeholder="Your company name"
+                      placeholder="Your employee name"
                       className="pl-7 py-1 h-7 text-sm w-full"
                     />
                   </div>
-                  <Error errorName={errors.companyName} />
+                  <Error errorName={errors.name} />
+                </div>
+                
+                {/* Employee Code Field */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-0.5">
+                    Employee Code
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                      <svg className="h-3 w-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                      </svg>
+                    </div>
+                    <Input
+                      {...register("employeeCode", {
+                        required: "Employee code is required!",
+                        pattern: {
+                          value: /^[a-zA-Z01-9]{10}$/,
+                          message: "Employee code must be exactly 10 digits",
+                        }
+                      })}
+                      type="text"
+                      placeholder="Enter employee code"
+                      className="pl-7 py-1 h-7 text-sm w-full"
+                      maxLength={10}
+                    />
+                  </div>
+                  <Error errorName={errors.employeeCode} />
                 </div>
                 
                 {/* Email Field */}
@@ -129,6 +179,10 @@ const SignUp = () => {
                           value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                           message: "Invalid email address!",
                         },
+                        maxLength: {
+                          value: 100,
+                          message: "Email cannot exceed 100 characters",
+                        }
                       })}
                       type="email"
                       placeholder="your@email.com"
@@ -141,7 +195,7 @@ const SignUp = () => {
                 {/* Phone Field */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-0.5">
-                    Phone Number
+                    Mobile Number
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
@@ -150,15 +204,20 @@ const SignUp = () => {
                       </svg>
                     </div>
                     <Input
-                      {...register("phone", {
-                        required: "Phone number is required!",
+                      {...register("mobile", {
+                        required: "Mobile number is required!",
+                        pattern: {
+                          value: /^[0-9]{10}$/,
+                          message: "Please enter a valid mobile number (10-15 digits)",
+                        }
                       })}
-                      type="text"
-                      placeholder="Phone number"
+                      type="number"
+                      placeholder="Mobile number"
                       className="pl-7 py-1 h-7 text-sm w-full"
+                      maxLength={10}
                     />
                   </div>
-                  <Error errorName={errors.phone} />
+                  <Error errorName={errors.mobile} />
                 </div>
                 
                 {/* Password Field */}
@@ -176,9 +235,17 @@ const SignUp = () => {
                       {...register("password", {
                         required: "Password is required!",
                         minLength: {
-                          value: 6,
-                          message: "Password must be at least 6 characters",
+                          value: 8,
+                          message: "Password must be at least 8 characters",
                         },
+                        maxLength: {
+                          value: 50,
+                          message: "Password cannot exceed 50 characters",
+                        },
+                        pattern: {
+                          value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                          message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+                        }
                       })}
                       type={showPassword ? "text" : "password"}
                       placeholder="********"
@@ -219,7 +286,7 @@ const SignUp = () => {
                       {...register("confirmPassword", {
                         required: "Confirm password is required!",
                         validate: (value) =>
-                          value === watch("password") || "Passwords do not match",
+                          value === password.current || "Passwords do not match",
                       })}
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="********"
