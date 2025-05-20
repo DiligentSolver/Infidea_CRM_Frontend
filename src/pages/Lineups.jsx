@@ -1126,7 +1126,6 @@ function Lineups() {
                       dark:bg-gray-700 border-gray-600 dark:text-white bg-white border-gray-300 text-gray-900 px-3 py-2
                       ${formErrors.joiningType ? 'border-red-500 dark:border-red-500' : ''}`}
                     >
-                      <option value="">Select Type</option>
                       {joiningTypeOptions.map(option => (
                         <option key={option.value} value={option.value}>
                           {option.label}

@@ -27,7 +27,7 @@ const useLoginSubmit = () => {
     name,
     email,
     password,
-    confirm_password,
+    confirmPassword,
     mobile,
     otp,
     role,
@@ -122,7 +122,7 @@ const useLoginSubmit = () => {
         }
 
         // Make sure passwords match
-        if (password !== confirm_password) {
+        if (password !== confirmPassword) {
           setLoading(false);
           return notifyError("Passwords do not match!");
         }

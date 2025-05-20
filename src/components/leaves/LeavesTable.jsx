@@ -1,7 +1,7 @@
 import React from "react";
 import { TableCell, TableBody, TableRow, Badge } from "@windmill/react-ui";
 import moment from "moment";
-import { formatLongDateAndTime } from "@/utils/dateFormatter";
+import { formatDayNameDate, formatLongDate, formatLongDateAndTime } from "@/utils/dateFormatter";
 
 const LeavesTable = ({ leaves }) => {
   // Function to calculate duration in days
@@ -38,12 +38,12 @@ const LeavesTable = ({ leaves }) => {
           </TableCell>
           <TableCell className="text-center">
             <span className="text-sm">
-              {moment(leave.startDate).format("MMM DD, YYYY")}
+              {formatLongDate(leave.startDate)}
             </span>
           </TableCell>
           <TableCell className="text-center">
             <span className="text-sm">
-              {moment(leave.endDate).format("MMM DD, YYYY")}
+              {formatLongDate(leave.endDate)}
             </span>
           </TableCell>
           <TableCell className="text-center">

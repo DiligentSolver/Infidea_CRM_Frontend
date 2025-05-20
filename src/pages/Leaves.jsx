@@ -5,7 +5,6 @@ import {
   TableContainer,
   TableCell,
   Table,
-  Input,
   Label,
   Select,
   Textarea,
@@ -17,7 +16,6 @@ import {
   ModalFooter
 } from "@windmill/react-ui";
 import { useLocation, useNavigate } from "react-router";
-import PageTitle from "@/components/Typography/PageTitle";
 import moment from "moment";
 import EmployeeServices from "@/services/EmployeeServices";
 import LeavesTable from "@/components/leaves/LeavesTable";
@@ -228,6 +226,12 @@ const Leaves = () => {
 
   const onSubmit = async (data) => {
     try {
+      // Check if single day question is answered when not early logout
+      if (selectedLeaveType !== "Early Logout" && isSingleDateMode === null) {
+        toast.error("Please select if this is a single day leave");
+        return;
+      }
+      
       setSubmitting(true);
       
       // Validate dates
@@ -338,7 +342,11 @@ const Leaves = () => {
 
   return (
     <>
-      <PageTitle>Leave Management</PageTitle>
+      <div className="flex justify-between items-center mb-4 mt-4">
+          <h1 className="text-2xl font-bold dark:text-[#e2692c] text-[#1a5d96]">
+            Leave Management
+          </h1>
+        </div>
 
       <div className="grid gap-6 mb-8 w-full">
         {/* My Leaves Card */}
@@ -616,6 +624,7 @@ const Leaves = () => {
                           checked={isSingleDateMode === true}
                           onChange={() => setIsSingleDateMode(true)}
                           className="form-radio h-4 w-4 text-purple-600 dark:bg-gray-800 dark:border-gray-600 border-gray-300 rounded-full focus:ring-purple-500"
+                          required
                         />
                         <span className="ml-2">Yes</span>
                       </Label>
@@ -627,10 +636,14 @@ const Leaves = () => {
                           checked={isSingleDateMode === false}
                           onChange={() => setIsSingleDateMode(false)}
                           className="form-radio h-4 w-4 text-purple-600 dark:bg-gray-800 dark:border-gray-600 border-gray-300 rounded-full focus:ring-purple-500"
+                          required
                         />
                         <span className="ml-2">No</span>
                       </Label>
                     </div>
+                    {isSingleDateMode === null && selectedLeaveType && selectedLeaveType !== "Early Logout" && (
+                      <HelperText valid={false}>Please select if this is a single day leave</HelperText>
+                    )}
                   </Label>
                 </div>
               )}

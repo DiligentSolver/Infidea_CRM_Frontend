@@ -10,6 +10,7 @@ import EmployeeServices from "@/services/EmployeeServices";
 import ImageLight from "@/assets/img/forgot-password-office.jpeg";
 import ImageDark from "@/assets/img/forgot-password-office-dark.jpeg";
 import Loader from "@/components/sprinkleLoader/Loader";
+import { FiMail } from "react-icons/fi";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -101,9 +102,7 @@ const ForgotPassword = () => {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                      <svg className="h-3 w-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                      </svg>
+                     <FiMail className="h-3 w-3 text-gray-400" />
                     </div>
                     <Input
                       {...register("email", {

@@ -337,5 +337,23 @@ const EmployeeServices = {
   getJobProfiles: async () => {
     return requests.get("/jobprofiles");
   },
+  getReminders: async () => {
+    return requests.get("/reminders");
+  },
+  createReminder: async (body) => {
+    return requests.post("/reminders", body);
+  },
+
+  updateReminder: async (reminderId, body) => {
+    return requests.patch(`/reminders/${reminderId}`, body);
+  },
+
+  deleteReminder: async (reminderId) => {
+    return requests.delete(`/reminders/${reminderId}`);
+  },
+
+  markReminderAsDone: async (reminderId) => {
+    return requests.patch(`/reminders/${reminderId}/complete`);
+  },
 };
 export default EmployeeServices;

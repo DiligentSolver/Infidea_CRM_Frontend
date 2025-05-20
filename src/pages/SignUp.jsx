@@ -10,9 +10,9 @@ import ImageLight from "@/assets/img/create-account-office.jpeg";
 import ImageDark from "@/assets/img/create-account-office-dark.jpeg";
 import Loader from "@/components/sprinkleLoader/Loader";
 import useLoginSubmit from "@/hooks/useLoginSubmit";
+import { FiMail } from "react-icons/fi";
 
 const SignUp = () => {
-  const { t } = useTranslation();
   const { onSubmit, loading } = useLoginSubmit();
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const [showPassword, setShowPassword] = useState(false);
@@ -126,7 +126,7 @@ const SignUp = () => {
                         }
                       })}
                       type="text"
-                      placeholder="Your employee name"
+                      placeholder="Employee Name"
                       className="pl-7 py-1 h-7 text-sm w-full"
                     />
                   </div>
@@ -153,7 +153,7 @@ const SignUp = () => {
                         }
                       })}
                       type="text"
-                      placeholder="Enter employee code"
+                      placeholder="Employee Code"
                       className="pl-7 py-1 h-7 text-sm w-full"
                       maxLength={10}
                     />
@@ -168,9 +168,7 @@ const SignUp = () => {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                      <svg className="h-3 w-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                      </svg>
+                     <FiMail className="h-3 w-3 text-gray-400" />
                     </div>
                     <Input
                       {...register("email", {
@@ -205,16 +203,24 @@ const SignUp = () => {
                     </div>
                     <Input
                       {...register("mobile", {
-                        required: "Mobile number is required!",
+                        required: "Mobile Number is required!",
                         pattern: {
                           value: /^[0-9]{10}$/,
-                          message: "Please enter a valid mobile number (10-15 digits)",
+                          message: "Please enter a valid 10-digit mobile number",
                         }
                       })}
-                      type="number"
-                      placeholder="Mobile number"
+                      type="text"
+                      placeholder="Mobile Number"
                       className="pl-7 py-1 h-7 text-sm w-full"
                       maxLength={10}
+                      onKeyPress={(e) => {
+                        const keyCode = e.which || e.keyCode;
+                        const keyValue = String.fromCharCode(keyCode);
+                        const isValid = /^[0-9]+$/.test(keyValue);
+                        if (!isValid) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </div>
                   <Error errorName={errors.mobile} />
@@ -311,7 +317,6 @@ const SignUp = () => {
                   </div>
                   <Error errorName={errors.confirmPassword} />
                 </div>
-                
                 <div className="mt-1">
                   <label className="flex items-center">
                     <input
