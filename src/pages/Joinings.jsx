@@ -305,50 +305,50 @@ function Joinings() {
           (
             <Table>
               <TableHeader > 
-                <tr className="h-14 bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ">
+                <tr className="h-14 bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300 ">
                 <TableCell className="text-center">
                   Actions
                   </TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("entryDate")}>Entry Date {sortBy === "entryDate" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("entryDate")}>Entry Date {sortBy === "entryDate" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
                 
-                  <TableCell className="text-center" onClick={() => handleSortByField("updatedate")}>Updated Date {sortBy === "updatedate" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("updatedate")}>Updated Date {sortBy === "updatedate" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
           
-                  <TableCell className="text-center" onClick={() => handleSortByField("name")}>Name {sortBy === "name" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("name")}>Name {sortBy === "name" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("contactNumber")}>Contact Number {sortBy === "contactNumber" && (
-                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
-                  )}</TableCell>
-
-<TableCell className="text-center" onClick={() => handleSortByField("company")}>Company{sortBy === "company" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("contactNumber")}>Contact Number {sortBy === "contactNumber" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
 
-<TableCell className="text-center" onClick={() => handleSortByField("process")}>Process{sortBy === "process" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("company")}>Company{sortBy === "company" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
 
-        <TableCell className="text-center" onClick={() => handleSortByField("joiningType")}>Joining Type{sortBy === "joiningType" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("process")}>Process{sortBy === "process" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
 
-                  <TableCell className="text-center" onClick={() => handleSortByField("joiningDate")}>Joining Date {sortBy === "joiningDate" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("joiningType")}>Joining Type{sortBy === "joiningType" && (
+                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}</TableCell>
+
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("joiningDate")}>Joining Date {sortBy === "joiningDate" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
               
-                  <TableCell className="text-center" onClick={() => handleSortByField("status")}>Status{sortBy === "status" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("status")}>Status{sortBy === "status" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
 
-<TableCell className="text-center" onClick={() => handleSortByField("eligible")}>Eligible{sortBy === "eligible" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("eligible")}>Eligible{sortBy === "eligible" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
 
-<TableCell className="text-center" onClick={() => handleSortByField("incentiveAmount")}>Incentive Amount{sortBy === "incentiveAmount" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("incentiveAmount")}>Incentive Amount{sortBy === "incentiveAmount" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
                 </tr>
@@ -1046,51 +1046,76 @@ function Joinings() {
     {/* View Modal - Remove the Edit button */}
     {showViewModal && selectedJoining && (
       <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center">
-        <div className="relative max-w-2xl mx-auto p-6 rounded-xl shadow-lg bg-white dark:bg-gray-800 w-full m-4">
+        <div className="relative max-w-2xl mx-auto p-5 rounded-xl shadow-lg bg-white dark:bg-gray-800 w-full m-4">
           {/* Header with Candidate Details and Close Button aligned */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold dark:text-[#e2692c] text-[#1a5d96]">
-              Candidate Details
+            <h2 className="text-xl font-bold dark:text-[#e2692c] text-[#1a5d96]">
+              {selectedJoining.candidateName}
             </h2>
             <button 
               onClick={() => setShowViewModal(false)} 
-              className="dark:text-gray-300 dark:hover:text-white text-gray-600 hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full p-2"
+              className="dark:text-gray-300 dark:hover:text-white text-gray-600 hover:text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full p-2 transition-colors"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
           
+          {/* Status Badge at the top */}
+          {selectedJoining.status && (
+            <div className="mb-4 flex items-center">
+              <span className="text-sm font-medium dark:text-gray-300 text-gray-600 mr-3">Status:</span>
+              <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColorClass(selectedJoining.status)}`}>
+                {statusOptions.find(o => o.value === selectedJoining.status)?.label || selectedJoining.status}
+              </span>
+            </div>
+          )}
+          
+          {/* Main content grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg dark:bg-gray-700 bg-gray-100">
-              <h3 className="text-lg font-semibold mb-2 dark:text-[#e2692c] text-[#1a5d96]">
-                Basic Information
+            {/* Candidate Information */}
+            <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 shadow-sm">
+              <h3 className="text-md font-semibold mb-3 dark:text-[#e2692c] text-[#1a5d96] border-b pb-2 dark:border-gray-600 border-gray-200">
+                <svg className="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                Candidate Information
               </h3>
-              <dl className="space-y-2">
-                <div className="flex flex-col">
-                  <dt className="text-sm dark:text-gray-400 text-gray-500">Name</dt>
-                  <dd className="text-base font-medium dark:text-white text-gray-900">
-                    {selectedJoining.candidateName}
+              <dl className="space-y-2 text-sm">
+                <div className="grid grid-cols-3">
+                  <dt className="col-span-1 font-medium dark:text-gray-400 text-gray-500">Contact</dt>
+                  <dd className="col-span-2 font-semibold dark:text-white text-gray-900">
+                    {selectedJoining.contactNumber}
                   </dd>
                 </div>
-                <div className="flex flex-col">
-                  <dt className="text-sm dark:text-gray-400 text-gray-500">Contact Number</dt>
-                  <dd className="text-base font-medium dark:text-white text-gray-900">
-                    {selectedJoining.contactNumber}
+                <div className="grid grid-cols-3">
+                  <dt className="col-span-1 font-medium dark:text-gray-400 text-gray-500">Company</dt>
+                  <dd className="col-span-2 font-semibold dark:text-white text-gray-900">
+                    {joiningCompanyOptions.find(o => o.value === selectedJoining.company)?.label || selectedJoining.company}
+                  </dd>
+                </div>
+                <div className="grid grid-cols-3">
+                  <dt className="col-span-1 font-medium dark:text-gray-400 text-gray-500">Process</dt>
+                  <dd className="col-span-2 font-semibold dark:text-white text-gray-900">
+                    {joiningProcessOptions.find(o => o.value === selectedJoining.process)?.label || selectedJoining.process}
                   </dd>
                 </div>
               </dl>
             </div>
             
-            <div className="p-4 rounded-lg dark:bg-gray-700 bg-gray-100">
-              <h3 className="text-lg font-semibold mb-2 dark:text-[#e2692c] text-[#1a5d96]">
-                Process Details
+            {/* Joining Details */}
+            <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/30 shadow-sm">
+              <h3 className="text-md font-semibold mb-3 text-green-700 dark:text-green-400 border-b pb-2 border-green-200 dark:border-green-800/30">
+                <svg className="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Joining Details
               </h3>
-              <dl className="space-y-2">
-                <div className="flex flex-col">
-                  <dt className="text-sm dark:text-gray-400 text-gray-500">Joining Date</dt>
-                  <dd className="text-base font-medium dark:text-white text-gray-900">
+              <dl className="space-y-2 text-sm">
+                <div className="grid grid-cols-3">
+                  <dt className="col-span-1 font-medium dark:text-gray-400 text-gray-500">Joining Date</dt>
+                  <dd className="col-span-2 font-semibold dark:text-white text-gray-900">
                     {selectedJoining.joiningDate ? new Date(selectedJoining.joiningDate).toLocaleDateString('en-GB', {
                       day: 'numeric',
                       month: 'short',
@@ -1098,25 +1123,75 @@ function Joinings() {
                     }) : "Not specified"}
                   </dd>
                 </div>
+                <div className="grid grid-cols-3">
+                  <dt className="col-span-1 font-medium dark:text-gray-400 text-gray-500">Joining Type</dt>
+                  <dd className="col-span-2 font-semibold dark:text-white text-gray-900">
+                    {joiningTypeOptions.find(o => o.value === selectedJoining.joiningType)?.label || selectedJoining.joiningType || "Not specified"}
+                  </dd>
+                </div>
+                <div className="grid grid-cols-3">
+                  <dt className="col-span-1 font-medium dark:text-gray-400 text-gray-500">Salary</dt>
+                  <dd className="col-span-2 font-semibold dark:text-white text-gray-900">
+                    ₹{selectedJoining.salary || "Not specified"}
+                  </dd>
+                </div>
               </dl>
             </div>
           </div>
-          {selectedJoining.remark && (
-          <div className="mt-4 p-4 rounded-lg dark:bg-gray-700 bg-gray-100">
-            <h3 className="text-lg font-semibold mb-2 dark:text-[#e2692c] text-[#1a5d96]">
-              Remarks
-            </h3>
-            <p className="text-base font-medium dark:text-white text-gray-900">
-              {selectedJoining.remarks}
-            </p>
-          </div>
+          
+          {/* Incentive Details */}
+          {(selectedJoining.eligible !== undefined || selectedJoining.incentiveAmount > 0) && (
+            <div className="mt-4 p-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 shadow-sm">
+              <h3 className="text-md font-semibold mb-3 text-indigo-700 dark:text-indigo-400 border-b pb-2 border-indigo-200 dark:border-indigo-800/30">
+                <svg className="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Incentive Information
+              </h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {selectedJoining.eligible !== undefined && (
+                  <div>
+                    <span className="font-medium text-gray-500 dark:text-gray-400 block mb-1">Eligible for Incentive</span>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      selectedJoining.eligible 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                    }`}>
+                      {selectedJoining.eligible ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {selectedJoining.incentiveAmount > 0 && (
+                  <div>
+                    <span className="font-medium text-gray-500 dark:text-gray-400 block mb-1">Incentive Amount</span>
+                    <span className="font-semibold text-green-600 dark:text-green-400">
+                      ₹{selectedJoining.incentiveAmount}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
-         
-          <div className="mt-6 flex justify-end space-x-3">
-            {/* Remove the Edit button */}
+          
+          {/* Remarks Section */}
+          {selectedJoining.remarks && (
+            <div className="mt-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 shadow-sm">
+              <h3 className="text-md font-semibold mb-2 dark:text-[#e2692c] text-[#1a5d96] border-b pb-2 dark:border-gray-600 border-gray-200">
+                <svg className="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                </svg>
+                Remarks
+              </h3>
+              <p className="text-sm dark:text-gray-300 text-gray-700 mt-2">
+                {selectedJoining.remarks || "No remarks provided."}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-4 flex justify-end">
             <button
               onClick={() => setShowViewModal(false)}
-              className="px-4 py-2 rounded-lg font-medium dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white bg-gray-100 hover:bg-gray-200 text-gray-800"
+              className="px-3 py-1.5 text-sm rounded-lg font-medium dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white bg-gray-100 hover:bg-gray-200 text-gray-800 transition-colors"
             >
               Close
             </button>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Button,
   TableHeader,
@@ -23,7 +23,7 @@ import TableLoading from "@/components/preloader/TableLoading";
 import NotFound from "@/components/table/NotFound";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "react-toastify";
-import { FaTimesCircle, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaTimesCircle, FaChevronLeft, FaChevronRight, FaCalendarAlt, FaTimes } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import AnimatedContent from "@/components/common/AnimatedContent";
@@ -48,6 +48,7 @@ const Leaves = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
   const [filters, setFilters] = useState({
     status: "",
@@ -75,6 +76,8 @@ const Leaves = () => {
   // Watch for start date changes when one day is checked
   const startDate = watch("startDate");
   const singleDate = watch("singleDate");
+  
+  const calendarModalRef = useRef(null);
   
   useEffect(() => {
     // Update selectedLeaveType state when form value changes
@@ -310,6 +313,10 @@ const Leaves = () => {
     }
   };
 
+  const toggleCalendarModal = () => {
+    setIsCalendarModalOpen(!isCalendarModalOpen);
+  };
+
   // Read query parameters when component mounts
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -340,6 +347,29 @@ const Leaves = () => {
     navigate(newPath, { replace: true });
   }, [filters.status, location.pathname, navigate]);
 
+  // Handle click outside to close the calendar modal
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isCalendarModalOpen && calendarModalRef.current && !calendarModalRef.current.contains(event.target)) {
+        toggleCalendarModal();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    
+    // Add body class to prevent scrolling when modal is open
+    if (isCalendarModalOpen) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, [isCalendarModalOpen]);
+
   return (
     <>
       <div className="flex justify-between items-center mb-4 mt-4">
@@ -361,6 +391,15 @@ const Leaves = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 Apply for Leave
+              </span>
+            </Button>
+            <Button 
+              onClick={toggleCalendarModal}
+              className="rounded-lg hover:shadow-md bg-blue-700"
+            >
+              <span className="flex items-center">
+                <FaCalendarAlt className="w-4 h-4 mr-2" />
+                View Calendar
               </span>
             </Button>
           </div>
@@ -835,13 +874,50 @@ const Leaves = () => {
             />
           </div>
         )}
-        <section className="mb-8">
-          <AttendanceCalendar 
-            leaves={filteredByAllCriteria} 
-            loading={loading}
-            refresh={fetchLeaves}
-          />
-        </section>
+
+        {/* Custom Calendar Modal */}
+        {isCalendarModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
+            <div 
+              ref={calendarModalRef}
+              className="relative w-full max-w-5xl h-[90vh] flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-xl animate-fadeIn"
+            >
+              {/* Fixed Header */}
+              <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Attendance Calendar
+                </h3>
+                <button
+                  onClick={toggleCalendarModal}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+              
+              {/* Calendar Content - Allow scrolling for day details */}
+              <div className="flex-grow p-4 overflow-y-auto">
+                <div className="h-full">
+                  <AttendanceCalendar 
+                    leaves={filteredByAllCriteria} 
+                    loading={loading}
+                    refresh={fetchLeaves}
+                  />
+                </div>
+              </div>
+              
+              {/* Fixed Footer */}
+              <div className="p-4 border-t dark:border-gray-700 flex justify-end">
+                <Button
+                  onClick={toggleCalendarModal}
+                  className="rounded-lg hover:shadow-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

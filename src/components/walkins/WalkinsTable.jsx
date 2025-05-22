@@ -17,7 +17,7 @@ const WalkinsTable = ({walkins, onView, onEdit}) => {
     <>
       <TableBody className="dark:bg-gray-900">
         {walkins?.map((walkin, i) => (
-          <TableRow key={i} className="text-center">
+          <TableRow key={i} className="text-center" onClick={() => onView(walkin)}>
 
             {/* Actions*/}
           <TableCell className="flex justify-center items-center">

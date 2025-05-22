@@ -58,17 +58,20 @@ const Login = () => {
   }, [otpRequired]);
 
   const handleResendOtp = async () => {
+    setResending(true);
+    
     try {
-      setResending(true);
       const res = await resendLoginOtp();
-      if (res && res.success) {
+      
+      if (res.success) {
         notifySuccess(res.message || "OTP resent successfully");
         setTimer(30); // Reset the timer
       } else {
-        notifyError(res?.message || "Failed to resend OTP");
+        notifyError(res.message || "Failed to resend OTP");
       }
-    } catch (err) {
-      notifyError(err?.response?.data?.message || err?.response?.data?.error || err?.message || "Failed to resend OTP");
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      notifyError("An unexpected error occurred. Please try again later.");
     } finally {
       setResending(false);
     }

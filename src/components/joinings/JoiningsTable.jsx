@@ -24,7 +24,7 @@ const JoiningsTable = ({joinings, onView}) => {
     <>
       <TableBody className="dark:bg-gray-900">
         {joinings?.map((joining, i) => (
-          <TableRow key={i} className="text-center">
+          <TableRow key={i} className="text-center hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150" onClick={()=>onView(joining)}>
 
             {/* Actions*/}
           <TableCell className="flex justify-center items-center">

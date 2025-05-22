@@ -23,6 +23,26 @@ const useLoginSubmit = () => {
     setValue,
   } = useForm();
 
+  // Function to calculate cookie expiration time (9 PM Indian time)
+  const calculateCookieExpiration = () => {
+    const now = new Date();
+
+    // Convert to Indian Standard Time (UTC+5:30)
+    const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+
+    // Set target time to 9 PM IST
+    const targetTime = new Date(istTime);
+    targetTime.setHours(21, 0, 0, 0);
+
+    // If current time is past 9 PM, set expiration to 9 PM tomorrow
+    if (istTime > targetTime) {
+      targetTime.setDate(targetTime.getDate() + 1);
+    }
+
+    // Return the time difference in days
+    return (targetTime - now) / (1000 * 60 * 60 * 24);
+  };
+
   const onSubmit = async ({
     name,
     email,
@@ -44,7 +64,7 @@ const useLoginSubmit = () => {
     bankAccountNumber,
     bankBeneficiaryAddress,
   }) => {
-    const cookieTimeOut = 0.417;
+    const cookieTimeOut = calculateCookieExpiration();
     setLoading(true);
 
     try {
@@ -217,9 +237,18 @@ const useLoginSubmit = () => {
       }
 
       const res = await EmployeeServices.resendLoginOtp({ email: userEmail });
-      return res;
+      return { success: true, ...res };
     } catch (err) {
-      throw err;
+      console.error("Resend OTP error:", err);
+      // Return a structured error object instead of throwing
+      return {
+        success: false,
+        message:
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Failed to resend OTP",
+      };
     }
   };
 

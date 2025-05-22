@@ -16,19 +16,19 @@ const SidebarSubMenu = ({ route }) => {
       <button
         className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors duration-150 rounded-lg focus:outline-none ${
           open 
-            ? 'bg-emerald-50 text-emerald-600 dark:bg-gray-700 dark:text-emerald-400' 
+            ? 'bg-teal-50 text-teal-600 dark:bg-gray-700 dark:text-teal-400' 
             : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
         }`}
         onClick={() => setOpen(!open)}
         aria-haspopup="true"
       >
         <span className="inline-flex items-center">
-          <route.icon className={`w-5 h-5 ${open ? 'text-emerald-500' : ''}`} />
+          <route.icon className={`w-5 h-5 ${open ? 'text-teal-500' : ''}`} />
           <span className="ml-4">{t(`${route.name}`)}</span>
         </span>
         <span className="transition-transform duration-200 ease-in-out transform">
           {open ? 
-            <IoChevronDownOutline className={`w-4 h-4 ${open ? 'text-emerald-500' : ''}`} /> : 
+            <IoChevronDownOutline className={`w-4 h-4 ${open ? 'text-teal-500' : ''}`} /> : 
             <IoChevronForwardOutline className="w-4 h-4" />
           }
         </span>
@@ -56,8 +56,8 @@ const SidebarSubMenu = ({ route }) => {
                   className={({ isActive }) => 
                     `flex items-center pl-1 text-sm transition-colors duration-150 ${
                       isActive 
-                        ? 'text-emerald-600 dark:text-emerald-400 font-medium' 
-                        : 'text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400'
+                        ? 'text-teal-600 dark:text-teal-400 font-medium' 
+                        : 'text-gray-600 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400'
                     }`
                   }
                   rel="noreferrer"
@@ -66,7 +66,7 @@ const SidebarSubMenu = ({ route }) => {
                     <>
                       <div 
                         className={`w-1 h-1 mr-3 rounded-full ${
-                          isActive ? 'bg-emerald-500' : 'bg-gray-400 dark:bg-gray-600'
+                          isActive ? 'bg-teal-500' : 'bg-gray-400 dark:bg-gray-600'
                         }`}
                       ></div>
                       <span>{t(`${child.name}`)}</span>

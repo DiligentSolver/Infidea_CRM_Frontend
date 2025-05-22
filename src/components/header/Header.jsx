@@ -4,12 +4,10 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { notifyError } from "@/utils/toast";
 
 import {
-  FiGrid,
   FiLogOut,
   FiMenu,
   FiSun,
   FiMoon,
-  FiSettings,
   FiClock,
 } from "react-icons/fi";
 import { Link } from "react-router";
@@ -187,7 +185,7 @@ const Header = () => {
               >
                 {adminInfo?.user.profileImage ? (
                   <Avatar
-                    className="align-middle h-full w-full object-cover"
+                    className="align-middle h-full w-full object-contain"
                     src={`${adminInfo.user.profileImage}`}
                     aria-hidden="true"
                   />
@@ -203,7 +201,7 @@ const Header = () => {
                       <div className="flex-shrink-0">
                         {adminInfo?.user.profileImage ? (
                           <img
-                            className="h-10 w-10 rounded-full"
+                            className="h-10 w-10 rounded-full object-contain"
                             src={`${adminInfo.user.profileImage}`}
                             alt="Profile"
                           />

@@ -449,6 +449,7 @@ const CallDetails = () => {
 
           // Send to backend using existing service
           const response = await EmployeeServices.bulkUploadCandidates({ candidates });
+          console.log('Bulk upload response:', response);
           setUploadResult(response);
           
           // Refresh the table data after successful upload
@@ -1028,74 +1029,71 @@ const CallDetails = () => {
           (
             <Table>
               <TableHeader > 
-                <tr className="h-14 bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ">
+                <tr className="h-14 bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                   <TableCell className="text-center">
                   Actions
                   </TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("lastRegisteredByName")}>Last Registered By {sortBy === "lastRegisteredByName" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("lastRegisteredByName")}>Last Registered By {sortBy === "lastRegisteredByName" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  {/* <TableCell className="text-center" onClick={() => handleSortByField("entrydate")}>Entry Date {sortBy === "entrydate" && (
-                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
-                  )}</TableCell> */}
-                  <TableCell className="text-center" onClick={() => handleSortByField("updateddate")}>Updated Date {sortBy === "updateddate" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("updateddate")}>Updated Date {sortBy === "updateddate" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                   <TableCell className="text-center" onClick={() => handleSortByField("lockedstatus")}>Locked Status {sortBy === "lockedstatus" && (
+                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("lockedstatus")}>Locked Status {sortBy === "lockedstatus" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("expiry")}>Remaining Days {sortBy === "expiry" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("expiry")}>Remaining Days {sortBy === "expiry" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("timespent")}>Time Spent {sortBy === "timespent" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("timespent")}>Time Spent {sortBy === "timespent" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                       <TableCell className="text-center" onClick={() => handleSortByField("name")}>Name {sortBy === "name" && (
+                       <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("name")}>Name {sortBy === "name" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("mobile")}>Contact Number{sortBy === "mobile" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("mobile")}>Contact Number{sortBy === "mobile" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("callStatus")}>Status{sortBy === "callStatus" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("callStatus")}>Status{sortBy === "callStatus" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("whatsapp")}>WhatsApp Number {sortBy === "whatsapp" && (
+                               <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("whatsapp")}>WhatsApp Number {sortBy === "whatsapp" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                     <TableCell className="text-center" onClick={() => handleSortByField("qualification")}>Qualification {sortBy === "qualification" && (
+                     <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("qualification")}>Qualification {sortBy === "qualification" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                     <TableCell className="text-center" onClick={() => handleSortByField("location")}>Location {sortBy === "location" && (
+                     <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("location")}>Location {sortBy === "location" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                     <TableCell className="text-center" onClick={() => handleSortByField("locality")}>Locality {sortBy === "locality" && (
+                     <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("locality")}>Locality {sortBy === "locality" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("experience")}>Experience {sortBy === "experience" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("experience")}>Experience {sortBy === "experience" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("communication")}>Communication {sortBy === "communication" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("communication")}>Communication {sortBy === "communication" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("profile")}>Profile {sortBy === "profile" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("profile")}>Profile {sortBy === "profile" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("salaryexpectation")}>Salary Expectation {sortBy === "salaryexpectation" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("salaryexpectation")}>Salary Expectation {sortBy === "salaryexpectation" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("shiftpreference")}>Shift Preference {sortBy === "shiftpreference" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("shiftpreference")}>Shift Preference {sortBy === "shiftpreference" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("noticeperiod")}>Notice Period {sortBy === "noticeperiod" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("noticeperiod")}>Notice Period {sortBy === "noticeperiod" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("gender")}>Gender {sortBy === "gender" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("gender")}>Gender {sortBy === "gender" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("source")}>Source{sortBy === "source" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("source")}>Source{sortBy === "source" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center" onClick={() => handleSortByField("callsummary")}>Call Summary {sortBy === "callsummary" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("callsummary")}>Call Summary {sortBy === "callsummary" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
                 </tr>
@@ -1326,22 +1324,37 @@ const CallDetails = () => {
                                 </tr>
                               </thead>
                               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                {uploadResult.results.details.map((item, index) => (
-                                  <tr key={index} className={item.status === 'Success' ? 'bg-green-50 dark:bg-green-900' : 'bg-red-50 dark:bg-red-900'}>
-                                    <td className="px-3 py-1 whitespace-nowrap text-gray-900 dark:text-gray-300">
-                                      {item.name}
-                                    </td>
-                                    <td className="px-3 py-1 whitespace-nowrap text-gray-900 dark:text-gray-300">
-                                      {item.mobileNo}
-                                    </td>
-                                    <td className="px-3 py-1 whitespace-nowrap text-gray-900 dark:text-gray-300">
-                                      {item.status}
-                                    </td>
-                                    <td className="px-3 py-1 whitespace-nowrap text-gray-900 dark:text-gray-300">
-                                      {item.reason || (item.status === 'Success' ? 'Added successfully' : '')}
-                                    </td>
-                                  </tr>
-                                ))}
+                                {uploadResult.results.details.map((item, index) => {
+                                  // Debug each item
+                                  console.log('Result item:', item);
+                                  
+                                  // Determine if it's a success based on multiple potential attributes
+                                  const isSuccess = 
+                                    (item.status && 
+                                      (String(item.status).toLowerCase().includes('success') || 
+                                       String(item.status).toLowerCase().includes('successful'))) ||
+                                    (item.isSuccess) ||
+                                    (item.success === true) ||
+                                    (!item.error && !item.reason) ||
+                                    (item.result && String(item.result).toLowerCase().includes('success'));
+                                    
+                                  return (
+                                    <tr key={index} className={isSuccess ? 'bg-green-50 dark:bg-green-900' : 'bg-red-50 dark:bg-red-900'}>
+                                      <td className="px-3 py-1 whitespace-nowrap text-gray-900 dark:text-gray-300">
+                                        {item.name}
+                                      </td>
+                                      <td className="px-3 py-1 whitespace-nowrap text-gray-900 dark:text-gray-300">
+                                        {item.mobileNo}
+                                      </td>
+                                      <td className="px-3 py-1 whitespace-nowrap text-gray-900 dark:text-gray-300">
+                                        {item.status}
+                                      </td>
+                                      <td className="px-3 py-1 whitespace-nowrap text-gray-900 dark:text-gray-300">
+                                        {item.reason || item.message || (isSuccess ? 'Added successfully' : '')}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
                               </tbody>
                             </table>
                           </div>

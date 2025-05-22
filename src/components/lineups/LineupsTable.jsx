@@ -17,7 +17,7 @@ const LineupsTable = ({lineups, onView, onEdit}) => {
     <>
       <TableBody className="dark:bg-gray-900">
         {lineups?.map((lineup, i) => (
-          <TableRow key={i} className="text-center">
+          <TableRow key={i} className="text-center hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150" onClick={()=>onView(lineup)}>
 
             {/* Actions*/}
           <TableCell className="flex justify-center items-center">

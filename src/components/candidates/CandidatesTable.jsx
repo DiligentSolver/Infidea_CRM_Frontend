@@ -49,14 +49,12 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
     return employeeCallHistory?.map((call) => call.summary).join('\n');
   };
 
-  // State to track which tooltip is currently visible
-  const [visibleTooltip, setVisibleTooltip] = useState(null);
 
   return (
     <>
       <TableBody className="dark:bg-gray-900">
         {candidates?.map((candidate, i) => (
-          <TableRow key={i} className="text-center">
+          <TableRow key={i} className="text-center hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150" onClick={()=>onView(candidate)}>
         
           {/* Actions*/}
           <TableCell className="flex justify-center items-center">
@@ -68,7 +66,7 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
               >
                 <FaEye className="w-3.5 h-3.5" />
               </button>
-              {(!candidate?.isLocked || (candidate?.isLocked && candidate?.isLockedByMe)) && (
+              {candidate?.editable && (
                 <button
                   onClick={() => onEdit(candidate)}
                   className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-green-600 hover:text-green-700 dark:hover:text-green-500"
@@ -84,11 +82,6 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
           <TableCell>
             <span className="text-sm">{candidate?.lastRegisteredByName}</span>
           </TableCell>
-
-          {/* Entry Date */}
-          {/* <TableCell>
-            <span className="text-sm">{formatLongDateAndTime(candidate?.createdAt)}</span>
-          </TableCell> */}
 
           {/* Updated Date */}
           <TableCell>
@@ -109,7 +102,6 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
                 </span>
               )}
             </TableCell>
-
           
              {/* Expiry */}
              <TableCell>
@@ -134,7 +126,6 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
               }
             </TableCell>
             
-
           {/* Call Duration*/}
           <TableCell>
             <div className="flex items-center justify-center space-x-1">
@@ -156,18 +147,20 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
           </TableCell>
 
           {/* Name*/}
-<TableCell>
-          <span className="text-sm" >
-            {candidate?.name}
-          </span>
-        </TableCell>
+          <TableCell onClick={() => onView(candidate)} className="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
+            <span className="text-sm">
+              {candidate?.name}
+            </span>
+          </TableCell>
 
-        {/* Contatc Number */}
-        <TableCell>
-          <span className="text-sm" >
-            {candidate?.mobileNo}
-          </span>
-        </TableCell>
+          {/* Contact Number */}
+          <TableCell 
+          >
+            <span className="text-sm">
+              {candidate?.mobileNo}
+            </span>
+          </TableCell>
+
 
           {/* Call Status*/}
           <TableCell>
@@ -176,14 +169,13 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
         </span>
           </TableCell>
 
-
-
-        {/* WhatsApp Number*/}
-        <TableCell>
-          <span className="text-sm" >
-            {candidate?.whatsappNo}
-          </span>
-        </TableCell>
+          
+          {/* WhatsApp Number*/}
+          <TableCell>
+            <span className="text-sm">
+              {candidate?.whatsappNo}
+            </span>
+          </TableCell>
 
           {/* Qualification*/}
           <TableCell>

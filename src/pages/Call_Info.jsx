@@ -27,7 +27,7 @@ import { IoCashOutline } from "react-icons/io5";
 import EmployeeServices from "@/services/EmployeeServices";
 import { notifySuccess, notifyError } from "@/utils/toast";
 import Loader from "../components/sprinkleLoader/Loader";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import ProcessSelector from "@/components/common/ProcessSelector";
 import { 
   companyOptions as lineupCompanyOptions, 
@@ -43,10 +43,12 @@ import {
 
 function CallInfo() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
   const [phoneError, setPhoneError] = useState("");
   const [sameAsContact, setSameAsContact] = useState(false);
   const contactInputRef = useRef(null);
+  const callSummaryRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
@@ -309,6 +311,29 @@ function CallInfo() {
     }
   }, [formData.jdReferenceCompany, formData.lineupCompany]);
 
+  // Add keyboard shortcut listener for Ctrl+"
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Check for Ctrl + Quote (keyCode 222)
+      if (e.ctrlKey && (e.key === '"' || e.key === "'" || e.keyCode === 222 || e.which === 222)) {
+        e.preventDefault();
+        if (callSummaryRef.current) {
+          callSummaryRef.current.focus();
+          // Optional: scroll into view if needed
+          callSummaryRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    };
+
+    // Add the event listener
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Clean up the event listener
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   const handleChange = (field, value) => {
     if (field === "contactNumber") {
       // Validate phone number length
@@ -493,7 +518,7 @@ function CallInfo() {
     e.preventDefault();
     
     // Check if mandatory fields are required based on callStatus
-    const requiresMandatoryFields = ["Lineup", "Walkin at Infidea", "Not Aligned Anywhere"].includes(formData.callStatus);
+    const requiresMandatoryFields = ["Lineup", "Walkin at Infidea"].includes(formData.callStatus);
     
     if (requiresMandatoryFields) {
       // Validate mandatory fields when required
@@ -513,12 +538,6 @@ function CallInfo() {
         return;
       }
       
-      // For "Not Aligned Anywhere", ensure call summary is provided
-      if (formData.callStatus === "Not Aligned Anywhere" && !formData.callSummary) {
-        notifyError("Please provide a call summary");
-        setLoading(false);
-        return;
-      }
     }
     
     setLoading(true);
@@ -603,7 +622,7 @@ function CallInfo() {
       setFormSavedTimestamp(null);
       
       setLoading(false);
-      window.location.href = '/call-details';
+      navigate('/call-details');
     } catch (error) {
       notifyError(error?.response?.data?.message|| "Failed to submit candidate data");
       setLoading(false);
@@ -731,6 +750,7 @@ function CallInfo() {
     { label: "Work Mode", key: "workMode", icon: <MdBusinessCenter />, type: "select", options: [
       { value: "", label: "Select Work Mode" },
       { value: "Office", label: "Office" },
+      { value: "Work From Home", label: "Work From Home" },
       { value: "Hybrid", label: "Hybrid" },
       { value: "Any Mode", label: "Any Mode" }
     ], required: true, inputClass: "w-full" },
@@ -930,8 +950,8 @@ function CallInfo() {
                 }
                 
                 // Check if the field is required based on call status
-                const requiresMandatoryFields = ["Lineup", "Walkin at Infidea", "Not Aligned Anywhere"].includes(formData.callStatus);
-                const isFieldRequired = requiresMandatoryFields ? required : (key === "candidateName" || key === "contactNumber" || key === "callStatus");
+                const requiresMandatoryFields = ["Lineup", "Walkin at Infidea"].includes(formData.callStatus);
+                const isFieldRequired = requiresMandatoryFields ? required : (key === "candidateName" || key === "contactNumber" || key === "callStatus" || key === "callDuration");
                 
                 // Insert locality field right after city field when city is Indore
                 if (key === "city" && showLocalityField) {
@@ -1037,6 +1057,7 @@ function CallInfo() {
                         {isFieldRequired && <span className="text-red-500">*</span>}
                       </label>
                       <textarea
+                        ref={callSummaryRef}
                         value={formData[key]}
                         onChange={(e) => handleChange(key, e.target.value)}
                         placeholder={`Enter ${label.toLowerCase()}...`}
@@ -1197,8 +1218,10 @@ function CallInfo() {
                 <span className="text-base"><MdNotes /></span>
                 Call Summary
                 <span className="text-red-500">*</span>
+                <span className="text-xs ml-2 text-gray-500 dark:text-gray-400">(Ctrl + " to focus)</span>
               </label>
               <textarea
+                ref={callSummaryRef}
                 value={formData.callSummary}
                 onChange={(e) => handleChange("callSummary", e.target.value)}
                 placeholder="Enter call summary..."
