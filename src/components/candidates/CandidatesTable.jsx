@@ -68,7 +68,10 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
               </button>
               {candidate?.editable && (
                 <button
-                  onClick={() => onEdit(candidate)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(candidate);
+                  }}
                   className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-green-600 hover:text-green-700 dark:hover:text-green-500"
                   title="Edit"
                 >

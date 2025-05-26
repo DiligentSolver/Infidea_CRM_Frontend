@@ -36,7 +36,7 @@ const sidebar = [
   {
     path: "/call-info",
     icon: FiPhoneCall,
-    name: "Call Info",
+    name: "Try a Call",
   },
   {
     path: "/call-details",

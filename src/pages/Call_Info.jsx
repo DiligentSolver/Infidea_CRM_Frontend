@@ -20,7 +20,9 @@ import {
   MdError,
   MdRefresh,
   MdComment,
-  MdTask
+  MdTask,
+  MdClose,
+  MdPeople
 } from "react-icons/md";
 import { FaSave } from "react-icons/fa";
 import { IoCashOutline } from "react-icons/io5";
@@ -40,6 +42,8 @@ import {
   relocationOptions,
   getProcessesByCompany
 } from "@/utils/optionsData";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 function CallInfo() {
   const location = useLocation();
@@ -49,6 +53,7 @@ function CallInfo() {
   const [sameAsContact, setSameAsContact] = useState(false);
   const contactInputRef = useRef(null);
   const callSummaryRef = useRef(null);
+  const candidateNameRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
@@ -107,6 +112,9 @@ function CallInfo() {
     walkinRemarks: "",
     workMode: ""
   });
+
+  // Add this after your formData state initialization
+  const [minDate] = useState(new Date());
 
   // Prefill contact number if redirected from duplicity check
   useEffect(() => {
@@ -321,6 +329,15 @@ function CallInfo() {
           callSummaryRef.current.focus();
           // Optional: scroll into view if needed
           callSummaryRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+      // Add new shortcut for Ctrl + :
+      if (e.ctrlKey && (e.key === ':' || e.keyCode === 186)) {
+        e.preventDefault();
+        if (candidateNameRef.current) {
+          candidateNameRef.current.focus();
+          // Optional: scroll into view if needed
+          candidateNameRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }
     };
@@ -760,10 +777,30 @@ function CallInfo() {
       label: "Walkin Date", 
       key: "walkinDate", 
       icon: <MdAccessTime />, 
-      type: "date",
+      type: "custom",
       required: formData.callStatus === "Walkin at Infidea",
       inputClass: "w-full",
-      hidden: formData.callStatus !== "Walkin at Infidea" 
+      hidden: formData.callStatus !== "Walkin at Infidea",
+      render: ({ key, label, icon, required, inputClass }) => (
+        <div className="flex flex-col relative">
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base">{icon}</span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
+          <DatePicker
+            selected={formData[key] ? new Date(formData[key]) : null}
+            onChange={(date) => handleChange(key, date ? date.toISOString() : "")}
+            minDate={minDate}
+            dateFormat="dd/MM/yyyy"
+            placeholderText="Select date"
+            required={required}
+            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
+          />
+        </div>
+      )
     },
     { 
       label: "Lineup Company", 
@@ -830,19 +867,59 @@ function CallInfo() {
       label: "Lineup Date", 
       key: "lineupDate", 
       icon: <MdAccessTime />, 
-      type: "date",
+      type: "custom",
       required: formData.callStatus === "Lineup",
       inputClass: "w-full",
-      hidden: formData.callStatus !== "Lineup" 
+      hidden: formData.callStatus !== "Lineup",
+      render: ({ key, label, icon, required, inputClass }) => (
+        <div className="flex flex-col relative">
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base">{icon}</span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
+          <DatePicker
+            selected={formData[key] ? new Date(formData[key]) : null}
+            onChange={(date) => handleChange(key, date ? date.toISOString() : "")}
+            minDate={minDate}
+            dateFormat="dd/MM/yyyy"
+            placeholderText="Select date"
+            required={required}
+            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
+          />
+        </div>
+      )
     },
     { 
       label: "Interview Date", 
       key: "interviewDate", 
       icon: <MdAccessTime />, 
-      type: "date",
+      type: "custom",
       required: formData.callStatus === "Lineup",
       inputClass: "w-full",
-      hidden: formData.callStatus !== "Lineup" 
+      hidden: formData.callStatus !== "Lineup",
+      render: ({ key, label, icon, required, inputClass }) => (
+        <div className="flex flex-col relative">
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base">{icon}</span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
+          <DatePicker
+            selected={formData[key] ? new Date(formData[key]) : null}
+            onChange={(date) => handleChange(key, date ? date.toISOString() : "")}
+            minDate={minDate}
+            dateFormat="dd/MM/yyyy"
+            placeholderText="Select date"
+            required={required}
+            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
+          />
+        </div>
+      )
     },
     { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: true, inputClass: "w-full" },
     { 
@@ -912,6 +989,144 @@ function CallInfo() {
   // Show locality field only when city is Indore
   const showLocalityField = formData.city.toLowerCase() === "indore";
 
+  const [showClientModal, setShowClientModal] = useState(false);
+  const [clientData, setClientData] = useState({
+    name: "",
+    number: "",
+    designation: "",
+    companyName: ""
+  });
+
+  // Add client modal component
+  const ClientModal = () => {
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        const response = await fetch('/api/clients', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(clientData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create client');
+        }
+
+        const data = await response.json();
+        notifySuccess('Client details saved successfully');
+        setShowClientModal(false);
+        setClientData({
+          name: "",
+          number: "",
+          designation: "",
+          companyName: ""
+        });
+      } catch (error) {
+        notifyError(error.message || 'Error saving client details');
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className={`relative w-full max-w-md p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+          <button
+            onClick={() => setShowClientModal(false)}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <MdClose className="text-xl" />
+          </button>
+          
+          <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+            Add Client Details
+          </h2>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Client Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={clientData.name}
+                onChange={(e) => setClientData(prev => ({ ...prev, name: e.target.value }))}
+                className={`w-full px-3 py-2 rounded-md ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                } border focus:ring-1 focus:ring-[#1a5d96] dark:focus:ring-[#e2692c]`}
+              />
+            </div>
+            
+            <div>
+              <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Contact Number *
+              </label>
+              <input
+                type="tel"
+                required
+                pattern="[0-9]{10}"
+                maxLength={10}
+                value={clientData.number}
+                onChange={(e) => setClientData(prev => ({ ...prev, number: e.target.value }))}
+                className={`w-full px-3 py-2 rounded-md ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                } border focus:ring-1 focus:ring-[#1a5d96] dark:focus:ring-[#e2692c]`}
+              />
+            </div>
+            
+            <div>
+              <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Designation
+              </label>
+              <input
+                type="text"
+                value={clientData.designation}
+                onChange={(e) => setClientData(prev => ({ ...prev, designation: e.target.value }))}
+                className={`w-full px-3 py-2 rounded-md ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                } border focus:ring-1 focus:ring-[#1a5d96] dark:focus:ring-[#e2692c]`}
+              />
+            </div>
+            
+            <div>
+              <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Company Name
+              </label>
+              <input
+                type="text"
+                value={clientData.companyName}
+                onChange={(e) => setClientData(prev => ({ ...prev, companyName: e.target.value }))}
+                className={`w-full px-3 py-2 rounded-md ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                } border focus:ring-1 focus:ring-[#1a5d96] dark:focus:ring-[#e2692c]`}
+              />
+            </div>
+            
+            <div className="flex justify-end pt-4">
+              <button
+                type="submit"
+                className={`px-4 py-2 rounded-md text-white ${
+                  darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'
+                }`}
+              >
+                Save Client
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="px-4 py-3 dark:bg-gray-900 dark:text-gray-100 text-gray-800 overflow-hidden">
       <div className="h-full mx-auto flex flex-col">
@@ -929,6 +1144,16 @@ function CallInfo() {
             
             <button
               type="button"
+              onClick={() => setShowClientModal(true)}
+              className={`px-3 py-1.5 ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white rounded-md text-sm flex items-center gap-1.5 transition-colors`}
+              title="Add Client"
+            >
+              <MdPeople className="text-base" />
+              Add Client
+            </button>
+            
+            <button
+              type="button"
               onClick={resetForm}
               className={`px-3 py-1.5 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-md text-sm flex items-center gap-1.5 transition-colors`}
               title="Reset form"
@@ -938,6 +1163,9 @@ function CallInfo() {
             </button>
           </div>
         </div>
+
+        {/* Show client modal when button is clicked */}
+        {showClientModal && <ClientModal />}
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-auto">
           {/* All fields in a grid layout */}
@@ -1150,6 +1378,7 @@ function CallInfo() {
                           pattern={pattern}
                           maxLength={maxLength}
                           disabled={disabled}
+                          ref={key === "candidateName" ? candidateNameRef : undefined}
                           className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                             ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                             : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
@@ -1218,7 +1447,6 @@ function CallInfo() {
                 <span className="text-base"><MdNotes /></span>
                 Call Summary
                 <span className="text-red-500">*</span>
-                <span className="text-xs ml-2 text-gray-500 dark:text-gray-400">(Ctrl + " to focus)</span>
               </label>
               <textarea
                 ref={callSummaryRef}
@@ -1232,6 +1460,11 @@ function CallInfo() {
                   : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none`}
               />
             </div>
+          </div>
+          
+          <div className="flex flex-col gap-2 mt-3">
+              <span className="text-xs ml-2 text-gray-500 dark:text-gray-400">Ctrl + : to focus on candidate name</span>
+              <span className="text-xs ml-2 text-gray-500 dark:text-gray-400">Ctrl + " to focus on call summary</span>
           </div>
 
           {/* Submit Button */}
@@ -1249,6 +1482,7 @@ function CallInfo() {
               </button>
             )}
           </div>
+
         </form>
       </div>
     </div>

@@ -59,6 +59,7 @@ const Leaves = () => {
   const [isSingleDateMode, setIsSingleDateMode] = useState(null);
   const [selectedLeaveType, setSelectedLeaveType] = useState("");
   const [isEarlyLogoutValid, setIsEarlyLogoutValid] = useState(true);
+  const [minDate] = useState(new Date());
   
   const { 
     register, 
@@ -714,7 +715,7 @@ const Leaves = () => {
                             selected={field.value ? moment(field.value).toDate() : null}
                             onChange={(date) => field.onChange(moment(date).format("YYYY-MM-DD"))}
                             className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300 px-3 py-2 rounded-md"
-                            minDate={moment().toDate()}
+                            minDate={minDate}
                             dateFormat="dd-MMM-yyyy"
                             placeholderText="Select date"
                           />
@@ -744,7 +745,7 @@ const Leaves = () => {
                                 selected={field.value ? moment(field.value).toDate() : null}
                                 onChange={(date) => field.onChange(moment(date).format("YYYY-MM-DD"))}
                                 className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300 px-3 py-2 rounded-md"
-                                minDate={moment().toDate()}
+                                minDate={minDate}
                                 dateFormat="dd-MMM-yyyy"
                                 placeholderText="Select start date"
                               />
@@ -769,7 +770,7 @@ const Leaves = () => {
                                 selected={field.value ? moment(field.value).toDate() : null}
                                 onChange={(date) => field.onChange(moment(date).format("YYYY-MM-DD"))}
                                 className="mt-1 w-full dark:bg-gray-800 dark:border-gray-600 bg-white border-gray-300 px-3 py-2 rounded-md"
-                                minDate={startDate ? moment(startDate).toDate() : moment().toDate()}
+                                minDate={minDate}
                                 dateFormat="dd-MMM-yyyy"
                                 placeholderText="Select end date"
                                 disabled={isOneDay}

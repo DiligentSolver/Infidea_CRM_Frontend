@@ -80,7 +80,7 @@ const EditProfile = () => {
             imagePublicId: imagePublicId,
             name: employeeData.name?.en || "",
             empCode: employeeData.employeeCode || "",
-            designation: employeeData.role || employeeData.designation || "",
+            designation: employeeData.designation || employeeData.role || "",
             contact: employeeData.mobile || "",
             email: employeeData.email || "",
             joiningDate: employeeData.createdAt || "",
@@ -221,45 +221,88 @@ const EditProfile = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
-      
-      // Validate account number match
-      if (profile.accountNumber !== profile.reAccountNumber) {
-        notifyError("Account numbers do not match");
+
+      // Validate required fields
+      if (!profile.email || !profile.contact) {
+        notifyError("Email and Contact Number are required fields");
+        setLoading(false);
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(profile.email)) {
+        notifyError("Please enter a valid email address");
+        setLoading(false);
+        return;
+      }
+
+      // Validate contact number format
+      const contactRegex = /^[0-9]{10}$/;
+      if (!contactRegex.test(profile.contact)) {
+        notifyError("Please enter a valid 10-digit contact number");
         setLoading(false);
         return;
       }
       
+      // Validate account number match if it's being set for the first time
+      if (!profile.accountNumber && profile.reAccountNumber !== profile.accountNumber) {
+        notifyError("Account numbers do not match");
+        setLoading(false);
+        return;
+      }
+
+      // Get the current employee data to compare what has changed
+      const currentEmployee = await EmployeeServices.getEmployeeProfile();
+      const existingData = currentEmployee.employee;
+
+      // Build profile data based on what's changed or new
       const profileData = {
-        name: { en: profile.name },
-        designation: profile.designation,
-        mobile: profile.contact,
-        email: profile.email,
-        dateOfBirth: profile.dob,
+        // Address is always included as it's always editable
         address: profile.address,
-        emergencyContact: {
-          name: profile.emergencyContactName,
-          number: profile.emergencyContactNumber,
-          relation: profile.relation
-        },
-        bankDetails: {
-          bankName: profile.bankName,
-          branch: profile.branchName,
-          ifsc: profile.ifsc,
-          accountNumber: profile.accountNumber,
-          beneficiaryAddress: profile.beneficiaryAddress
-        },
-        // Include profileImage if it has been updated
+        
+        // Email and contact are always included as they're required
+        email: profile.email,
+        mobile: profile.contact,
+        
+        // Include image updates
         ...(profile.image && profile.image.startsWith('http') && { profileImage: profile.image }),
-        // Include imagePublicId if available (for future reference)
         ...(profile.imagePublicId && { imagePublicId: profile.imagePublicId }),
+
+        // For other fields, only include if they're empty in existing data
+        ...(!existingData.name?.en && profile.name && { name: { en: profile.name } }),
+        ...(!existingData.designation && profile.designation && { designation: profile.designation }),
+        ...(!existingData.dateOfBirth && profile.dob && { dateOfBirth: profile.dob }),
+
+        // Emergency contact details
+        ...(!existingData.emergencyContact?.name && profile.emergencyContactName && {
+          emergencyContact: {
+            ...(existingData.emergencyContact || {}),
+            name: profile.emergencyContactName,
+            ...(profile.emergencyContactNumber && { number: profile.emergencyContactNumber }),
+            ...(profile.relation && { relation: profile.relation })
+          }
+        }),
+
+        // Bank details
+        ...(!existingData.bankDetails?.bankName && {
+          bankDetails: {
+            ...(existingData.bankDetails || {}),
+            ...(profile.bankName && { bankName: profile.bankName }),
+            ...(profile.branchName && { branch: profile.branchName }),
+            ...(profile.ifsc && { ifsc: profile.ifsc }),
+            ...(profile.accountNumber && { accountNumber: profile.accountNumber }),
+            ...(profile.beneficiaryAddress && { beneficiaryAddress: profile.beneficiaryAddress })
+          }
+        })
       };
 
-      // Call the update API with the profile ID
+      // Call the update API
       const updated = await EmployeeServices.updateEmployeeProfile(profileData);
       notifySuccess(updated.message);
       setEditMode(false);
       
-      // Transform the returned employee data to match the profile state format
+      // Update the profile state with the response
       if (updated.employee) {
         // Get public ID from response or try to extract it from the image URL if not provided
         let imagePublicId = updated.employee.imagePublicId || "";
@@ -281,27 +324,25 @@ const EditProfile = () => {
           }
         }
         
-        setProfile({
-          image: updated.employee.profileImage || "",
+        setProfile(prevProfile => ({
+          ...prevProfile,
+          image: updated.employee.profileImage || prevProfile.image,
           imagePublicId: imagePublicId,
-          name: updated.employee.name?.en,
-          empCode: updated.employee.employeeCode,
-          designation: updated.employee.designation,
-          contact: updated.employee.mobile,
-          email: updated.employee.email,
-          joiningDate: updated.employee.createdAt,
-          dob: updated.employee.dateOfBirth,
-          address: updated.employee.address,
-          emergencyContactName: updated.employee.emergencyContact?.name,
-          emergencyContactNumber: updated.employee.emergencyContact?.number,
-          relation: updated.employee.emergencyContact?.relation,
-          bankName: updated.employee.bankDetails?.bankName,
-          branchName: updated.employee.bankDetails?.branch,
-          ifsc: updated.employee.bankDetails?.ifsc,
-          accountNumber: updated.employee.bankDetails?.accountNumber,
-          reAccountNumber: updated.employee.bankDetails?.accountNumber,
-          beneficiaryAddress: updated.employee.bankDetails?.beneficiaryAddress,
-        });
+          name: updated.employee.name?.en || prevProfile.name,
+          designation: updated.employee.designation || prevProfile.designation,
+          contact: updated.employee.mobile || prevProfile.contact,
+          dob: updated.employee.dateOfBirth || prevProfile.dob,
+          address: updated.employee.address || prevProfile.address,
+          emergencyContactName: updated.employee.emergencyContact?.name || prevProfile.emergencyContactName,
+          emergencyContactNumber: updated.employee.emergencyContact?.number || prevProfile.emergencyContactNumber,
+          relation: updated.employee.emergencyContact?.relation || prevProfile.relation,
+          bankName: updated.employee.bankDetails?.bankName || prevProfile.bankName,
+          branchName: updated.employee.bankDetails?.branch || prevProfile.branchName,
+          ifsc: updated.employee.bankDetails?.ifsc || prevProfile.ifsc,
+          accountNumber: updated.employee.bankDetails?.accountNumber || prevProfile.accountNumber,
+          reAccountNumber: updated.employee.bankDetails?.accountNumber || prevProfile.reAccountNumber,
+          beneficiaryAddress: updated.employee.bankDetails?.beneficiaryAddress || prevProfile.beneficiaryAddress,
+        }));
         
         // Update profile image in adminInfo cookie if it has changed
         if (adminInfo && updated.employee.profileImage) {
@@ -338,19 +379,21 @@ const EditProfile = () => {
       key: "name", 
       icon: <MdPerson />, 
       maxLength: 50,
+      getDisabled: (value) => !!value
     },
     { 
       label: "Employee Code", 
       key: "empCode", 
       icon: <MdNumbers />, 
       maxLength: 10,
-      disabled:true,
+      disabled: true // Always disabled as it's system generated
     },
     { 
       label: "Designation", 
       key: "designation", 
       icon: <MdWork />, 
       maxLength: 50,
+      getDisabled: (value) => !!value
     },
     { 
       label: "Contact Number", 
@@ -359,6 +402,8 @@ const EditProfile = () => {
       type: "tel",
       pattern: "[0-9]{10}",
       maxLength: 10,
+      required: true,
+      disabled: false // Always editable as it's compulsory
     },
     { 
       label: "Email ID", 
@@ -366,7 +411,8 @@ const EditProfile = () => {
       icon: <MdEmail />, 
       type: "email",
       maxLength: 50,
-      disabled: true
+      required: true,
+      disabled: false // Always editable as it's compulsory
     },
     { 
       label: "Joining Date", 
@@ -374,7 +420,7 @@ const EditProfile = () => {
       type: "date", 
       icon: <MdDateRange />,
       formatDisplay: true,
-      disabled:true
+      disabled: true // Always disabled as it's system generated
     }
   ];
 
@@ -384,19 +430,22 @@ const EditProfile = () => {
       key: "dob", 
       type: "date", 
       icon: <MdDateRange />,
-      formatDisplay: true
+      formatDisplay: true,
+      getDisabled: (value) => !!value
     },
     {
       label: "Address",
       key: "address",
       icon: <MdHome />,
       maxLength: 100,
+      disabled: false // Always editable
     },
     { 
       label: "Emergency Contact Name", 
       key: "emergencyContactName", 
       icon: <MdPerson />, 
       maxLength: 50,
+      getDisabled: (value) => !!value
     },
     { 
       label: "Emergency Contact Number", 
@@ -405,12 +454,14 @@ const EditProfile = () => {
       type: "tel",
       pattern: "[0-9]{10}",
       maxLength: 10,
+      getDisabled: (value) => !!value
     },
     { 
       label: "Relation", 
       key: "relation", 
       icon: <MdPerson />, 
       maxLength: 30,
+      getDisabled: (value) => !!value
     }
   ];
 
@@ -420,65 +471,78 @@ const EditProfile = () => {
       key: "bankName", 
       icon: <MdAccountBalance />, 
       maxLength: 50,
+      getDisabled: (value) => !!value
     },
     { 
       label: "Branch", 
       key: "branchName", 
       icon: <MdAccountBalance />, 
       maxLength: 50,
+      getDisabled: (value) => !!value
     },
     { 
       label: "IFSC", 
       key: "ifsc", 
       icon: <MdNumbers />, 
       maxLength: 11,
+      getDisabled: (value) => !!value
     },
     { 
       label: "Account Number", 
       key: "accountNumber", 
       icon: <MdNumbers />, 
       maxLength: 18,
+      getDisabled: (value) => !!value
     },
     { 
       label: "Re-Enter Account Number", 
       key: "reAccountNumber", 
       icon: <MdNumbers />, 
       maxLength: 18,
+      getDisabled: (value) => !!profile.accountNumber
     },
     { 
       label: "Beneficiary Address", 
       key: "beneficiaryAddress", 
       icon: <MdLocationOn />, 
       maxLength: 100,
+      getDisabled: (value) => !!value
     }
   ];
 
   // Render a section of fields
   const renderFields = (fields) => {
-    return fields.map(({ label, key, type, icon, maxLength, pattern, disabled, formatDisplay }) => (
-      <div key={key} className="mb-3">
-        <label className="flex items-center gap-1.5 text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-          <span className="text-base">{icon}</span>
-          {label}
-        </label>
-        {editMode ? (
-          <input
-            type={type || "text"}
-            value={profile[key]}
-            onChange={(e) => handleChange(key, e.target.value)}
-            placeholder={label}
-            maxLength={maxLength}
-            pattern={pattern}
-            disabled={disabled}
-            className={`w-full px-2.5 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-[#1a5d96] dark:focus:border-[#e2692c] focus:ring-1 focus:ring-[#1a5d96] dark:focus:ring-[#e2692c] ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}
-          />
-        ) : (
-          <div className="w-full px-2.5 py-1.5 text-sm rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white flex items-center truncate overflow-hidden">
-            {formatDisplay ? getDisplayDate(profile[key]) : profile[key]}
-          </div>
-        )}
-      </div>
-    ));
+    return fields.map(({ label, key, type, icon, maxLength, pattern, disabled, getDisabled, required, formatDisplay }) => {
+      // Determine if field should be disabled
+      const isDisabled = disabled || (getDisabled && getDisabled(profile[key]));
+      
+      return (
+        <div key={key} className="mb-3">
+          <label className="flex items-center gap-1.5 text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+            <span className="text-base">{icon}</span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
+          {editMode ? (
+            <input
+              type={type || "text"}
+              value={profile[key]}
+              onChange={(e) => handleChange(key, e.target.value)}
+              placeholder={`${label}${required ? ' (Required)' : ''}`}
+              maxLength={maxLength}
+              pattern={pattern}
+              required={required}
+              disabled={isDisabled}
+              className={`w-full px-2.5 py-1.5 text-sm rounded border ${!profile[key] && required ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'} bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-[#1a5d96] dark:focus:border-[#e2692c] focus:ring-1 focus:ring-[#1a5d96] dark:focus:ring-[#e2692c] ${isDisabled ? 'opacity-70 cursor-not-allowed' : ''}`}
+            />
+          ) : (
+            <div className="w-full px-2.5 py-1.5 text-sm rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white flex items-center truncate overflow-hidden">
+              {formatDisplay ? getDisplayDate(profile[key]) : profile[key]}
+            </div>
+          )}
+        </div>
+      );
+    });
   };
 
   return (
@@ -503,7 +567,7 @@ const EditProfile = () => {
                         : "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg"
                     }
                     alt="Profile"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-gray-100"
                   />
                 )}
                 {editMode && (

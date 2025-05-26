@@ -56,6 +56,7 @@ function Joinings() {
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
   const [currentPage, setCurrentPage] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [minDate] = useState(new Date());
 
 
   const { setIsUpdate } = useContext(SidebarContext);
@@ -542,7 +543,7 @@ function Joinings() {
               {/* Calendar-style UI for Month & Date */}
               <div className="flex flex-col rounded-md overflow-hidden shadow-md h-10">
                 <div className="bg-blue-500 text-white text-xs font-medium text-center py-0.5">
-                  May
+                {new Date().toLocaleString('default', { month: 'long' })}
                 </div>
                 <div className="flex-1 bg-white dark:bg-gray-700 flex items-center justify-center px-3">
                   <span className="text-base font-bold text-gray-800 dark:text-white">{data.incentiveSummary?.counts.total || 0}</span>
@@ -855,6 +856,7 @@ function Joinings() {
                       }
                     }
                   }}
+                  minDate={minDate}
                   dateFormat="dd-MMM-yyyy"
                   className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm 
                   dark:bg-gray-700 border-gray-600 dark:text-white bg-white border-gray-300 text-gray-900 px-3 py-2

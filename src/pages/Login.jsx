@@ -12,6 +12,7 @@ import ImageDark from "@/assets/img/login-office-dark.jpeg";
 import Loader from "@/components/sprinkleLoader/Loader";
 import { FiMail } from "react-icons/fi";
 import { notifyError, notifySuccess } from "@/utils/toast";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 const Login = () => {
   const { t } = useTranslation();
@@ -124,7 +125,11 @@ const Login = () => {
             </div>
           </div>
           
-          <main className="flex items-center justify-center p-3 md:w-7/12">
+          <main className="flex items-center justify-center p-6 sm:p-12 md:w-7/12 relative">
+            <div className="absolute top-4 right-4 z-10">
+              <ThemeToggle />
+            </div>
+
             <div className="w-full max-w-xs mx-auto">
               <h1 className="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
                 {otpRequired ? "Enter Verification Code" : "Login"}

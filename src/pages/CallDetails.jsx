@@ -51,7 +51,7 @@ const CallDetails = () => {
     experience: [],
     gender: [],
     communication: [],
-    shiftPreference: [],
+    shift: [],
     noticePeriod: [],
     relocation: [],
     source: [],
@@ -153,7 +153,7 @@ const CallDetails = () => {
       experience: [],
       gender: [],
       communication: [],
-      shiftPreference: [],
+      shift: [],
       noticePeriod: [],
       relocation: [],
       source: [],
@@ -292,6 +292,11 @@ const CallDetails = () => {
   const applyFilters = (data) => {
     if (!data) return [];
     
+    // Debug first item in data to see its structure
+    if (data.length > 0) {
+      console.log('Sample data item:', data[0]);
+    }
+    
     return data.filter(item => {
       // Check each filter
       for (const [key, values] of Object.entries(filters)) {
@@ -301,19 +306,31 @@ const CallDetails = () => {
         // Ensure values is an array
         if (!Array.isArray(values)) {
           console.warn(`Filter values for ${key} is not an array:`, values);
-          continue; // Skip this filter if values is not an array
+          continue;
         }
         
-        // Check if the item matches any value in the filter array
         const itemValue = item[key] || '';
-        const matches = values.some(value => 
-          String(itemValue).trim().toLowerCase() === String(value).toLowerCase()
-        );
+        const matches = values.some(value => {
+          const normalizedItemValue = String(itemValue).trim().toLowerCase();
+          const normalizedFilterValue = String(value).toLowerCase();
+          
+          // Debug logging for shift
+          if (key === 'shift') {
+            console.log('Comparing shift values:', {
+              itemValue,
+              normalizedItemValue,
+              normalizedFilterValue,
+              matches: normalizedItemValue === normalizedFilterValue
+            });
+          }
+          
+          return normalizedItemValue === normalizedFilterValue;
+        });
         
-        if (!matches) return false; // If any filter doesn't match, exclude item
+        if (!matches) return false;
       }
       
-      return true; // All filters match
+      return true;
     });
   };
   
@@ -546,7 +563,7 @@ const CallDetails = () => {
       options: communicationOptions
     },
     {
-      name: "shiftPreference",
+      name: "shift",
       label: "Shift Preference",
       options: shiftPreferenceOptions
     },
@@ -1081,7 +1098,7 @@ const CallDetails = () => {
                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("salaryexpectation")}>Salary Expectation {sortBy === "salaryexpectation" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("shiftpreference")}>Shift Preference {sortBy === "shiftpreference" && (
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("shift")}>Shift Preference {sortBy === "shift" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("noticeperiod")}>Notice Period {sortBy === "noticeperiod" && (

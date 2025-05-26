@@ -27,13 +27,23 @@ import EmployeeServices from "@/services/EmployeeServices";
 import { notifySuccess, notifyError } from "@/utils/toast";
 import Loader from "../sprinkleLoader/Loader";
 import { 
-  companyOptions as lineupCompanyOptions, 
-  processOptions as lineupProcessOptions, 
-
-  getProcessesByCompany
+  companyOptions,
+  processOptions,
+  getProcessesByCompany,
+  callStatusOptions,
+  experienceOptions,
+  genderOptions,
+  communicationOptions,
+  shiftPreferenceOptions,
+  noticePeriodOptions,
+  relocationOptions,
+  sourceOptions
 } from "@/utils/optionsData";
 import ProcessSelector from "@/components/common/ProcessSelector";
 import { formatLongDateAndTime } from "@/utils/dateFormatter";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLocked, isRegisteredByMe }) {
   const [darkMode, setDarkMode] = useState(false);
   const [phoneError, setPhoneError] = useState("");
@@ -94,6 +104,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
   });
 
   const [showCallSummaryTooltip, setShowCallSummaryTooltip] = useState(null);
+
+  // Add this after your formData state initialization
+  const [minDate] = useState(new Date());
 
   // Initialize form data when candidate data changes
   useEffect(() => {
@@ -560,67 +573,17 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       hasCheckbox: true,
       checkboxLabel: "Same as previous field"
     },
-    { label: "Source", key: "source", icon: <MdSource />, type: "select", options: [
-      { value: "", label: "Select Source" },
-      { value: "Candidate Reference", label: "Candidate Reference" },
-      { value: "Indeed", label: "Indeed" },
-      { value: "Instagram", label: "Instagram" },
-      { value: "Internal Database", label: "Internal Database" },
-      { value: "Internshala", label: "Internshala" },
-      { value: "Linkedin", label: "LinkedIn" },
-      { value: "Missed Call", label: "Missed Call" },
-      { value: "Naukri", label: "Naukri.com" },
-      { value: "Other", label: "Other" },
-      { value: "Personal Reference", label: "Personal Reference" },
-      { value: "Walkin", label: "Walkin" },
-      { value: "Whatsapp", label: "WhatsApp" }
-    ], required: true, inputClass: "w-full" },
-    { label: "Gender", key: "gender", icon: <MdPerson />, type: "select", options: [
-      { value: "", label: "Select Gender" },
-      { value: "Male", label: "Male" },
-      { value: "Female", label: "Female" },
-      { value: "Others", label: "Others" }
-    ], required: true, inputClass: "w-full" },
-    { label: "Experience", key: "experience", icon: <MdWork />, type: "select", options: [
-      { value: "", label: "Select Experience" },
-      { value: "Fresher", label: "Fresher" },
-      { value: "Experienced", label: "Experienced" }
-    ], required: true, inputClass: "w-full" },
+    { label: "Source", key: "source", icon: <MdSource />, type: "select", options: sourceOptions, required: true, inputClass: "w-full" },
+    { label: "Gender", key: "gender", icon: <MdPerson />, type: "select", options: genderOptions, required: true, inputClass: "w-full" },
+    { label: "Experience", key: "experience", icon: <MdWork />, type: "select", options: experienceOptions, required: true, inputClass: "w-full" },
     { label: "Qualification", key: "qualification", icon: <MdSchool />, type: "select", options: qualificationOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.qualifications },
     { label: "State", key: "state", icon: <MdPublic />, type: "select", options: stateOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.states },
     { label: "City", key: "city", icon: <MdLocationCity />, type: "select", options: cityOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.cities },
     { label: "Salary Expectation", key: "salaryExpectations", icon: <IoCashOutline />, required: true, inputClass: "w-full" },
-    { label: "Communication", key: "levelOfCommunication", icon: <MdMessage />, type: "select", options: [
-      { value: "", label: "Select Level" },
-      { value: "Hindi", label: "Hindi" },
-      { value: "Below Average", label: "Below Average" },
-      { value: "Average", label: "Average" },
-      { value: "Above Average", label: "Above Average" },
-      { value: "Good", label: "Good" },
-      { value: "Excellent", label: "Excellent" }
-    ], required: true, inputClass: "w-full" },
-    { label: "Notice Period", key: "noticePeriod", icon: <MdTimer />, type: "select", options: [
-      { value: "", label: "Select Notice Period" },
-      { value: "Immediate", label: "Immediate Joiner" },
-      { value: "7 Days", label: "7 Days" },
-      { value: "15 Days", label: "15 Days" },
-      { value: "30 Days", label: "30 Days" },
-      { value: "45 Days", label: "45 Days" },
-      { value: "60 Days", label: "60 Days" },
-      { value: "90 Days", label: "90 Days" },
-      { value: "More than 90 Days", label: "More than 90 Days" }
-    ], required: true, inputClass: "w-full" },
-    { label: "Shift Preference", key: "shiftPreference", icon: <MdAccessTime />, type: "select", options: [
-      { value: "", label: "Select Shift" },
-      { value: "Day Shift", label: "Day Shift" },
-      { value: "Night Shift", label: "Night Shift" },
-      { value: "Any Shift", label: "Any Shift Works" }
-    ], required: true, inputClass: "w-full" },
-    { label: "Relocation", key: "relocation", icon: <MdShare />, type: "select", options: [
-      { value: "", label: "Select" },
-      { value: "Yes", label: "Yes" },
-      { value: "No", label: "No" }
-    ], required: true, inputClass: "w-full" },
+    { label: "Communication", key: "levelOfCommunication", icon: <MdMessage />, type: "select", options: communicationOptions, required: true, inputClass: "w-full" },
+    { label: "Notice Period", key: "noticePeriod", icon: <MdTimer />, type: "select", options: noticePeriodOptions, required: true, inputClass: "w-full" },
+    { label: "Shift Preference", key: "shiftPreference", icon: <MdAccessTime />, type: "select", options: shiftPreferenceOptions, required: true, inputClass: "w-full" },
+    { label: "Relocation", key: "relocation", icon: <MdShare />, type: "select", options: relocationOptions, required: true, inputClass: "w-full" },
     { label: "Work Mode", key: "workMode", icon: <MdBusinessCenter />, type: "select", options: [
       { value: "", label: "Select Work Mode" },
       { value: "Office", label: "Office" },
@@ -628,33 +591,42 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       { value: "Any Mode", label: "Any Mode" }
     ], required: true, inputClass: "w-full" },
     { label: "Job Profile", key: "companyProfile", icon: <MdBusinessCenter />, type: "select", options: jobProfileOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.jobProfiles },
-    { label: "Call Status", key: "callStatus", icon: <MdWifiCalling3 />, type: "select", options: [
-      { value: "", label: "Select Status" },
-      { value: "Call Back Requested", label: "Call Back Requested" },
-      { value: "Client Call", label: "Client Call" },
-      { value: "Inhouse Hr In Touch", label: "Inhouse HR In Touch" },
-      { value: "Lineup", label: "Lineup" },
-      { value: "Not Aligned Anywhere", label: "Not Aligned Anywhere" },
-      { value: "Not Looking for Job", label: "Not Looking for Job" },
-      { value: "Not Picking Call", label: "Not Picking Call" },
-      { value: "Not Reachable", label: "Not Reachable" },
-      { value: "Walkin at Infidea", label: "Walkin at Infidea" }
-    ], required: true, inputClass: "w-full" },
+    { label: "Call Status", key: "callStatus", icon: <MdWifiCalling3 />, type: "select", options: callStatusOptions, required: true, inputClass: "w-full" },
     { 
       label: "Walkin Date", 
       key: "walkinDate", 
       icon: <MdAccessTime />, 
-      type: "date",
+      type: "custom",
       required: formData.callStatus === "Walkin at Infidea",
       inputClass: "w-full",
-      hidden: formData.callStatus !== "Walkin at Infidea" 
+      hidden: formData.callStatus !== "Walkin at Infidea",
+      render: ({ key, label, icon, required, inputClass }) => (
+        <div className="flex flex-col relative">
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base">{icon}</span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
+          <DatePicker
+            selected={formData[key] ? new Date(formData[key]) : null}
+            onChange={(date) => handleChange(key, date ? date.toISOString() : "")}
+            minDate={minDate}
+            dateFormat="dd/MM/yyyy"
+            placeholderText="Select date"
+            required={required}
+            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
+          />
+        </div>
+      )
     },
     { 
       label: "Lineup Company", 
       key: "lineupCompany", 
       icon: <MdBusinessCenter />, 
       type: "select", 
-      options: lineupCompanyOptions,
+      options: companyOptions,
       required: formData.callStatus === "Lineup",
       inputClass: "w-full",
       hidden: formData.callStatus !== "Lineup" 
@@ -710,19 +682,59 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       label: "Lineup Date", 
       key: "lineupDate", 
       icon: <MdAccessTime />, 
-      type: "date",
+      type: "custom",
       required: formData.callStatus === "Lineup",
       inputClass: "w-full",
-      hidden: formData.callStatus !== "Lineup" 
+      hidden: formData.callStatus !== "Lineup",
+      render: ({ key, label, icon, required, inputClass }) => (
+        <div className="flex flex-col relative">
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base">{icon}</span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
+          <DatePicker
+            selected={formData[key] ? new Date(formData[key]) : null}
+            onChange={(date) => handleChange(key, date ? date.toISOString() : "")}
+            minDate={minDate}
+            dateFormat="dd/MM/yyyy"
+            placeholderText="Select date"
+            required={required}
+            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
+          />
+        </div>
+      )
     },
     { 
       label: "Interview Date", 
       key: "interviewDate", 
       icon: <MdAccessTime />, 
-      type: "date",
+      type: "custom",
       required: formData.callStatus === "Lineup",
       inputClass: "w-full",
-      hidden: formData.callStatus !== "Lineup" 
+      hidden: formData.callStatus !== "Lineup",
+      render: ({ key, label, icon, required, inputClass }) => (
+        <div className="flex flex-col relative">
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base">{icon}</span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
+          <DatePicker
+            selected={formData[key] ? new Date(formData[key]) : null}
+            onChange={(date) => handleChange(key, date ? date.toISOString() : "")}
+            minDate={minDate}
+            dateFormat="dd/MM/yyyy"
+            placeholderText="Select date"
+            required={required}
+            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
+          />
+        </div>
+      )
     },
     { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: true, inputClass: "w-full" },
     { 

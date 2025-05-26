@@ -31,7 +31,10 @@ const LineupsTable = ({lineups, onView, onEdit}) => {
               </button>
               {lineup.editable && (
                 <button
-                  onClick={() => onEdit(lineup)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(lineup);
+                  }}
                   className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-green-600 hover:text-green-700 dark:hover:text-green-500"
                   title="Edit"
               >

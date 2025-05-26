@@ -184,11 +184,11 @@ const Header = () => {
                 onClick={handleProfileOpen}
               >
                 {adminInfo?.user.profileImage ? (
-                  <Avatar
-                    className="align-middle h-full w-full object-contain"
-                    src={`${adminInfo.user.profileImage}`}
-                    aria-hidden="true"
-                  />
+                 <img
+                 className="h-12 w-12 rounded-full object-contain bg-gray-100"
+                 src={`${adminInfo.user.profileImage}`}
+                 alt="Profile"
+               />
                 ) : (
                   <span className="text-xs sm:text-sm md:text-base flex items-center justify-center leading-none text-gray-600 dark:text-gray-200">{adminInfo.user.name.en[0].toUpperCase()}</span>
                 )}
@@ -201,7 +201,7 @@ const Header = () => {
                       <div className="flex-shrink-0">
                         {adminInfo?.user.profileImage ? (
                           <img
-                            className="h-10 w-10 rounded-full object-contain"
+                            className="h-12 w-12 rounded-full object-contain bg-gray-100"
                             src={`${adminInfo.user.profileImage}`}
                             alt="Profile"
                           />

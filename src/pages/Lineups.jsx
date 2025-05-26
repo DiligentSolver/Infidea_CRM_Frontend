@@ -64,6 +64,7 @@ function Lineups() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filteredProcessOptions, setFilteredProcessOptions] = useState([{ value: "", label: "Select Process" }]);
+  const [minDate] = useState(new Date());
   
 
   const { setIsUpdate } = useContext(SidebarContext);
@@ -1019,6 +1020,7 @@ function Lineups() {
                       }
                     }
                   }}
+                  minDate={minDate}
                   dateFormat="dd-MMM-yyyy"
                   className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm 
                   dark:bg-gray-700 border-gray-600 dark:text-white bg-white border-gray-300 text-gray-900 px-3 py-2
@@ -1045,6 +1047,7 @@ function Lineups() {
                       }
                     }
                   }}
+                  minDate={minDate}
                   dateFormat="dd-MMM-yyyy"
                   className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm 
                   dark:bg-gray-700 border-gray-600 dark:text-white bg-white border-gray-300 text-gray-900 px-3 py-2
@@ -1104,6 +1107,7 @@ function Lineups() {
                           }
                         }
                       }}
+                      minDate={minDate}
                       dateFormat="dd-MMM-yyyy"
                       className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm 
                       dark:bg-gray-700 border-gray-600 dark:text-white bg-white border-gray-300 text-gray-900 px-3 py-2
