@@ -29,7 +29,7 @@ const WalkinsTable = ({walkins, onView, onEdit}) => {
               >
                 <FaEye className="w-3.5 h-3.5" />
               </button>
-              <button
+              {walkin?.editable && <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit(walkin);
@@ -38,7 +38,7 @@ const WalkinsTable = ({walkins, onView, onEdit}) => {
                 title="Edit"
               >
                 <FaEdit className="w-3.5 h-3.5" />
-              </button>
+              </button>}
             </div>
           </TableCell>
 

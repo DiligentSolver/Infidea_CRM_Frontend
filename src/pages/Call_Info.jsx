@@ -999,40 +999,65 @@ function CallInfo() {
 
   // Add client modal component
   const ClientModal = () => {
+    const [localClientData, setLocalClientData] = useState({
+      name: "",
+      number: "",
+      designation: "",
+      companyName: ""
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setLocalClientData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+
     const handleSubmit = async (e) => {
       e.preventDefault();
+      if (isSubmitting) return;
+
       try {
-        const response = await fetch('/api/clients', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(clientData),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to create client');
-        }
-
-        const data = await response.json();
-        notifySuccess('Client details saved successfully');
+        setIsSubmitting(true);
+        // Create new client
+        const response = await EmployeeServices.createClient(localClientData);
+        notifySuccess(response?.message || 'Client details saved successfully');
         setShowClientModal(false);
-        setClientData({
+        setLocalClientData({
           name: "",
           number: "",
           designation: "",
           companyName: ""
         });
       } catch (error) {
-        notifyError(error.message || 'Error saving client details');
+        notifyError(error?.response?.data?.message || 'Error saving client details');
+      } finally {
+        setIsSubmitting(false);
       }
     };
 
+    const handleClose = () => {
+      setShowClientModal(false);
+      setLocalClientData({
+        name: "",
+        number: "",
+        designation: "",
+        companyName: ""
+      });
+    };
+
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className={`relative w-full max-w-md p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      >
+        <div 
+          className={`relative w-full max-w-md p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+        >
           <button
-            onClick={() => setShowClientModal(false)}
+            type="button"
+            onClick={handleClose}
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
             <MdClose className="text-xl" />
@@ -1049,9 +1074,10 @@ function CallInfo() {
               </label>
               <input
                 type="text"
+                name="name"
                 required
-                value={clientData.name}
-                onChange={(e) => setClientData(prev => ({ ...prev, name: e.target.value }))}
+                value={localClientData.name}
+                onChange={handleInputChange}
                 className={`w-full px-3 py-2 rounded-md ${
                   darkMode 
                     ? 'bg-gray-700 border-gray-600 text-white' 
@@ -1066,11 +1092,12 @@ function CallInfo() {
               </label>
               <input
                 type="tel"
+                name="number"
                 required
                 pattern="[0-9]{10}"
                 maxLength={10}
-                value={clientData.number}
-                onChange={(e) => setClientData(prev => ({ ...prev, number: e.target.value }))}
+                value={localClientData.number}
+                onChange={handleInputChange}
                 className={`w-full px-3 py-2 rounded-md ${
                   darkMode 
                     ? 'bg-gray-700 border-gray-600 text-white' 
@@ -1085,8 +1112,9 @@ function CallInfo() {
               </label>
               <input
                 type="text"
-                value={clientData.designation}
-                onChange={(e) => setClientData(prev => ({ ...prev, designation: e.target.value }))}
+                name="designation"
+                value={localClientData.designation}
+                onChange={handleInputChange}
                 className={`w-full px-3 py-2 rounded-md ${
                   darkMode 
                     ? 'bg-gray-700 border-gray-600 text-white' 
@@ -1101,8 +1129,9 @@ function CallInfo() {
               </label>
               <input
                 type="text"
-                value={clientData.companyName}
-                onChange={(e) => setClientData(prev => ({ ...prev, companyName: e.target.value }))}
+                name="companyName"
+                value={localClientData.companyName}
+                onChange={handleInputChange}
                 className={`w-full px-3 py-2 rounded-md ${
                   darkMode 
                     ? 'bg-gray-700 border-gray-600 text-white' 
@@ -1111,14 +1140,26 @@ function CallInfo() {
               />
             </div>
             
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end gap-3 pt-4">
               <button
-                type="submit"
-                className={`px-4 py-2 rounded-md text-white ${
-                  darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'
+                type="button"
+                onClick={handleClose}
+                className={`px-4 py-2 rounded-md ${
+                  darkMode 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
                 }`}
               >
-                Save Client
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`px-4 py-2 rounded-md text-white ${
+                  darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'
+                } ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+              >
+                {isSubmitting ? 'Saving...' : 'Save Client'}
               </button>
             </div>
           </form>

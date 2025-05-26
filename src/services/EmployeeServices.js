@@ -355,5 +355,17 @@ const EmployeeServices = {
   markReminderAsDone: async (reminderId) => {
     return requests.patch(`/reminders/${reminderId}/complete`);
   },
+
+  /**
+   * Create a new client
+   * @param {Object} body - Client data
+   * @param {string} body.name - Client name
+   * @param {string} body.number - Client contact number
+   * @param {string} body.designation - Client designation (optional)
+   * @param {string} body.companyName - Client company name (optional)
+   */
+  createClient: async (body) => {
+    return requests.post("/clients", body);
+  },
 };
 export default EmployeeServices;
