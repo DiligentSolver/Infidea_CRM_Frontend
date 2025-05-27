@@ -44,6 +44,7 @@ import {
 } from "@/utils/optionsData";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Cookies from "js-cookie";
 
 function CallInfo() {
   const location = useLocation();
@@ -640,6 +641,16 @@ function CallInfo() {
       
       setLoading(false);
       navigate('/call-details');
+
+      // Use the new getNext9PMIST function to get the next 9 PM IST
+      const next9PMIST = getNext9PMIST();
+
+      // Use this function when setting the cookie
+      Cookies.set("adminInfo", JSON.stringify(response), {
+        expires: next9PMIST,
+        sameSite: "None",
+        secure: true,
+      });
     } catch (error) {
       notifyError(error?.response?.data?.message|| "Failed to submit candidate data");
       setLoading(false);
@@ -1168,6 +1179,29 @@ function CallInfo() {
     );
   };
 
+  // Function to get the next 9 PM IST as a Date object
+  const getNext9PMIST = () => {
+    const now = new Date();
+
+    // Get current time in UTC+5:30 (IST)
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const nowIST = new Date(now.getTime() + istOffset);
+
+    // Set target time to 9 PM IST today
+    const targetIST = new Date(nowIST);
+    targetIST.setHours(21, 0, 0, 0);
+
+    // If current IST time is past 9 PM, set to 9 PM tomorrow
+    if (nowIST > targetIST) {
+      targetIST.setDate(targetIST.getDate() + 1);
+    }
+
+    // Convert targetIST back to UTC
+    const targetUTC = new Date(targetIST.getTime() - istOffset);
+
+    return targetUTC;
+  };
+
   return (
     <div className="px-4 py-3 dark:bg-gray-900 dark:text-gray-100 text-gray-800 overflow-hidden">
       <div className="h-full mx-auto flex flex-col">
@@ -1176,7 +1210,7 @@ function CallInfo() {
             Call Information
           </h1>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-stretch gap-3">
             {formSavedTimestamp && (
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 Last saved: {new Date(formSavedTimestamp).toLocaleTimeString()}
@@ -1186,7 +1220,8 @@ function CallInfo() {
             <button
               type="button"
               onClick={() => setShowClientModal(true)}
-              className={`px-3 py-1.5 ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white rounded-md text-sm flex items-center gap-1.5 transition-colors`}
+              className={`h-10 px-3 py-0 ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white rounded-md text-sm flex items-center gap-1.5 transition-colors whitespace-nowrap`}
+              style={{ minWidth: 'fit-content' }}
               title="Add Client"
             >
               <MdPeople className="text-base" />
@@ -1196,7 +1231,8 @@ function CallInfo() {
             <button
               type="button"
               onClick={resetForm}
-              className={`px-3 py-1.5 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-md text-sm flex items-center gap-1.5 transition-colors`}
+              className={`h-10 px-3 py-0 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-md text-sm flex items-center gap-1.5 transition-colors whitespace-nowrap`}
+              style={{ minWidth: 'fit-content' }}
               title="Reset form"
             >
               <MdRefresh className="text-base" />

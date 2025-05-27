@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useActivity } from "@/components/ActivityContext";
 import { FiActivity, FiClock, FiChevronDown, FiAlertTriangle } from "react-icons/fi";
-import { MdHistory } from "react-icons/md";
+import { MdHistory, MdLunchDining, MdGroups, MdPersonSearch, MdCelebration, MdWork, MdDesk, MdDesktopMac } from "react-icons/md";
+import { FaUserTie } from "react-icons/fa";
 
 const ActivityDropdown = ({ onDeskCount }) => {
   const { currentActivity, startActivity, isLoading, isTimeLimitExceeded } = useActivity();
@@ -17,6 +18,15 @@ const ActivityDropdown = ({ onDeskCount }) => {
     "Office Celebration",
     "Interview Session",
   ];
+
+  const activityIcons = {
+    "On Desk": <MdDesktopMac className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />,
+    "Lunch Break": <MdLunchDining className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />,
+    "Team Meeting": <MdGroups className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />,
+    "Client Meeting": <FaUserTie className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />,
+    "Office Celebration": <MdCelebration className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />,
+    "Interview Session": <MdPersonSearch className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />,
+  };
 
   // Blink effect for time limit exceeded warning
   useEffect(() => {
@@ -94,7 +104,7 @@ const ActivityDropdown = ({ onDeskCount }) => {
         {isTimeLimitExceeded ? (
           <FiAlertTriangle className={`w-3 h-3 sm:w-4 sm:h-4 ${getActivityColor(currentActivity)}`} />
         ) : (
-          <MdHistory className={`w-3 h-3 sm:w-4 sm:h-4 ${getActivityColor(currentActivity)}`} />
+          <MdDesktopMac className={`w-3 h-3 sm:w-4 sm:h-4 ${getActivityColor(currentActivity)}`} />
         )}
         <span className={`${getActivityColor(currentActivity)} ${isTimeLimitExceeded ? 'font-bold' : ''} whitespace-nowrap`}>
           {currentActivity}
@@ -117,11 +127,7 @@ const ActivityDropdown = ({ onDeskCount }) => {
                 )} block w-full text-left px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150`}
               >
                 <div className="flex items-center">
-                  {currentActivity === activity && isTimeLimitExceeded ? (
-                    <FiAlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                  ) : (
-                    <MdHistory className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                  )}
+                  {activityIcons[activity]}
                   <span className="truncate">{activity}</span>
                   {currentActivity === activity && (
                     <span className="ml-auto">•</span>

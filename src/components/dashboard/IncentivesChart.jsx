@@ -571,9 +571,9 @@ const IncentivesChart = ({ incentivesData, loading = false }) => {
       {/* Chart type selector */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <button
-          className={`flex items-center text-xs px-3 py-1.5 rounded-full border${
+          className={`flex items-center text-xs px-3 py-1.5 rounded-full border ${
             chartType === 'weekly'
-              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium dark:text-gray-200'
+              ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600  font-medium dark:text-gray-200'
               : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
           }`}
           onClick={() => setChartType('weekly')}

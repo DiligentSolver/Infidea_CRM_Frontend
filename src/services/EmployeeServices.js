@@ -367,5 +367,11 @@ const EmployeeServices = {
   createClient: async (body) => {
     return requests.post("/clients", body);
   },
+
+  getFinancialYearJoiningData: async (startDate, endDate) => {
+    return requests.get(
+      `/joinings/financial-year-summary?startDate=${startDate}&endDate=${endDate}`
+    );
+  },
 };
 export default EmployeeServices;

@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import Cookies from "js-cookie";
 
 //internal import
 import { notifyError } from "@/utils/toast";
@@ -23,6 +24,10 @@ const useError = () => {
       try {
         await EmployeeServices.logout();
         dispatch({ type: "USER_LOGOUT" });
+        // Remove authentication/session cookies
+        Cookies.remove("adminInfo");
+        Cookies.remove("company");
+        Cookies.remove("token");
       } catch (error) {
         console.error("Logout error", error);
       }

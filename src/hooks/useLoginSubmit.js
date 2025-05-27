@@ -51,18 +51,7 @@ const useLoginSubmit = () => {
     mobile,
     otp,
     role,
-    designation,
     employeeCode,
-    address,
-    dateOfBirth,
-    emergencyContactName,
-    emergencyContactNumber,
-    emergencyContactRelation,
-    bankName,
-    bankBranch,
-    bankIfsc,
-    bankAccountNumber,
-    bankBeneficiaryAddress,
   }) => {
     const cookieTimeOut = calculateCookieExpiration();
     setLoading(true);
@@ -146,22 +135,6 @@ const useLoginSubmit = () => {
           setLoading(false);
           return notifyError("Passwords do not match!");
         }
-
-        // Format emergency contact as an object
-        const emergencyContact = {
-          name: emergencyContactName,
-          number: emergencyContactNumber,
-          relation: emergencyContactRelation,
-        };
-
-        // Format bank details as an object
-        const bankDetails = {
-          bankName,
-          branch: bankBranch,
-          ifsc: bankIfsc,
-          accountNumber: bankAccountNumber,
-          beneficiaryAddress: bankBeneficiaryAddress,
-        };
 
         const res = await EmployeeServices.registerEmployee({
           name,

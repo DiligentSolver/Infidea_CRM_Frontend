@@ -29,6 +29,7 @@ import {
   getStatusColorClass,
   getProcessesByCompany
 } from "@/utils/optionsData";
+import { MdClose } from "react-icons/md";
 
 
 
@@ -503,6 +504,56 @@ function Joinings() {
     }
   }, [formData.company]);
 
+  // Add state for FY summary modal and data
+  const [showFySummaryModal, setShowFySummaryModal] = useState(false);
+  const [fySummaryData, setFySummaryData] = useState(null);
+  const [loadingFySummary, setLoadingFySummary] = useState(false);
+  const [fySummaryError, setFySummaryError] = useState(null);
+  const [totalsJoinings, setTotalsJoinings] = useState(0);
+  const [totalsIncentive, setTotalsIncentive] = useState(0);
+  // Add state for selected FY start year
+  const currentYear = new Date().getFullYear();
+  const defaultFyStartYear = new Date().getMonth() < 3 ? currentYear - 1 : currentYear;
+  const [selectedFyStartYear, setSelectedFyStartYear] = useState(defaultFyStartYear);
+
+  // Helper to get FY range from start year
+  function getFinancialYearRangeFromStartYear(startYear) {
+    return {
+      startDate: `${startYear}-04-01`,
+      endDate: `${startYear + 1}-03-31`
+    };
+  }
+
+  // Fetch FY summary for selected year
+  const fetchFySummary = async (startYear) => {
+    setLoadingFySummary(true);
+    setFySummaryError(null);
+    try {
+      const { startDate, endDate } = getFinancialYearRangeFromStartYear(startYear);
+      const res = await EmployeeServices.getFinancialYearJoiningData(startDate, endDate);
+      setTotalsJoinings(res.totals.totalJoinings);
+      setTotalsIncentive(res.totals.totalIncentive);
+      setFySummaryData(res.data);
+    } catch (err) {
+      setFySummaryError("Failed to fetch FY summary");
+      setFySummaryData(null);
+    }
+    setLoadingFySummary(false);
+  };
+
+  // Fetch FY summary when modal opens or selected year changes
+  useEffect(() => {
+    if (showFySummaryModal) {
+      fetchFySummary(selectedFyStartYear);
+    }
+    // eslint-disable-next-line
+  }, [selectedFyStartYear, showFySummaryModal]);
+
+  // Handler to open FY summary modal (no fetch here)
+  const handleShowFySummary = () => {
+    setShowFySummaryModal(true);
+  };
+
   return (
     <>
       <div className="flex justify-between items-center mb-4 mt-4">
@@ -515,21 +566,32 @@ function Joinings() {
         {/* Fixed position search and filter container */}
         <div className="sticky top-0 left-0 right-0 z-30 pb-4">
           {/* Compact Search Bar with Add New Call Button */}
-          <div className="mb-3 flex flex-col sm:flex-row gap-2">
-            <div className="flex flex-1">
-              <div className="relative flex items-center shadow-md bg-white dark:bg-gray-700 rounded-l-md w-full sm:w-96">
+          <div className="mb-3 flex flex-col sm:flex-row gap-2 items-stretch">
+            <div className="flex flex-1 items-stretch">
+              {/* FY Summary Button */}
+              <button
+                onClick={handleShowFySummary}
+                className="h-10 px-3 py-0 bg-green-500 text-white rounded-md shadow-md mr-2 whitespace-nowrap flex items-center justify-center"
+                style={{ minWidth: 'fit-content' }}
+              >
+                FY Summary
+              </button>
+              {/* Search Bar */}
+              <div className="relative flex items-center shadow-md bg-white dark:bg-gray-700 rounded-l-md w-full sm:w-96 h-10">
                 <FaSearch className="text-gray-500 dark:text-gray-400 ml-4" />
                 <input
                   type="text"
                   placeholder="Search candidate..."
                   ref={joiningsRef}
                   onChange={(e) => handleSubmitJoinings(e)}
-                  className="pl-4 pr-3 py-2.5 w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none rounded-l-md"
+                  className="pl-4 pr-3 py-0 h-10 w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none rounded-l-md"
+                  style={{ minWidth: 0 }}
                 />
               </div>
               <button
                 onClick={handleAdd}
-                className="px-4 py-2.5 bg-[#1a5d96] dark:bg-[#e2692c] hover:bg-gray-600 dark:hover:bg-[#d15a20] text-white flex items-center justify-center gap-2 transition-colors rounded-r-md shadow-md"
+                className="h-10 px-4 py-0 bg-[#1a5d96] dark:bg-[#e2692c] hover:bg-gray-600 dark:hover:bg-[#d15a20] text-white flex items-center justify-center gap-2 transition-colors rounded-r-md shadow-md whitespace-nowrap"
+                style={{ minWidth: 'fit-content' }}
               >
                 <FaPlus />
                 <span className="hidden sm:inline">Add Joining</span>
@@ -1198,6 +1260,71 @@ function Joinings() {
               Close
             </button>
           </div>
+        </div>
+      </div>
+    )}
+
+    {/* FY Summary Modal */}
+    {showFySummaryModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg w-full shadow-lg relative">
+          <button
+            onClick={() => setShowFySummaryModal(false)}
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+          >
+            <MdClose className="text-2xl rounded-full bg-gray-200 p-1 dark:bg-gray-700 dark:text-white " />
+          </button>
+          <h2 className="text-xl font-bold mb-4 text-center dark:text-[#e2692c] text-[#1a5d96]">
+            FY Summary
+          </h2>
+          {/* FY Year Selector */}
+          <div className="flex justify-center mb-4">
+            <select
+              value={selectedFyStartYear}
+              onChange={e => setSelectedFyStartYear(Number(e.target.value))}
+              className="px-2 py-1 rounded border dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            >
+              {Array.from({ length: 80 }, (_, idx) => {
+                const year = 2025 + idx;
+                return (
+                  <option key={year} value={year}>
+                    {year}-{(year + 1).toString().slice(-2)}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          {loadingFySummary ? (
+            <div className="text-center py-8">Loading...</div>
+          ) : fySummaryError ? (
+            <div className="text-center py-8 text-red-500">{fySummaryError}</div>
+          ) : fySummaryData ? (
+            <table className="min-w-full border text-sm dark:text-white">
+              <thead>
+                <tr className="bg-gray-100 dark:bg-gray-700">
+                  <th className="px-3 py-2 border">Month</th>
+                  <th className="px-3 py-2 border">Total Joinings</th>
+                  <th className="px-3 py-2 border">Incentive</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fySummaryData.map((row, idx) => (
+                  <tr key={idx} className={idx % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-700"}>
+                    <td className="px-3 py-2 border font-semibold">{row.month}</td>
+                    <td className="px-3 py-2 border text-center">{row.totalJoinings}</td>
+                    <td className="px-3 py-2 border text-center">₹{row.totalIncentive}</td>
+                  </tr>
+                ))}
+                <tr className="font-bold bg-green-100 dark:bg-green-900">
+                  <td className="px-3 py-2 border">Total</td>
+                  <td className="px-3 py-2 border text-center">{totalsJoinings}</td>
+                  <td className="px-3 py-2 border text-center">₹{totalsIncentive}</td>
+                </tr>
+              </tbody>
+            </table>
+          ) : (
+            <div className="text-center py-8 text-red-500">No data found.</div>
+          )}
         </div>
       </div>
     )}
