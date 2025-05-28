@@ -20,10 +20,7 @@ const SidebarContent = () => {
   const { adminInfo } = state || {};
   const { accessList } = useGetCData();
 
-  const handleLogOut = () => {
-    dispatch({ type: "USER_LOGOUT" });
-    Cookies.remove("adminInfo");
-  };
+
 
   const updatedSidebar = sidebar
     .map((route) => {
@@ -93,19 +90,6 @@ const SidebarContent = () => {
       
       {adminInfo && (
         <div className="mt-auto border-t dark:border-gray-700 pt-3 px-6">
-          <div className="py-2 mb-2">
-            <NavLink
-              to="/profile"
-              className={({ isActive }) => 
-                `flex items-center p-2 rounded-lg ${
-                  isActive 
-                    ? 'bg-emerald-50 text-emerald-600 dark:bg-gray-700 dark:text-emerald-400' 
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400'
-                }`
-              }
-            >
-            </NavLink>
-          </div>
           
           <div className="flex items-center justify-between space-x-2 pb-4">
             <NavLink

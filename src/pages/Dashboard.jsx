@@ -6,6 +6,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import FlipCard from "@/components/flipcard/Flipcard";
+import useError from "@/hooks/useError";
+import { ErrorBoundary } from 'react-error-boundary';
 
 //internal import
 import useAsync from "@/hooks/useAsync";
@@ -22,9 +24,25 @@ import RotatingThoughts from "@/components/dashboard/RotatingThoughts";
 // import SocketStatusIndicator from "@/components/dashboard/SocketStatusIndicator";
 // import AttendanceCalendar from "@/components/attendance/AttendanceCalendar";
 
+function ErrorFallback({ error, resetErrorBoundary }) {
+  return (
+    <div role="alert" className="p-4 bg-red-50 rounded-lg">
+      <p className="text-red-600 font-medium">Something went wrong:</p>
+      <pre className="text-sm text-red-500">{error.message}</pre>
+      <button
+        onClick={resetErrorBoundary}
+        className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
+
 const Dashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { handleErrorNotification } = useError();
   
   // Use the global socket context
   // const { 
@@ -39,15 +57,15 @@ const Dashboard = () => {
   dayjs.extend(isToday);
   dayjs.extend(isYesterday);
 
-  const { data: dashboardAnalytics, loading: loadingDashboardAnalytics } = useAsync(
+  const { data: dashboardAnalytics, loading: loadingDashboardAnalytics, error: dashboardAnalyticsError } = useAsync(
     () => EmployeeServices.getDashboardAnalytics()
   );
 
-  const { data: dashboardVisualResponse, loading: loadingVisualData } = useAsync(
+  const { data: dashboardVisualResponse, loading: loadingVisualData, error: visualDataError } = useAsync(
     () => EmployeeServices.getDashboardVisualData()
   );
 
-  const { data: incentivesResponse, loading: loadingIncentivesData } = useAsync(
+  const { data: incentivesResponse, loading: loadingIncentivesData, error: incentivesDataError } = useAsync(
     () => EmployeeServices.getIncentivesData()
   );
   
@@ -125,6 +143,49 @@ const Dashboard = () => {
   //   }
   // }, [isConnected, fetchLiveFeeds, liveData.lastUpdated]);
   
+  // Add error handling to useAsync results
+  useEffect(() => {
+    if (dashboardAnalyticsError || visualDataError || incentivesDataError) {
+      handleErrorNotification(dashboardAnalyticsError || visualDataError || incentivesDataError, "Dashboard");
+    }
+  }, [dashboardAnalyticsError, visualDataError, incentivesDataError, handleErrorNotification]);
+
+  const transformDashboardData = (data) => {
+    try {
+      if (!data) {
+        throw new Error('No data available for transformation');
+      }
+
+      // Transform data for charts
+      const transformedData = {
+        // ... existing transformations
+      };
+
+      return transformedData;
+    } catch (err) {
+      handleErrorNotification(err.message, 'Dashboard Data Transformation');
+      return null;
+    }
+  };
+
+  const transformVisualData = (data) => {
+    try {
+      if (!data) {
+        throw new Error('No visual data available for transformation');
+      }
+
+      // Transform visual data
+      const transformedData = {
+        // ... existing transformations
+      };
+
+      return transformedData;
+    } catch (err) {
+      handleErrorNotification(err.message, 'Visual Data Transformation');
+      return null;
+    }
+  };
+
   return (
     <AnimatedContent>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
@@ -173,10 +234,9 @@ const Dashboard = () => {
               onTap={() => handleNavigation("/lineups", { status: "offer drop" })}
               loading={loadingDashboardAnalytics}
             />
-            <FlipCard 
-              title="Leaves" 
-              data={dashboardAnalytics?.dashboardOverview?.totalLeaves || 0} 
-              onTap={() => handleNavigation("/leaves", { status: "approved" })} 
+           <FlipCard 
+              title="Conversion" 
+              data={dashboardAnalytics?.dashboardOverview?.totalConversionRate + "%" || 0}
               loading={loadingDashboardAnalytics}
             />
             <FlipCard 
@@ -197,27 +257,49 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Performance Metrics - 1/3 width on large screens */}
           <section className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-            <PerformanceMetrics 
-              data={dashboardVisualData?.performanceMetrics?.today || {}} 
-              loading={loadingVisualData} 
-            />
+            <ErrorBoundary
+              FallbackComponent={ErrorFallback}
+              onReset={() => {
+                // Reset the state that caused the error
+                setRefreshKey(prev => prev + 1);
+              }}
+            >
+              <PerformanceMetrics 
+                data={dashboardVisualData?.performanceMetrics?.today || {}} 
+                loading={loadingVisualData} 
+              />
+            </ErrorBoundary>
           </section>
 
           {/* Activity Timeline Chart - 2/3 width on large screens */}
           <section className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-            <ActivityTimelineChart 
-              timeDistributions={dashboardVisualData?.timeDistributions || {}} 
-              loading={loadingVisualData} 
-            />
+            <ErrorBoundary
+              FallbackComponent={ErrorFallback}
+              onReset={() => {
+                setRefreshKey(prev => prev + 1);
+              }}
+            >
+              <ActivityTimelineChart 
+                timeDistributions={dashboardVisualData?.timeDistributions || {}} 
+                loading={loadingVisualData} 
+              />
+            </ErrorBoundary>
           </section>
         </div>
 
         {/* Incentives Chart - Full width */}
         <section className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-          <IncentivesChart 
-            incentivesData={incentivesData} 
-            loading={loadingIncentivesData} 
-          />
+          <ErrorBoundary
+            FallbackComponent={ErrorFallback}
+            onReset={() => {
+              setRefreshKey(prev => prev + 1);
+            }}
+          >
+            <IncentivesChart 
+              incentivesData={incentivesData} 
+              loading={loadingIncentivesData} 
+            />
+          </ErrorBoundary>
         </section>
       </div>
     </AnimatedContent>

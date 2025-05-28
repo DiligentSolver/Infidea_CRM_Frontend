@@ -29,7 +29,9 @@ import {
   getStatusColorClass,
   getProcessesByCompany
 } from "@/utils/optionsData";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdOutlineTableBar, MdTableChart, MdTableRows, MdTableView } from "react-icons/md";
+import useError from "@/hooks/useError";
+import { FiTable } from "react-icons/fi";
 
 
 
@@ -74,6 +76,7 @@ function Joinings() {
   }, [refreshKey, setIsUpdate]);
 
   const { data, loading, error} = useAsync(EmployeeServices.getJoiningsData);
+  const { handleErrorNotification } = useError();
 
   console.log(data);
 
@@ -87,12 +90,10 @@ function Joinings() {
   useEffect(() => {
     if (data?.joinings) {
       setJoinings(data.joinings);
-      // Skip success notification for initial load to prevent notification fatigue
-      // Only notify for specific actions like create, update, delete
     } else if (error) {
-      notifyError(`Failed to load joinings: ${error}`);
+      handleErrorNotification(error, "Joinings");
     }
-  }, [data, error, refreshKey]);
+  }, [data, error, refreshKey, handleErrorNotification]);
 
   const {
     joiningsRef,  
@@ -388,65 +389,63 @@ function Joinings() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Reset form errors
-    setFormErrors({});
-    
-    // Validate all fields
-    const errors = {};
-    
-    if (!formData.candidateName?.trim()) {
-      errors.candidateName = 'Candidate name is required';
-    }
-    
-    const contactError = validateContactNumber(formData.contactNumber);
-    if (contactError) {
-      errors.contactNumber = contactError;
-    }
-
-    if (!formData.joiningDate) {
-      errors.joiningDate = 'Joining date is required';
-    }
-    
-    if (!formData.company) {
-      errors.company = 'Company is required';
-    }
-
-    if (!formData.process) {
-      errors.process = 'Process is required';
-    }
-    
-    if (formData.company.toLowerCase() === "others" && !formData.customCompanyName?.trim()) {
-      errors.customCompanyName = 'Custom company name is required';
-    }
-    
-    if (formData.process.toLowerCase() === "others" && !formData.customCompanyProcess?.trim()) {
-      errors.customCompanyProcess = 'Custom process is required';
-    }
-
-    if (!formData.remarks) {
-      errors.remarks = 'Remarks are required';
-    }
-
-    if (!formData.salary) {
-      errors.salary = 'Salary is required';
-    }
-    
-    if(!formData.joiningType){
-   errors.joiningType = 'Joining type is required';
-    }
-
-    // If there are validation errors, show them and don't submit
-    if (Object.keys(errors).length > 0) {
-    console.log(formData);
-
-      setFormErrors(errors);
-      notifyError('Please correct the errors in the form');
-      return;
-    }
-
-    setIsSubmitting(true);
-
     try {
+      // Reset form errors
+      setFormErrors({});
+      
+      // Validate all fields
+      const errors = {};
+      
+      if (!formData.candidateName?.trim()) {
+        errors.candidateName = 'Candidate name is required';
+      }
+      
+      const contactError = validateContactNumber(formData.contactNumber);
+      if (contactError) {
+        errors.contactNumber = contactError;
+      }
+
+      if (!formData.joiningDate) {
+        errors.joiningDate = 'Joining date is required';
+      }
+      
+      if (!formData.company) {
+        errors.company = 'Company is required';
+      }
+
+      if (!formData.process) {
+        errors.process = 'Process is required';
+      }
+      
+      if (formData.company.toLowerCase() === "others" && !formData.customCompanyName?.trim()) {
+        errors.customCompanyName = 'Custom company name is required';
+      }
+      
+      if (formData.process.toLowerCase() === "others" && !formData.customCompanyProcess?.trim()) {
+        errors.customCompanyProcess = 'Custom process is required';
+      }
+
+      if (!formData.remarks) {
+        errors.remarks = 'Remarks are required';
+      }
+
+      if (!formData.salary) {
+        errors.salary = 'Salary is required';
+      }
+      
+      if (!formData.joiningType) {
+        errors.joiningType = 'Joining type is required';
+      }
+
+      // If there are validation errors, show them and don't submit
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
+        handleErrorNotification('Please correct the errors in the form', 'Form Validation');
+        return;
+      }
+
+      setIsSubmitting(true);
+
       // Create joining payload
       const joiningData = {
         candidateName: formData.candidateName,
@@ -461,7 +460,7 @@ function Joinings() {
         salary: formData.salary,
       };
       
-      // Only add new joining, remove edit functionality
+      // Create new joining
       await EmployeeServices.createJoiningData(joiningData);
       notifySuccess(`New joining for ${formData.candidateName} created successfully!`);
     
@@ -478,14 +477,12 @@ function Joinings() {
         salary: "",
         joiningType: "",
       });
-      // Remove setting editingId since editing is not allowed
       setShowForm(false);
       
       // Refresh data
       setRefreshKey(prev => prev + 1);
-    } catch (error) {
-      console.error("Error submitting joining:", error);
-      notifyError(`Failed to create joining: ${error?.response?.data?.message || 'Unknown error'}`);
+    } catch (err) {
+      handleErrorNotification(err?.response?.data?.message || err?.message, 'Create Joining');
     } finally {
       setIsSubmitting(false);
     }
@@ -530,15 +527,25 @@ function Joinings() {
     setFySummaryError(null);
     try {
       const { startDate, endDate } = getFinancialYearRangeFromStartYear(startYear);
-      const res = await EmployeeServices.getFinancialYearJoiningData(startDate, endDate);
-      setTotalsJoinings(res.totals.totalJoinings);
-      setTotalsIncentive(res.totals.totalIncentive);
-      setFySummaryData(res.data);
+      if (!startDate || !endDate) {
+        throw new Error('Invalid financial year range');
+      }
+      
+      const response = await EmployeeServices.getFinancialYearJoiningData(startDate, endDate);
+      if (!response || !response.data) {
+        throw new Error('Invalid response from server');
+      }
+      
+      setTotalsJoinings(response.totals.totalJoinings);
+      setTotalsIncentive(response.totals.totalIncentive);
+      setFySummaryData(response.data);
     } catch (err) {
+      handleErrorNotification(err?.response?.data?.message || err?.message, 'Financial Year Summary');
       setFySummaryError("Failed to fetch FY summary");
       setFySummaryData(null);
+    } finally {
+      setLoadingFySummary(false);
     }
-    setLoadingFySummary(false);
   };
 
   // Fetch FY summary when modal opens or selected year changes
@@ -552,6 +559,18 @@ function Joinings() {
   // Handler to open FY summary modal (no fetch here)
   const handleShowFySummary = () => {
     setShowFySummaryModal(true);
+  };
+
+  // Helper function to get status color
+  const getStatusColor = (status) => {
+    // Ensure status is a non-empty string before applying color
+    if (!status) return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+    
+    // Use statusOptions (which is aliased from joiningStatusOptions)
+    const found = statusOptions.find((option) => option.value === status);
+    return found
+      ? found.colorClass
+      : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
   };
 
   return (
@@ -568,14 +587,6 @@ function Joinings() {
           {/* Compact Search Bar with Add New Call Button */}
           <div className="mb-3 flex flex-col sm:flex-row gap-2 items-stretch">
             <div className="flex flex-1 items-stretch">
-              {/* FY Summary Button */}
-              <button
-                onClick={handleShowFySummary}
-                className="h-10 px-3 py-0 bg-green-500 text-white rounded-md shadow-md mr-2 whitespace-nowrap flex items-center justify-center"
-                style={{ minWidth: 'fit-content' }}
-              >
-                FY Summary
-              </button>
               {/* Search Bar */}
               <div className="relative flex items-center shadow-md bg-white dark:bg-gray-700 rounded-l-md w-full sm:w-96 h-10">
                 <FaSearch className="text-gray-500 dark:text-gray-400 ml-4" />
@@ -597,7 +608,16 @@ function Joinings() {
                 <span className="hidden sm:inline">Add Joining</span>
                 <span className="inline sm:hidden">Add</span>
               </button>
+              {/* FY Summary Button */}
+              <button
+                onClick={handleShowFySummary}
+                className="h-10 px-3 py-0 bg-green-500 text-white rounded-md shadow-md mr-2 whitespace-nowrap flex items-center justify-center ml-2"
+                style={{ minWidth: 'fit-content' }}
+              >
+                <FiTable/>
+              </button>
             </div>
+
 
              {/* Incentives Summary - Row Layout */}
              <div className="flex flex-wrap items-center gap-2">
@@ -1130,8 +1150,8 @@ function Joinings() {
           {selectedJoining.status && (
             <div className="mb-4 flex items-center">
               <span className="text-sm font-medium dark:text-gray-300 text-gray-600 mr-3">Status:</span>
-              <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColorClass(selectedJoining.status)}`}>
-                {statusOptions.find(o => o.value === selectedJoining.status)?.label || selectedJoining.status}
+              <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(selectedJoining.status)}`}>
+                {selectedJoining.status}
               </span>
             </div>
           )}

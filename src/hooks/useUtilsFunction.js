@@ -3,8 +3,6 @@ import { useContext, useMemo } from "react";
 
 //internal imports
 import { SidebarContext } from "@/context/SidebarContext";
-import LanguageServices from "@/services/LanguageServices";
-import SettingServices from "@/services/SettingServices";
 import { useQuery } from "@tanstack/react-query";
 
 const useUtilsFunction = () => {

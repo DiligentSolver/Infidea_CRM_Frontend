@@ -1,5 +1,3 @@
-import LanguageServices from "@/services/LanguageServices";
-import SettingServices from "@/services/SettingServices";
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { createContext, useEffect, useRef, useState } from "react";

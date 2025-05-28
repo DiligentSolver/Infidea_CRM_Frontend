@@ -21,7 +21,8 @@ import AnimatedContent from "@/components/common/AnimatedContent";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { notifySuccess, notifyError } from "@/utils/toast";
-import { 
+import useError from "@/hooks/useError";
+import {
   statusOptions, 
   companyOptions, 
   processOptions, 
@@ -65,7 +66,7 @@ function Lineups() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filteredProcessOptions, setFilteredProcessOptions] = useState([{ value: "", label: "Select Process" }]);
   const [minDate] = useState(new Date());
-  
+  const { handleErrorNotification } = useError();
 
   const { setIsUpdate } = useContext(SidebarContext);
   // Add filter state
@@ -130,7 +131,8 @@ function Lineups() {
       // Skip success notification for initial load to prevent notification fatigue
       // Only notify for specific actions like create, update, delete
     } else if (error) {
-      notifyError(`Failed to load lineups: ${error}`);
+      
+     handleErrorNotification(error, "Lineups");
     }
   }, [data, error, refreshKey]);
 
@@ -413,6 +415,9 @@ function Lineups() {
                 <TableCell className="text-center">
                   Actions
                   </TableCell>
+                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("lineupCounts")}>Lineup Counts {sortBy === "lineupCounts" && (
+                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}</TableCell>
                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("entrytime")}>Entry Date {sortBy === "entrytime" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
@@ -427,6 +432,9 @@ function Lineups() {
                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("contactNumber")}>Contact Number {sortBy === "contactNumber" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
+  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("status")}>Status{sortBy === "status" && (
+                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}</TableCell>
                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("company")}>Company {sortBy === "company" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
@@ -439,9 +447,7 @@ function Lineups() {
                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("interviewDate")}>Interview Date {sortBy === "interviewDate" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("status")}>Status{sortBy === "status" && (
-                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
-                  )}</TableCell>
+                
                   
                 </tr>
               </TableHeader>
@@ -1368,15 +1374,17 @@ function Lineups() {
           )}
 
           <div className="mt-4 flex justify-end space-x-3">
-            <button
-              onClick={() => {
-                handleEdit(selectedLineup);
-                setShowViewModal(false);
-              }}
-              className="px-3 py-1.5 text-sm rounded-lg font-medium dark:bg-[#e2692c] dark:hover:bg-[#d15a20] text-white bg-[#1a5d96] hover:bg-[#154a7a] transition-colors"
-            >
-              Edit
-            </button>
+            {selectedLineup.editable && (
+              <button
+                onClick={() => {
+                  handleEdit(selectedLineup);
+                  setShowViewModal(false);
+                }}
+                className="px-3 py-1.5 text-sm rounded-lg font-medium dark:bg-[#e2692c] dark:hover:bg-[#d15a20] text-white bg-[#1a5d96] hover:bg-[#154a7a] transition-colors"
+              >
+                Edit
+              </button>
+            )}
             <button
               onClick={() => setShowViewModal(false)}
               className="px-3 py-1.5 text-sm rounded-lg font-medium dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white bg-gray-100 hover:bg-gray-200 text-gray-800 transition-colors"

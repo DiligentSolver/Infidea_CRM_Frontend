@@ -44,6 +44,11 @@ const LineupsTable = ({lineups, onView, onEdit}) => {
             </div>
           </TableCell>
 
+          {/* Lineup Counts */}
+          <TableCell>
+            <span className="text-sm font-semibold rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300 text-xs font-medium px-1.5 py-0.5">{lineup?.candidateLineupCount}</span>
+          </TableCell>
+
            {/* Entry Date */}
            <TableCell>
             <span className="text-sm">{formatLongDateAndTime(lineup?.createdAt)}</span>
@@ -64,11 +69,18 @@ const LineupsTable = ({lineups, onView, onEdit}) => {
             <span className="text-sm">{lineup?.contactNumber}</span>
           </TableCell>
 
+          
+          {/* Status*/}
+          <TableCell>
+          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(lineup?.status)}`}>
+          {lineup?.status}
+        </span>
+          </TableCell>
+
           {/* Company */}
           <TableCell>
             <span className="text-sm">{lineup?.company}</span>
           </TableCell>
-
           
           {/* Process */}
           <TableCell>
@@ -89,12 +101,6 @@ const LineupsTable = ({lineups, onView, onEdit}) => {
           </span>
         </TableCell>
 
-          {/* Status*/}
-          <TableCell>
-          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(lineup?.status)}`}>
-          {lineup?.status}
-        </span>
-          </TableCell>
       
       </TableRow>
     ))}

@@ -58,18 +58,14 @@ const formatCallHistory = (callDurationHistory) => {
   )).join('\n');
 };
 
-  const formatCallSummary = (callDurationHistory) => {
-    if (!callDurationHistory || callDurationHistory.length === 0) return "No call summary";
+  const formatCallSummary = (callSummary) => {
+    console.log(callSummary);
+    if (!callSummary || callSummary.length === 0) return "No call summary";
     
-    return callDurationHistory?.sort((a, b) => new Date(b.date) - new Date(a.date)).map((call) => `${formatLongDateAndTime(call.date)} - ${call.summary}`).join('\n');
+    return callSummary?.sort((a, b) => new Date(b.date) - new Date(a.date)).map((call) => `${formatLongDateAndTime(call.date)} - ${call.summary}`).join('\n');
   };
 
-  const formatCallRemarks = (callRemarksHistory) => {
-    if (!callRemarksHistory || callRemarksHistory.length === 0) return "No remarks";
-    
-    return callRemarksHistory?.sort((a, b) => new Date(b.date) - new Date(a.date)).map((call) => `${formatLongDateAndTime(call.date)} - ${call.remark}`).join('\n');
-  };
-  
+
   // Helper function to render field values based on type
   const renderValue = (field) => {
     if (field.isStatus) {
@@ -119,6 +115,7 @@ const formatCallHistory = (callDurationHistory) => {
     { label: "Gender", key: "gender", value: call.gender },
     { label: "Experience", key: "experience", value: call.experience },
     { label: "Qualification", key: "qualification", value: call.qualification || "Not Specified" },
+    { label: "Passing Year", key: "passingYear", value: call.passingYear || "Not Specified" },
     { label: "State", key: "state", value: call.state },
     { label: "City", key: "city", value: call.city || "Not Specified" },
     { label: "Locality", key: "locality", value: call.locality || "Not Specified", show: () => call.city?.toLowerCase() === "indore" },
@@ -145,14 +142,16 @@ const formatCallHistory = (callDurationHistory) => {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-[#1a5d96] dark:text-[#e2692c]">Call Details</h2>
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => onTryCall(call)} 
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 transition-colors text-white"
-              aria-label="Try a Call"
-            >
-              <FaPhoneAlt className="w-4 h-4" />
-              <span>Try a Call</span>
-            </button>
+            {call.editable && (
+              <button 
+                onClick={() => onTryCall(call)} 
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 transition-colors text-white"
+                aria-label="Try a Call"
+              >
+                <FaPhoneAlt className="w-4 h-4" />
+                <span>Try a Call</span>
+              </button>
+            )}
             <button 
               onClick={onClose} 
               className="flex items-center justify-center w-10 h-10 rounded-full transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700"
@@ -180,20 +179,11 @@ const formatCallHistory = (callDurationHistory) => {
               })}
             </div>
           </div>
-          {call.employeeRemarksHistory && call.employeeRemarksHistory.length > 0 && (
-            <>
-              <hr className="my-6 border-gray-200 dark:border-gray-700" />
-              <div className="rounded-xl p-5 shadow-lg border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-6">
-                <h3 className="text-lg font-semibold mb-3 text-[#1a5d96] dark:text-[#e2692c]">Remarks</h3>
-                <p className="text-sm break-words whitespace-pre-line text-gray-700 dark:text-gray-300">{formatCallRemarks(call.employeeRemarksHistory)}</p>
-              </div>
-            </>
-          )}
           {call.employeeCallHistory && call.employeeCallHistory.length > 0 && (
             <>
               <div className="rounded-xl p-5 shadow-lg border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-6">
                 <h3 className="text-lg font-semibold mb-3 text-[#1a5d96] dark:text-[#e2692c]">Call Summary</h3>
-                <p className="text-sm break-words whitespace-pre-line text-gray-700 dark:text-gray-300">{formatCallSummary(call.employeeCallHistory)}</p>
+                <p className="text-sm break-words whitespace-pre-line text-gray-700 dark:text-gray-300">{formatCallSummary(call.callSummary)}</p>
               </div>
             </>
           )}

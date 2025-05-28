@@ -40,7 +40,8 @@ import {
   sourceOptions,
   experienceOptions,
   relocationOptions,
-  getProcessesByCompany
+  getProcessesByCompany,
+  workModeOptions
 } from "@/utils/optionsData";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -87,6 +88,7 @@ function CallInfo() {
     sameAsContact: false,
     experience: "",
     qualification: "",
+    passingYear: "",
     state: "",
     city: "",
     locality: "",
@@ -496,6 +498,7 @@ function CallInfo() {
         sameAsContact: false,
         experience: "",
         qualification: "",
+        passingYear: "",
         state: "",
         city: "",
         locality: "",
@@ -569,6 +572,7 @@ function CallInfo() {
         gender: formData.gender,
         experience: formData.experience,
         qualification: formData.qualification,
+        passingYear: formData.passingYear,
         state: formData.state,
         city: formData.city,
         salaryExpectation: formData.salaryExpectations,
@@ -607,6 +611,7 @@ function CallInfo() {
         sameAsContact: false,
         experience: "",
         qualification: "",
+        passingYear: "",
         state: "",
         city: "",
         locality: "",
@@ -641,16 +646,6 @@ function CallInfo() {
       
       setLoading(false);
       navigate('/call-details');
-
-      // Use the new getNext9PMIST function to get the next 9 PM IST
-      const next9PMIST = getNext9PMIST();
-
-      // Use this function when setting the cookie
-      Cookies.set("adminInfo", JSON.stringify(response), {
-        expires: next9PMIST,
-        sameSite: "None",
-        secure: true,
-      });
     } catch (error) {
       notifyError(error?.response?.data?.message|| "Failed to submit candidate data");
       setLoading(false);
@@ -766,22 +761,30 @@ function CallInfo() {
       { value: "Female", label: "Female" },
       { value: "Others", label: "Others" }
     ], required: true, inputClass: "w-full" },
-    { label: "Experience", key: "experience", icon: <MdWork />, type: "select", options: experienceOptions, required: true, inputClass: "w-full" },
-    { label: "Qualification", key: "qualification", icon: <MdSchool />, type: "select", options: qualificationOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.qualifications },
-    { label: "State", key: "state", icon: <MdPublic />, type: "select", options: stateOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.states },
+    { label: "Experience", key: "experience", icon: <MdWork />, type: "select", options: experienceOptions, required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus), inputClass: "w-full" },
+    { label: "Qualification", key: "qualification", icon: <MdSchool />, type: "select", options: qualificationOptions, required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus), inputClass: "w-full", loading: loadingDropdownData.qualifications },
+    { 
+      label: "Passing Year", 
+      key: "passingYear", 
+      icon: <MdSchool />, 
+      type: "select",
+      options: [
+        { value: "", label: "Select Year" },
+        ...Array.from({ length: 101 }, (_, i) => ({
+          value: String(1980 + i),
+          label: String(1980 + i)
+        }))
+      ],
+      required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus),
+      inputClass: "w-full"
+    },
+    { label: "State", key: "state", icon: <MdPublic />, type: "select", options: stateOptions, required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus), inputClass: "w-full", loading: loadingDropdownData.states },
     { label: "City", key: "city", icon: <MdLocationCity />, type: "select", options: cityOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.cities },
     { label: "Salary Expectation", key: "salaryExpectations", icon: <IoCashOutline />, required: true, inputClass: "w-full" },
-    { label: "Communication", key: "levelOfCommunication", icon: <MdMessage />, type: "select", options: communicationOptions, required: true, inputClass: "w-full" },
     { label: "Notice Period", key: "noticePeriod", icon: <MdTimer />, type: "select", options: noticePeriodOptions, required: true, inputClass: "w-full" },
     { label: "Shift Preference", key: "shiftPreference", icon: <MdAccessTime />, type: "select", options: shiftPreferenceOptions, required: true, inputClass: "w-full" },
     { label: "Relocation", key: "relocation", icon: <MdShare />, type: "select", options: relocationOptions, required: true, inputClass: "w-full" },
-    { label: "Work Mode", key: "workMode", icon: <MdBusinessCenter />, type: "select", options: [
-      { value: "", label: "Select Work Mode" },
-      { value: "Office", label: "Office" },
-      { value: "Work From Home", label: "Work From Home" },
-      { value: "Hybrid", label: "Hybrid" },
-      { value: "Any Mode", label: "Any Mode" }
-    ], required: true, inputClass: "w-full" },
+    { label: "Work Mode", key: "workMode", icon: <MdBusinessCenter />, type: "select", options: workModeOptions, required: true, inputClass: "w-full" },
     { label: "Job Profile", key: "companyProfile", icon: <MdBusinessCenter />, type: "select", options: jobProfileOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.jobProfiles },
     { label: "Call Status", key: "callStatus", icon: <MdWifiCalling3 />, type: "select", options: callStatusOptions, required: true, inputClass: "w-full" },
     { 
@@ -933,6 +936,7 @@ function CallInfo() {
       )
     },
     { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: true, inputClass: "w-full" },
+    { label: "Communication", key: "levelOfCommunication", icon: <MdMessage />, type: "select", options: communicationOptions, required: true, inputClass: "w-full" },
     { 
       label: "Company JD", 
       key: "jdReferenceCompany", 
@@ -975,6 +979,7 @@ function CallInfo() {
         </div>
       )
     },
+    
     { 
       label: "Lineup Remarks", 
       key: "lineupRemarks", 
@@ -1177,29 +1182,6 @@ function CallInfo() {
         </div>
       </div>
     );
-  };
-
-  // Function to get the next 9 PM IST as a Date object
-  const getNext9PMIST = () => {
-    const now = new Date();
-
-    // Get current time in UTC+5:30 (IST)
-    const istOffset = 5.5 * 60 * 60 * 1000;
-    const nowIST = new Date(now.getTime() + istOffset);
-
-    // Set target time to 9 PM IST today
-    const targetIST = new Date(nowIST);
-    targetIST.setHours(21, 0, 0, 0);
-
-    // If current IST time is past 9 PM, set to 9 PM tomorrow
-    if (nowIST > targetIST) {
-      targetIST.setDate(targetIST.getDate() + 1);
-    }
-
-    // Convert targetIST back to UTC
-    const targetUTC = new Date(targetIST.getTime() - istOffset);
-
-    return targetUTC;
   };
 
   return (

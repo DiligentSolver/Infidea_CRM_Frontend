@@ -92,7 +92,7 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
           </TableCell>
 
              {/* Locked */}
-             <TableCell>
+             {/* <TableCell>
               {candidate?.isLocked ? (
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 text-xs font-medium">
                   <FaLock className="w-3 h-3 mr-1" />
@@ -104,7 +104,14 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
                   Open for All
                 </span>
               )}
-            </TableCell>
+            </TableCell> */}
+
+              {/* Call Status*/}
+          <TableCell>
+          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(candidate?.callStatus)}`}>
+          {candidate?.callStatus || 'No status'}
+        </span>
+          </TableCell>
           
              {/* Expiry */}
              <TableCell>
@@ -165,12 +172,7 @@ const CandidatesTable = ({candidates, onView, onEdit}) => {
           </TableCell>
 
 
-          {/* Call Status*/}
-          <TableCell>
-          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(candidate?.callStatus)}`}>
-          {candidate?.callStatus || 'No status'}
-        </span>
-          </TableCell>
+        
 
           
           {/* WhatsApp Number*/}

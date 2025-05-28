@@ -23,6 +23,7 @@ import {
   dateRangeTypeOptions,
   resultsPerPageOptions,
 } from "@/utils/optionsData";
+import useError from "@/hooks/useError";
 
 
 
@@ -65,6 +66,7 @@ function Walkins() {
   }, [refreshKey, setIsUpdate]);
 
   const { data, loading, error} = useAsync(EmployeeServices.getWalkinsData);
+  const { handleErrorNotification } = useError();
 
   console.log(data);
 
@@ -78,12 +80,10 @@ function Walkins() {
   useEffect(() => {
     if (data?.walkins) {
       setWalkins(data.walkins);
-      // Skip success notification for initial load to prevent notification fatigue
-      // Only notify for specific actions like create, update, delete
     } else if (error) {
-      notifyError(`Failed to load walkins: ${error}`);
+      handleErrorNotification(error, "Walkins");
     }
-  }, [data, error, refreshKey]);
+  }, [data, error, refreshKey, handleErrorNotification]);
 
   const {
     walkinsRef,  
@@ -339,35 +339,34 @@ function Walkins() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Reset form errors
-    setFormErrors({});
-    
-    // Validate all fields
-    const errors = {};
-    
-    if (!formData.candidateName?.trim()) {
-      errors.candidateName = 'Candidate name is required';
-    }
-    
-    const contactError = validateContactNumber(formData.contactNumber);
-    if (contactError) {
-      errors.contactNumber = contactError;
-    }
-    
-    if (!formData.walkinDate) {
-      errors.walkinDate = 'Walkin date is required';
-    }
-    
-    // If there are validation errors, show them and don't submit
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      notifyError('Please correct the errors in the form');
-      return;
-    }
-
-    setIsSubmitting(true);
-
     try {
+      // Reset form errors
+      setFormErrors({});
+      
+      // Validate all fields
+      const errors = {};
+      
+      if (!formData.candidateName?.trim()) {
+        errors.candidateName = 'Candidate name is required';
+      }
+      
+      const contactError = validateContactNumber(formData.contactNumber);
+      if (contactError) {
+        errors.contactNumber = contactError;
+      }
+      
+      if (!formData.walkinDate) {
+        errors.walkinDate = 'Walkin date is required';
+      }
+      
+      // If there are validation errors, show them and don't submit
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
+        handleErrorNotification('Please correct the errors in the form', 'Form Validation');
+        return;
+      }
+
+      setIsSubmitting(true);
 
       // Create walkin payload
       const walkinData = {
@@ -377,7 +376,6 @@ function Walkins() {
         walkinRemarks: formData.walkinRemarks
       };
       
-
       if (editingId !== null) {
         // Update existing walkin
         await EmployeeServices.updateWalkinData(editingId, walkinData);
@@ -400,12 +398,10 @@ function Walkins() {
       
       // Refresh data
       setRefreshKey(prev => prev + 1);
-    } catch (error) {
-
-      console.error("Error submitting walkin:", error);
-      notifyError(editingId 
-        ? `Failed to update walkin: ${error?.response?.data?.message || 'Unknown error'}`
-        : `Failed to create walkin: ${error?.response?.data?.message || 'Unknown error'}`
+    } catch (err) {
+      handleErrorNotification(
+        err?.response?.data?.message || err?.message,
+        editingId ? 'Update Walkin' : 'Create Walkin'
       );
     } finally {
       setIsSubmitting(false);
@@ -836,20 +832,21 @@ function Walkins() {
             </p>
           </div>
           
-         
-          <div className="mt-6 flex justify-end space-x-3">
-            <button
-              onClick={() => {
-                handleEdit(selectedWalkin);
-                setShowViewModal(false);
-              }}
-              className="px-4 py-2 rounded-lg font-medium dark:bg-[#e2692c] dark:hover:bg-[#d15a20] text-white bg-[#1a5d96] hover:bg-[#154a7a]"
-            >
-              Edit
-            </button>
+          <div className="mt-4 flex justify-end space-x-3">
+            {selectedWalkin.editable && (
+              <button
+                onClick={() => {
+                  handleEdit(selectedWalkin);
+                  setShowViewModal(false);
+                }}
+                className="px-3 py-1.5 text-sm rounded-lg font-medium dark:bg-[#e2692c] dark:hover:bg-[#d15a20] text-white bg-[#1a5d96] hover:bg-[#154a7a] transition-colors"
+              >
+                Edit
+              </button>
+            )}
             <button
               onClick={() => setShowViewModal(false)}
-              className="px-4 py-2 rounded-lg font-medium dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white bg-gray-100 hover:bg-gray-200 text-gray-800"
+              className="px-3 py-1.5 text-sm rounded-lg font-medium dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white bg-gray-100 hover:bg-gray-200 text-gray-800 transition-colors"
             >
               Close
             </button>

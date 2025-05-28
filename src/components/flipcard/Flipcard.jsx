@@ -1,7 +1,7 @@
 import React from "react";
 import { Briefcase, PhoneCall, Users, CheckCircle, Clock, FileLineChart } from "lucide-react";
 import "./flipcard.css";
-import { MdArrowDropDownCircle, MdHolidayVillage, MdJoinInner, MdOutlineHolidayVillage, MdTimeToLeave } from "react-icons/md";
+import { MdArrowDropDownCircle, MdCalculate, MdHolidayVillage, MdJoinInner, MdOutlineHolidayVillage, MdPercent, MdTimeToLeave } from "react-icons/md";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
@@ -10,6 +10,7 @@ const iconMap = {
   "Lineups": <FileLineChart size={20} strokeWidth={1.5} />,
   "Joinings": <MdJoinInner size={20} />,
   "Selections": <CheckCircle size={20} strokeWidth={1.5} />,
+  "Conversion": <MdPercent size={20} strokeWidth={1.5} />,
   "Time Spent": <Clock size={20} strokeWidth={1.5} />,
   "Offer Drops": <MdArrowDropDownCircle size={20} />,
   "Leaves": <MdOutlineHolidayVillage size={20} />,

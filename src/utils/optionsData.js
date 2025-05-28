@@ -401,6 +401,15 @@ export const shiftPreferenceOptions = [
   { value: "Any Shift", label: "Any Shift Works" },
 ];
 
+// Work Mode options for filters
+export const workModeOptions = [
+  { value: "", label: "Select Work Mode" },
+  { value: "Office", label: "Office" },
+  { value: "Work From Home", label: "Work From Home" },
+  { value: "Hybrid", label: "Hybrid" },
+  { value: "Any Mode", label: "Any Mode" },
+];
+
 // Notice Period options for filters
 export const noticePeriodOptions = [
   { value: "", label: "Select Notice Period" },

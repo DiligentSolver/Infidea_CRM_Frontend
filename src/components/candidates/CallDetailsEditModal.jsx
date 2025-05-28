@@ -20,7 +20,8 @@ import {
   MdClose,
   MdError,
   MdUpdate,
-  MdInfo
+  MdInfo,
+  MdTask
 } from "react-icons/md";
 import { IoCashOutline } from "react-icons/io5";
 import EmployeeServices from "@/services/EmployeeServices";
@@ -78,6 +79,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
     sameAsContact: false,
     experience: "",
     qualification: "",
+    passingYear: "",
     state: "",
     city: "",
     locality: "",
@@ -100,7 +102,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
     walkinDate: "",
     lineupRemarks: "",
     walkinRemarks: "",
-    workMode: ""
+    workMode: "",
+    jdReferenceCompany: "",
+    jdReferenceProcess: ""
   });
 
   const [showCallSummaryTooltip, setShowCallSummaryTooltip] = useState(null);
@@ -122,6 +126,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         sameAsContact: whatsappSameAsMobile,
         experience: candidateData.experience || "",
         qualification: candidateData.qualification || "",
+        passingYear: candidateData.passingYear || "",
         state: candidateData.state || "",
         city: candidateData.city || "",
         locality: candidateData.locality || "",
@@ -143,7 +148,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         walkinDate: candidateData.walkinDate || "",
         lineupRemarks: candidateData.lineupRemarks || "",
         walkinRemarks: candidateData.walkinRemarks || "",
-        workMode: candidateData.workMode || ""
+        workMode: candidateData.workMode || "",
+        jdReferenceCompany: candidateData.jdReferenceCompany || "",
+        jdReferenceProcess: candidateData.jdReferenceProcess || ""
       });
       
       setSameAsContact(whatsappSameAsMobile);
@@ -159,6 +166,16 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       setFormData(prev => ({ ...prev, lineupProcess: "" }));
     }
   }, [formData.lineupCompany]);
+
+  // Add another useEffect to update process options when JD reference company changes
+  useEffect(() => {
+    setFilteredProcessOptions(getProcessesByCompany(formData.jdReferenceCompany || formData.lineupCompany));
+    
+    // Reset process selection when company changes (unless it's already a valid option)
+    if (formData.jdReferenceProcess && !getProcessesByCompany(formData.jdReferenceCompany).some(p => p.value === formData.jdReferenceProcess)) {
+      setFormData(prev => ({ ...prev, jdReferenceProcess: "" }));
+    }
+  }, [formData.jdReferenceCompany, formData.lineupCompany]);
 
   // Check for user's preferred theme and watch for changes
   useEffect(() => {
@@ -428,6 +445,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         gender: formData.gender,
         experience: formData.experience,
         qualification: formData.qualification,
+        passingYear: formData.passingYear,
         state: formData.state,
         city: formData.city,
         salaryExpectation: formData.salaryExpectations,
@@ -450,7 +468,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         walkinDate: formData.walkinDate,
         lineupRemarks: formData.lineupRemarks,
         walkinRemarks: formData.walkinRemarks,
-        workMode: formData.workMode
+        workMode: formData.workMode,
+        jdReferenceCompany: formData.jdReferenceCompany,
+        jdReferenceProcess: formData.jdReferenceProcess
       };
       
       // Call API to update candidate data
@@ -577,6 +597,21 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
     { label: "Gender", key: "gender", icon: <MdPerson />, type: "select", options: genderOptions, required: true, inputClass: "w-full" },
     { label: "Experience", key: "experience", icon: <MdWork />, type: "select", options: experienceOptions, required: true, inputClass: "w-full" },
     { label: "Qualification", key: "qualification", icon: <MdSchool />, type: "select", options: qualificationOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.qualifications },
+    { 
+      label: "Passing Year", 
+      key: "passingYear", 
+      icon: <MdSchool />, 
+      type: "select",
+      options: [
+        { value: "", label: "Select Year" },
+        ...Array.from({ length: 101 }, (_, i) => ({
+          value: String(1980 + i),
+          label: String(1980 + i)
+        }))
+      ],
+      required: true,
+      inputClass: "w-full"
+    },
     { label: "State", key: "state", icon: <MdPublic />, type: "select", options: stateOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.states },
     { label: "City", key: "city", icon: <MdLocationCity />, type: "select", options: cityOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.cities },
     { label: "Salary Expectation", key: "salaryExpectations", icon: <IoCashOutline />, required: true, inputClass: "w-full" },
@@ -737,6 +772,48 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       )
     },
     { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: true, inputClass: "w-full" },
+    { 
+      label: "Company JD", 
+      key: "jdReferenceCompany", 
+      icon: <MdBusinessCenter />, 
+      type: "select", 
+      options: companyOptions,
+      required: false,
+      inputClass: "w-full"
+    },
+    { 
+      label: "JD Process", 
+      key: "jdReferenceProcess", 
+      icon: <MdTask />, 
+      type: "custom", 
+      options: filteredProcessOptions,
+      required: false,
+      inputClass: "w-full",
+      render: ({ key, label, options, required, inputClass }) => (
+        <div className="flex flex-col relative">
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base"><MdTask /></span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
+          <ProcessSelector
+            name={key}
+            value={formData[key] || ""}
+            onChange={(e) => handleChange(key, e.target.value)}
+            options={options}
+            required={required}
+            disabled={loading}
+            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
+                loading ? 'cursor-not-allowed opacity-70' : ''
+              }`}
+            showInfoButton={true}
+            phoneNumber={formData.whatsappNumber}
+          />
+        </div>
+      )
+    },
     { 
       label: "Lineup Remarks", 
       key: "lineupRemarks", 
@@ -1107,7 +1184,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
                   {showCallSummaryTooltip && (
                     <div className="absolute z-[9999] w-64 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg -translate-x-1/2 left-1/2 bottom-full mb-2 text-left">
                       <div className="text-xs font-medium text-gray-800 dark:text-gray-200 whitespace-pre-line overflow-y-auto max-h-40">
-                        {formatCallHistory(candidateData?.employeeCallHistory)}
+                        {formatCallHistory(candidateData?.callSummary)}
                       </div>
                       <div className="absolute w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white dark:border-t-gray-800 -bottom-2 left-1/2 -translate-x-1/2"></div>
                     </div>

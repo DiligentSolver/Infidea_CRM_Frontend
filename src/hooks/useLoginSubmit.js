@@ -24,23 +24,41 @@ const useLoginSubmit = () => {
   } = useForm();
 
   // Function to calculate cookie expiration time (9 PM Indian time)
-  const calculateCookieExpiration = () => {
+  const getNext9PMIST = () => {
     const now = new Date();
 
-    // Convert to Indian Standard Time (UTC+5:30)
-    const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+    // Get current time in UTC+5:30 (IST)
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const nowIST = new Date(now.getTime() + istOffset);
 
-    // Set target time to 9 PM IST
-    const targetTime = new Date(istTime);
-    targetTime.setHours(21, 0, 0, 0);
+    // Set target time to 9 PM IST today
+    const targetIST = new Date(nowIST);
+    targetIST.setHours(21, 0, 0, 0);
 
-    // If current time is past 9 PM, set expiration to 9 PM tomorrow
-    if (istTime > targetTime) {
-      targetTime.setDate(targetTime.getDate() + 1);
+    // If current IST time is past 9 PM, set to 9 PM tomorrow
+    if (nowIST > targetIST) {
+      targetIST.setDate(targetIST.getDate() + 1);
     }
 
-    // Return the time difference in days
-    return (targetTime - now) / (1000 * 60 * 60 * 24);
+    // Convert targetIST back to UTC
+    const targetUTC = new Date(targetIST.getTime() - istOffset);
+
+    return targetUTC;
+  };
+
+  // Function to set admin cookie with consistent configuration
+  const setAdminCookie = (data) => {
+    const next9PMIST = getNext9PMIST();
+    Cookies.set("adminInfo", JSON.stringify(data), {
+      expires: next9PMIST,
+      sameSite: "None",
+      secure: true,
+    });
+  };
+
+  // Function to remove admin cookie
+  const removeAdminCookie = () => {
+    Cookies.remove("adminInfo", { sameSite: "None", secure: true });
   };
 
   const onSubmit = async ({
@@ -53,7 +71,6 @@ const useLoginSubmit = () => {
     role,
     employeeCode,
   }) => {
-    const cookieTimeOut = calculateCookieExpiration();
     setLoading(true);
 
     try {
@@ -70,11 +87,7 @@ const useLoginSubmit = () => {
           if (res) {
             notifySuccess("Login successful!");
             dispatch({ type: "USER_LOGIN", payload: res });
-            Cookies.set("adminInfo", JSON.stringify(res), {
-              expires: cookieTimeOut,
-              sameSite: "None",
-              secure: true,
-            });
+            setAdminCookie(res);
 
             // Reset OTP state
             setOtpRequired(false);
@@ -109,11 +122,7 @@ const useLoginSubmit = () => {
               // Direct login
               notifySuccess("Login Success!");
               dispatch({ type: "USER_LOGIN", payload: res });
-              Cookies.set("adminInfo", JSON.stringify(res), {
-                expires: cookieTimeOut,
-                sameSite: "None",
-                secure: true,
-              });
+              setAdminCookie(res);
 
               // Redirect to the intended page or dashboard
               const redirectTo = location.state?.from || "/dashboard";
@@ -237,6 +246,8 @@ const useLoginSubmit = () => {
     resetOtpState,
     setValue,
     resendLoginOtp,
+    setAdminCookie,
+    removeAdminCookie,
   };
 };
 

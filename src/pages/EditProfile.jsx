@@ -129,11 +129,18 @@ const EditProfile = () => {
 
   // Helper function to check if a field should be disabled
   const isFieldDisabled = (key, defaultDisabled = false) => {
-    // Only allow address field to be edited, all others are disabled
+    if (defaultDisabled) return true; // Fields like empCode, email, joiningDate are always disabled
+    
+    // Address is always editable
     if (key === 'address') {
-      return false; // Address is always editable
+      return false;
     }
-    return true; // All other fields are disabled
+    
+    // Check if the field has a value from server (not empty/null/undefined)
+    // If server value exists and is not empty, field is disabled (read-only)
+    // If server value is empty/null/undefined, field is editable
+    const serverValue = serverValues[key];
+    return serverValue && serverValue.toString().trim() !== "";
   };
 
   const handleChange = (field, value) => {
@@ -251,16 +258,82 @@ const EditProfile = () => {
     try {
       setLoading(true);
       
-      // Only send address in the update since it's the only other editable field (besides image)
-      const profileData = {
-        address: profile.address,
-        // Include profileImage if it has been updated
-        ...(profile.image && profile.image.startsWith('http') && { profileImage: profile.image }),
-        // Include imagePublicId if available (for future reference)
-        ...(profile.imagePublicId && { imagePublicId: profile.imagePublicId }),
-      };
+      // Validate account number match if both are provided
+      if (profile.accountNumber && profile.reAccountNumber && profile.accountNumber !== profile.reAccountNumber) {
+        notifyError("Account numbers do not match");
+        setLoading(false);
+        return;
+      }
+      
+      // Prepare data for update - include all editable fields that have values
+      const profileData = {};
+      
+      // Always include email and mobile (contact) in the payload
+      profileData.email = profile.email;
+      profileData.mobile = profile.contact;
+      
+      // Always include address since it's always editable
+      if (profile.address !== undefined) {
+        profileData.address = profile.address;
+      }
+      
+      // Include other fields only if they were empty on server and now have values
+      if (!serverValues.name && profile.name) {
+        profileData.name = { en: profile.name };
+      }
+      if (!serverValues.designation && profile.designation) {
+        profileData.designation = profile.designation;
+      }
+      if (!serverValues.dob && profile.dob) {
+        profileData.dateOfBirth = profile.dob;
+      }
+      
+      // Emergency contact details
+      if (!serverValues.emergencyContactName && profile.emergencyContactName) {
+        if (!profileData.emergencyContact) profileData.emergencyContact = {};
+        profileData.emergencyContact.name = profile.emergencyContactName;
+      }
+      if (!serverValues.emergencyContactNumber && profile.emergencyContactNumber) {
+        if (!profileData.emergencyContact) profileData.emergencyContact = {};
+        profileData.emergencyContact.number = profile.emergencyContactNumber;
+      }
+      if (!serverValues.relation && profile.relation) {
+        if (!profileData.emergencyContact) profileData.emergencyContact = {};
+        profileData.emergencyContact.relation = profile.relation;
+      }
+      
+      // Bank details
+      if (!serverValues.bankName && profile.bankName) {
+        if (!profileData.bankDetails) profileData.bankDetails = {};
+        profileData.bankDetails.bankName = profile.bankName;
+      }
+      if (!serverValues.branchName && profile.branchName) {
+        if (!profileData.bankDetails) profileData.bankDetails = {};
+        profileData.bankDetails.branch = profile.branchName;
+      }
+      if (!serverValues.ifsc && profile.ifsc) {
+        if (!profileData.bankDetails) profileData.bankDetails = {};
+        profileData.bankDetails.ifsc = profile.ifsc;
+      }
+      if (!serverValues.accountNumber && profile.accountNumber) {
+        if (!profileData.bankDetails) profileData.bankDetails = {};
+        profileData.bankDetails.accountNumber = profile.accountNumber;
+      }
+      if (!serverValues.beneficiaryAddress && profile.beneficiaryAddress) {
+        if (!profileData.bankDetails) profileData.bankDetails = {};
+        profileData.bankDetails.beneficiaryAddress = profile.beneficiaryAddress;
+      }
+      
+      // Include profileImage if it has been updated
+      if (profile.image && profile.image.startsWith('http')) {
+        profileData.profileImage = profile.image;
+      }
+      // Include imagePublicId if available (for future reference)
+      if (profile.imagePublicId) {
+        profileData.imagePublicId = profile.imagePublicId;
+      }
 
-      // Call the update API with the profile ID
+      // Call the update API with the profile data
       const updated = await EmployeeServices.updateEmployeeProfile(profileData);
       notifySuccess(updated.message);
       setEditMode(false);
@@ -469,6 +542,7 @@ const EditProfile = () => {
       key: "reAccountNumber", 
       icon: <MdNumbers />, 
       maxLength: 18,
+      disabled: true,
     },
     { 
       label: "Beneficiary Address", 
@@ -489,10 +563,13 @@ const EditProfile = () => {
             <span className="text-base">{icon}</span>
             {label}
             {key === 'address' && (
-              <span className="text-xs text-green-600 ml-1">(Editable)</span>
+              <span className="text-xs text-green-600 ml-1">(Always Editable)</span>
             )}
             {fieldDisabled && key !== 'address' && (
-              <span className="text-xs text-gray-500 ml-1">(Read-only)</span>
+              <span className="text-xs text-gray-500 ml-1">(Already filled)</span>
+            )}
+            {!fieldDisabled && key !== 'address' && (
+              <span className="text-xs text-blue-600 ml-1">(Can be filled)</span>
             )}
           </label>
           {editMode && !fieldDisabled ? (

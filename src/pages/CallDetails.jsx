@@ -1056,9 +1056,12 @@ const CallDetails = () => {
                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("updateddate")}>Updated Date {sortBy === "updateddate" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("lockedstatus")}>Locked Status {sortBy === "lockedstatus" && (
+                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("callStatus")}>Status{sortBy === "callStatus" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
+                   {/* <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("lockedstatus")}>Locked Status {sortBy === "lockedstatus" && (
+                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}</TableCell> */}
                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("expiry")}>Remaining Days {sortBy === "expiry" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
@@ -1071,9 +1074,7 @@ const CallDetails = () => {
                   <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("mobile")}>Contact Number{sortBy === "mobile" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
-                  <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("callStatus")}>Status{sortBy === "callStatus" && (
-                    <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
-                  )}</TableCell>
+                 
                                <TableCell className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => handleSortByField("whatsapp")}>WhatsApp Number {sortBy === "whatsapp" && (
                     <span className="ml-2 text-gray-500">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}</TableCell>
@@ -1153,7 +1154,27 @@ const CallDetails = () => {
             setShowViewModal(false);
             handleEdit(call);
           }}
-        />
+        >
+          <div className="mt-4 flex justify-end space-x-3">
+            {selectedCall.editable && (
+              <button
+                onClick={() => {
+                  handleEdit(selectedCall);
+                  setShowViewModal(false);
+                }}
+                className="px-3 py-1.5 text-sm rounded-lg font-medium dark:bg-[#e2692c] dark:hover:bg-[#d15a20] text-white bg-[#1a5d96] hover:bg-[#154a7a] transition-colors"
+              >
+                Edit
+              </button>
+            )}
+            <button
+              onClick={() => setShowViewModal(false)}
+              className="px-3 py-1.5 text-sm rounded-lg font-medium dark:bg-gray-600 dark:hover:bg-gray-700 dark:text-white bg-gray-100 hover:bg-gray-200 text-gray-800 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </CallDetailsViewModal>
       )}
 
       {showEditModal && (
