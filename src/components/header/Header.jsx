@@ -1,7 +1,7 @@
 import { Avatar, WindmillContext } from "@windmill/react-ui";
-import Cookies from "js-cookie";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { notifyError } from "@/utils/toast";
+import { removeCookie } from "@/hooks/useLoginSubmit";
 
 import {
   FiLogOut,
@@ -45,7 +45,7 @@ const Header = () => {
     try {
       await EmployeeServices.logoutEmployee();
       dispatch({ type: "USER_LOGOUT" });
-      Cookies.remove("adminInfo");
+      removeCookie("adminInfo");
     } catch (err) {
       notifyError(err?.response?.data?.message || err?.message);
     }

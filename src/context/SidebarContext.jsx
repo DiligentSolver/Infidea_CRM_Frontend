@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { createContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { setCookieWithIST } from "@/hooks/useLoginSubmit";
 
 // create context
 export const SidebarContext = createContext();
@@ -72,18 +73,10 @@ export const SidebarProvider = ({ children }) => {
   const toggleMultipleDeleteModal = () => setIsMultipleDeleteModalOpen(!isMultipleDeleteModalOpen);
 
   const handleLanguageChange = (value) => {
-    // console.log("handleChangeLang", value);
-
-    Cookies.set("i18next", value?.iso_code, {
-      sameSite: "None",
-      secure: true, // Include the "secure" attribute
-    });
+    setCookieWithIST("i18next", value?.iso_code);
     i18n.changeLanguage(value?.iso_code);
     setLang(value?.iso_code);
-    Cookies.set("_currLang", JSON.stringify(value), {
-      sameSite: "None",
-      secure: true, // Include the "secure" attribute
-    });
+    setCookieWithIST("_currLang", JSON.stringify(value));
     setCurrLang(value);
   };
 
@@ -122,10 +115,7 @@ export const SidebarProvider = ({ children }) => {
 
     // Set i18next language & update cookies **only when needed**
     if (!cookieLang || cookieLang !== selectedLang) {
-      Cookies.set("i18next", selectedLang, {
-        sameSite: "None",
-        secure: true,
-      });
+      setCookieWithIST("i18next", selectedLang);
     }
 
     // Change i18n language **only if it differs**

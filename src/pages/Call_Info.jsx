@@ -30,7 +30,7 @@ import EmployeeServices from "@/services/EmployeeServices";
 import { notifySuccess, notifyError } from "@/utils/toast";
 import Loader from "../components/sprinkleLoader/Loader";
 import { useLocation, useNavigate } from "react-router";
-import ProcessSelector from "@/components/common/ProcessSelector";
+import CustomSelect from "@/components/common/CustomSelect";
 import { 
   companyOptions as lineupCompanyOptions, 
   callStatusOptions,
@@ -41,11 +41,14 @@ import {
   experienceOptions,
   relocationOptions,
   getProcessesByCompany,
-  workModeOptions
+  workModeOptions,
+  genderOptions,
+  callDurationOptions,
+  passingYearOptions
 } from "@/utils/optionsData";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import Cookies from "js-cookie";
+
 
 function CallInfo() {
   const location = useLocation();
@@ -76,7 +79,7 @@ function CallInfo() {
   });
 
   // Add a new state for filtered process options
-  const [filteredProcessOptions, setFilteredProcessOptions] = useState([{ value: "", label: "Select Process" }]);
+  const [filteredProcessOptions, setFilteredProcessOptions] = useState([{ value: "", label: "" }]);
 
   // Move formData declaration here, before any useEffects that reference it
   const [formData, setFormData] = useState({
@@ -674,16 +677,11 @@ function CallInfo() {
     }
   };
 
-  // Generate call duration options
-  const callDurationOptions = Array.from({ length: 30 }, (_, i) => ({
-    value: `${i + 1}`, 
-    label: `${i + 1} ${i === 0 ? 'Minute' : 'Minutes'}`
-  }));
-  callDurationOptions.unshift({ value: "", label: "Select Duration" });
+
 
   // Create qualification options from API data
   const qualificationOptions = [
-    { value: "", label: "Select Qualification" },
+    { value: "", label: "" },
     ...(qualifications?.map(qual => ({ 
       value: qual.name || qual, 
       label: qual.name || qual 
@@ -692,7 +690,7 @@ function CallInfo() {
 
   // Create state options from API data
   const stateOptions = [
-    { value: "", label: "Select State" },
+    { value: "", label: "" },
     ...(states?.map(state => ({ 
       value: state.name, 
       label: state.name 
@@ -701,7 +699,7 @@ function CallInfo() {
 
   // Create city options from API data
   const cityOptions = [
-    { value: "", label: "Select City" },
+    { value: "", label: "" },
     ...(cities?.map(city => ({ 
       value: city.name || city, 
       label: city.name || city 
@@ -710,7 +708,7 @@ function CallInfo() {
 
   // Create locality options from API data (for Indore only)
   const localityOptions = [
-    { value: "", label: "Select Locality" },
+    { value: "", label: "" },
     ...(localities?.map(locality => ({ 
       value: locality.name || locality, 
       label: locality.name || locality 
@@ -719,7 +717,7 @@ function CallInfo() {
 
   // Create job profile options from API data
   const jobProfileOptions = useMemo(() => [
-    { value: "", label: "Select Job Profile" },
+    { value: "", label: "" },
     ...(jobProfiles?.map(profile => ({ 
       value: profile.name || profile, 
       label: profile.name || profile 
@@ -755,12 +753,7 @@ function CallInfo() {
       checkboxLabel: "Same as previous field"
     },
     { label: "Sourced", key: "source", icon: <MdSource />, type: "select", options: sourceOptions, required: true, inputClass: "w-full" },
-    { label: "Gender", key: "gender", icon: <MdPerson />, type: "select", options: [
-      { value: "", label: "Select Gender" },
-      { value: "Male", label: "Male" },
-      { value: "Female", label: "Female" },
-      { value: "Others", label: "Others" }
-    ], required: true, inputClass: "w-full" },
+    { label: "Gender", key: "gender", icon: <MdPerson />, type: "select", options: genderOptions, required: true, inputClass: "w-full" },
     { label: "Experience", key: "experience", icon: <MdWork />, type: "select", options: experienceOptions, required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus), inputClass: "w-full" },
     { label: "Qualification", key: "qualification", icon: <MdSchool />, type: "select", options: qualificationOptions, required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus), inputClass: "w-full", loading: loadingDropdownData.qualifications },
     { 
@@ -768,13 +761,7 @@ function CallInfo() {
       key: "passingYear", 
       icon: <MdSchool />, 
       type: "select",
-      options: [
-        { value: "", label: "Select Year" },
-        ...Array.from({ length: 101 }, (_, i) => ({
-          value: String(1980 + i),
-          label: String(1980 + i)
-        }))
-      ],
+        options: passingYearOptions,
       required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus),
       inputClass: "w-full"
     },
@@ -842,21 +829,50 @@ function CallInfo() {
             {label}
             {required && <span className="text-red-500">*</span>}
           </label>
-          <ProcessSelector
-            name={key}
-            value={formData[key] || ""}
-            onChange={(e) => handleChange(key, e.target.value)}
-            options={options}
-            required={required}
-            disabled={loading}
-            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
-                loading ? 'cursor-not-allowed opacity-70' : ''
-              }`}
-            showInfoButton={true}
-            phoneNumber={formData.whatsappNumber}
-          />
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <CustomSelect
+                label={label}
+                icon={icon}
+                value={formData[key]}
+                onChange={(value) => handleChange(key, value)}
+                options={options}
+                isDisabled={loading}
+                isRequired={required}
+                darkMode={darkMode}
+                loading={loading}
+                customInput={key === "companyProfile" || key === "lineupCompany" || key === "lineupProcess"}
+                customValue={
+                  key === "companyProfile" ? formData.customCompanyProfile :
+                  key === "lineupCompany" ? formData.customLineupCompany :
+                  key === "lineupProcess" ? formData.customLineupProcess : ""
+                }
+                onCustomChange={(value) => {
+                  if (key === "companyProfile") handleChange("customCompanyProfile", value);
+                  else if (key === "lineupCompany") handleChange("customLineupCompany", value);
+                  else if (key === "lineupProcess") handleChange("customLineupProcess", value);
+                }}
+                customPlaceholder={
+                  key === "companyProfile" ? "Custom profile" :
+                  key === "lineupCompany" ? "Custom company" :
+                  key === "lineupProcess" ? "Custom process" : ""
+                }
+                hasWhatsAppButton={key === "lineupProcess" || key === "jdReferenceProcess"}
+                whatsAppNumber={formData.whatsappNumber}
+                processDetails={options?.find(opt => opt.value === formData[key])?.label || ''}
+              />
+            </div>
+            {formData.whatsappNumber && (
+              <button
+                type="button"
+                onClick={() => window.open(`https://wa.me/91${formData.whatsappNumber}?text=Process%20Details:%20${encodeURIComponent(options?.find(opt => opt.value === formData[key])?.label || '')}`)}
+                className={`px-3 rounded-md ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white`}
+                title="Send process details on WhatsApp"
+              >
+                <MdOutlineWhatsapp className="text-xl" />
+              </button>
+            )}
+          </div>
           
           {/* Custom input for "others" options */}
           {(formData.lineupCompany.toLowerCase() === "others" || formData.lineupProcess.toLowerCase() === "others") && (
@@ -947,35 +963,59 @@ function CallInfo() {
       inputClass: "w-full"
     },
     { 
-      label: "JD Process", 
+      label: "Process JD", 
       key: "jdReferenceProcess", 
       icon: <MdTask />, 
       type: "custom", 
       options: filteredProcessOptions,
       required: false,
       inputClass: "w-full",
-      render: ({ key, label, options, required, inputClass }) => (
+      render: ({ key, label, options, required, icon }) => (
         <div className="flex flex-col relative">
-          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            <span className="text-base"><MdTask /></span>
-            {label}
-            {required && <span className="text-red-500">*</span>}
-          </label>
-          <ProcessSelector
-            name={key}
-            value={formData[key] || ""}
-            onChange={(e) => handleChange(key, e.target.value)}
-            options={options}
-            required={required}
-            disabled={loading}
-            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
-                loading ? 'cursor-not-allowed opacity-70' : ''
-              }`}
-            showInfoButton={true}
-            phoneNumber={formData.whatsappNumber}
-          />
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <CustomSelect
+                label={label}
+                icon={icon}
+                value={formData[key]}
+                onChange={(value) => handleChange(key, value)}
+                options={options}
+                isDisabled={loading}
+                isRequired={required}
+                darkMode={darkMode}
+                loading={loading}
+                customInput={key === "companyProfile" || key === "lineupCompany" || key === "lineupProcess"}
+                customValue={
+                  key === "companyProfile" ? formData.customCompanyProfile :
+                  key === "lineupCompany" ? formData.customLineupCompany :
+                  key === "lineupProcess" ? formData.customLineupProcess : ""
+                }
+                onCustomChange={(value) => {
+                  if (key === "companyProfile") handleChange("customCompanyProfile", value);
+                  else if (key === "lineupCompany") handleChange("customLineupCompany", value);
+                  else if (key === "lineupProcess") handleChange("customLineupProcess", value);
+                }}
+                customPlaceholder={
+                  key === "companyProfile" ? "Custom profile" :
+                  key === "lineupCompany" ? "Custom company" :
+                  key === "lineupProcess" ? "Custom process" : ""
+                }
+                hasWhatsAppButton={key === "lineupProcess" || key === "jdReferenceProcess"}
+                whatsAppNumber={formData.whatsappNumber}
+                processDetails={options?.find(opt => opt.value === formData[key])?.label || ''}
+              />
+            </div>
+            {formData.whatsappNumber && (
+              <button
+                type="button"
+                onClick={() => window.open(`https://wa.me/91${formData.whatsappNumber}?text=Process%20Details:%20${encodeURIComponent(options?.find(opt => opt.value === formData[key])?.label || '')}`)}
+                className={`px-3 rounded-md ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white`}
+                title="Send process details on WhatsApp"
+              >
+                <MdOutlineWhatsapp className="text-xl" />
+              </button>
+            )}
+          </div>
         </div>
       )
     },
@@ -1240,83 +1280,37 @@ function CallInfo() {
                 const requiresMandatoryFields = ["Lineup", "Walkin at Infidea"].includes(formData.callStatus);
                 const isFieldRequired = requiresMandatoryFields ? required : (key === "candidateName" || key === "contactNumber" || key === "callStatus" || key === "callDuration");
                 
-                // Insert locality field right after city field when city is Indore
+                // For the locality field
                 if (key === "city" && showLocalityField) {
                   return (
                     <React.Fragment key={key}>
                       <div className="flex flex-col relative">
-                        <label className="flex items-center gap-1.5 text-sm font-medium mb-1.5 dark:text-gray-300 text-gray-700">
-                          <span className="text-base">{icon}</span>
-                          {label}
-                          {isFieldRequired && <span className="text-red-500">*</span>}
-                        </label>
-                        {type === "select" ? (
-                          <select
-                            value={formData[key]}
-                            onChange={(e) => handleChange(key, e.target.value)}
-                            required={isFieldRequired}
-                            disabled={loading}
-                            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-                              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
-                                loading ? 'cursor-not-allowed opacity-70' : ''
-                              }`}
-                          >
-                            {options && options.map(option => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <input
-                            type={type || "text"}
-                            value={formData[key]}
-                            onChange={(e) => handleChange(key, e.target.value)}
-                            placeholder={label}
-                            required={isFieldRequired}
-                            pattern={pattern}
-                            maxLength={maxLength}
-                            ref={ref}
-                            disabled={disabled}
-                            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-                              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
-                                disabled ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
-                              } ${(key === "contactNumber" && duplicateInfo !== null) ? 'border-red-500 dark:border-red-500' : ''}`}
-                          />
-                        )}
+                        <CustomSelect
+                          label={label}
+                          icon={icon}
+                          value={formData[key]}
+                          onChange={(value) => handleChange(key, value)}
+                          options={options}
+                          isDisabled={loading}
+                          isRequired={isFieldRequired}
+                          darkMode={darkMode}
+                          loading={loading}
+                        />
                       </div>
-                      
-                      {/* Show validation error for contact number */}
-                      {key === "contactNumber" && phoneError && (
-                        <div className="text-xs text-red-500 mt-1">{phoneError}</div>
-                      )}
-                      
-                      {/* Locality Field as Dropdown */}
+
+                      {/* Locality Field */}
                       <div className="flex flex-col">
-                        <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                          <span className="text-base"><MdLocationOn /></span>
-                          Locality
-                          {requiresMandatoryFields && <span className="text-red-500">*</span>}
-                        </label>
-                        <select
+                        <CustomSelect
+                          label="Locality"
+                          icon={<MdLocationOn />}
                           value={formData.locality}
-                          onChange={(e) => handleChange("locality", e.target.value)}
-                          required={requiresMandatoryFields}
-                          disabled={loadingDropdownData.localities}
-                          className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-                            ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full ${
-                              loadingDropdownData.localities ? 'cursor-wait opacity-70' : ''
-                            }`}
-                        >
-                          {localityOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(value) => handleChange("locality", value)}
+                          options={localityOptions}
+                          isDisabled={loadingDropdownData.localities}
+                          isRequired={requiresMandatoryFields}
+                          darkMode={darkMode}
+                          loading={loadingDropdownData.localities}
+                        />
                       </div>
                     </React.Fragment>
                   );
@@ -1329,7 +1323,24 @@ function CallInfo() {
                 if (type === "custom" && render) {
                   return (
                     <div key={key} className={span || ""}>
-                      {render({ key, label, icon, options, required, inputClass })}
+                      <CustomSelect
+                        label={label}
+                        icon={icon}
+                        value={formData[key]}
+                        onChange={(value) => handleChange(key, value)}
+                        options={options}
+                        isDisabled={loading}
+                        isRequired={isFieldRequired}
+                        darkMode={darkMode}
+                        loading={loading}
+                        hasWhatsAppButton={key === "lineupProcess" || key === "jdReferenceProcess"}
+                        whatsAppNumber={formData.whatsappNumber}
+                        processDetails={options?.find(opt => opt.value === formData[key])?.label || ''}
+                        customInput={key === "lineupProcess"}
+                        customValue={key === "lineupProcess" ? formData.customLineupProcess : ""}
+                        onCustomChange={(value) => key === "lineupProcess" && handleChange("customLineupProcess", value)}
+                        customPlaceholder={key === "lineupProcess" ? "Custom process" : ""}
+                      />
                     </div>
                   );
                 }
@@ -1358,6 +1369,42 @@ function CallInfo() {
                   );
                 }
                 
+                // For regular select fields
+                if (type === "select") {
+                  return (
+                    <CustomSelect
+                      label={label}
+                      icon={icon}
+                      value={formData[key]}
+                      onChange={(value) => handleChange(key, value)}
+                      options={options}
+                      isDisabled={loading}
+                      isRequired={isFieldRequired}
+                      darkMode={darkMode}
+                      loading={loading}
+                      customInput={key === "companyProfile" || key === "lineupCompany" || key === "lineupProcess"}
+                      customValue={
+                        key === "companyProfile" ? formData.customCompanyProfile :
+                        key === "lineupCompany" ? formData.customLineupCompany :
+                        key === "lineupProcess" ? formData.customLineupProcess : ""
+                      }
+                      onCustomChange={(value) => {
+                        if (key === "companyProfile") handleChange("customCompanyProfile", value);
+                        else if (key === "lineupCompany") handleChange("customLineupCompany", value);
+                        else if (key === "lineupProcess") handleChange("customLineupProcess", value);
+                      }}
+                      customPlaceholder={
+                        key === "companyProfile" ? "Custom profile" :
+                        key === "lineupCompany" ? "Custom company" :
+                        key === "lineupProcess" ? "Custom process" : ""
+                      }
+                      hasWhatsAppButton={key === "lineupProcess" || key === "jdReferenceProcess"}
+                      whatsAppNumber={formData.whatsappNumber}
+                      processDetails={options?.find(opt => opt.value === formData[key])?.label || ''}
+                    />
+                  );
+                }
+                
                 return (
                   <div key={key} className="flex flex-col relative">
                     <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -1368,23 +1415,36 @@ function CallInfo() {
                     
                     {type === "select" ? (
                       <>
-                        <select
+                        <CustomSelect
+                          label={label}
+                          icon={icon}
                           value={formData[key]}
-                          onChange={(e) => handleChange(key, e.target.value)}
-                          required={isFieldRequired}
-                          disabled={loading}
-                          className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-                            ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
-                              loading ? 'cursor-not-allowed opacity-70' : ''
-                            }`}
-                        >
-                          {options && options.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(value) => handleChange(key, value)}
+                          options={options}
+                          isDisabled={loading}
+                          isRequired={isFieldRequired}
+                          darkMode={darkMode}
+                          loading={loading}
+                          customInput={key === "companyProfile" || key === "lineupCompany" || key === "lineupProcess"}
+                          customValue={
+                            key === "companyProfile" ? formData.customCompanyProfile :
+                            key === "lineupCompany" ? formData.customLineupCompany :
+                            key === "lineupProcess" ? formData.customLineupProcess : ""
+                          }
+                          onCustomChange={(value) => {
+                            if (key === "companyProfile") handleChange("customCompanyProfile", value);
+                            else if (key === "lineupCompany") handleChange("customLineupCompany", value);
+                            else if (key === "lineupProcess") handleChange("customLineupProcess", value);
+                          }}
+                          customPlaceholder={
+                            key === "companyProfile" ? "Custom profile" :
+                            key === "lineupCompany" ? "Custom company" :
+                            key === "lineupProcess" ? "Custom process" : ""
+                          }
+                          hasWhatsAppButton={key === "lineupProcess" || key === "jdReferenceProcess"}
+                          whatsAppNumber={formData.whatsappNumber}
+                          processDetails={options?.find(opt => opt.value === formData[key])?.label || ''}
+                        />
                         
                         {/* Custom inputs for "others" options */}
                         {key === "lineupCompany" && (formData.lineupCompany.toLowerCase() === "others" || formData.lineupProcess.toLowerCase() === "others") && (

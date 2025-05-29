@@ -8,6 +8,44 @@ import { AdminContext } from "@/context/AdminContext";
 import EmployeeServices from "@/services/EmployeeServices";
 import { notifyError, notifySuccess } from "@/utils/toast";
 
+// Function to calculate cookie expiration time (9 PM Indian time)
+export const getNext9PMIST = () => {
+  const now = new Date();
+
+  // Get current time in UTC+5:30 (IST)
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const nowIST = new Date(now.getTime() + istOffset);
+
+  // Set target time to 9 PM IST today
+  const targetIST = new Date(nowIST);
+  targetIST.setHours(21, 0, 0, 0);
+
+  // If current IST time is past 9 PM, set to 9 PM tomorrow
+  if (nowIST > targetIST) {
+    targetIST.setDate(targetIST.getDate() + 1);
+  }
+
+  // Convert targetIST back to UTC
+  const targetUTC = new Date(targetIST.getTime() - istOffset);
+
+  return targetUTC;
+};
+
+// Function to set cookie with consistent configuration
+export const setCookieWithIST = (name, value) => {
+  const next9PMIST = getNext9PMIST();
+  Cookies.set(name, value, {
+    expires: next9PMIST,
+    sameSite: "None",
+    secure: true,
+  });
+};
+
+// Function to remove cookie with consistent configuration
+export const removeCookie = (name) => {
+  Cookies.remove(name, { sameSite: "None", secure: true });
+};
+
 const useLoginSubmit = () => {
   const [loading, setLoading] = useState(false);
   const [otpRequired, setOtpRequired] = useState(false);
@@ -22,29 +60,6 @@ const useLoginSubmit = () => {
     formState: { errors },
     setValue,
   } = useForm();
-
-  // Function to calculate cookie expiration time (9 PM Indian time)
-  const getNext9PMIST = () => {
-    const now = new Date();
-
-    // Get current time in UTC+5:30 (IST)
-    const istOffset = 5.5 * 60 * 60 * 1000;
-    const nowIST = new Date(now.getTime() + istOffset);
-
-    // Set target time to 9 PM IST today
-    const targetIST = new Date(nowIST);
-    targetIST.setHours(21, 0, 0, 0);
-
-    // If current IST time is past 9 PM, set to 9 PM tomorrow
-    if (nowIST > targetIST) {
-      targetIST.setDate(targetIST.getDate() + 1);
-    }
-
-    // Convert targetIST back to UTC
-    const targetUTC = new Date(targetIST.getTime() - istOffset);
-
-    return targetUTC;
-  };
 
   // Function to set admin cookie with consistent configuration
   const setAdminCookie = (data) => {

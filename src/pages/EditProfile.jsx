@@ -10,6 +10,7 @@ import { notifyError, notifySuccess } from "@/utils/toast";
 import { formatLongDate } from "@/utils/dateFormatter";
 import { uploadImage, deleteImage } from "@/services/CloudinaryService";
 import { AdminContext } from "@/context/AdminContext";
+import { setCookieWithIST } from "@/hooks/useLoginSubmit";
 
 // Function to calculate profile completion percentage
 const calculateProfileCompletion = (profile) => {
@@ -272,11 +273,7 @@ const EditProfile = () => {
               dispatch({ type: "USER_LOGIN", payload: updatedAdminInfo });
               
               // Update the cookie
-              Cookies.set("adminInfo", JSON.stringify(updatedAdminInfo), {
-                expires: 1, // 1 day expiry
-                sameSite: "None",
-                secure: true,
-              });
+              setCookieWithIST("adminInfo", JSON.stringify(updatedAdminInfo));
             }
           } catch (updateError) {
             console.error("Error updating profile image on API:", updateError);
@@ -453,11 +450,7 @@ const EditProfile = () => {
           dispatch({ type: "USER_LOGIN", payload: updatedAdminInfo });
           
           // Update the cookie
-          Cookies.set("adminInfo", JSON.stringify(updatedAdminInfo), {
-            expires: 1, // 1 day expiry
-            sameSite: "None",
-            secure: true,
-          });
+          setCookieWithIST("adminInfo", JSON.stringify(updatedAdminInfo));
         }
       }
     } catch (error) {
