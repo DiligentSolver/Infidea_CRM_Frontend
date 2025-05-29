@@ -135,6 +135,9 @@ const CallDetails = () => {
     setDateRange,
   } = useFilter(data?.candidates);
 
+  // Add searchTerm state to store the current search input
+  const [searchTerm, setSearchTerm] = useState("");
+
   const navigate = useNavigate();
 
   const [duplicityCheckCount, setDuplicityCheckCount] = useState(0);
@@ -639,6 +642,25 @@ const CallDetails = () => {
     };
   }, [showFilterDropdown]);
 
+  // Add a function to highlight matched text
+  const highlightText = (text, highlight) => {
+    if (!highlight || !text) return text;
+    
+    const parts = String(text).split(new RegExp(`(${highlight})`, 'gi'));
+    
+    return parts.map((part, index) => 
+      part.toLowerCase() === highlight.toLowerCase() 
+        ? <span key={index} className="text-red-600 dark:text-red-300 font-medium">{part}</span> 
+        : part
+    );
+  };
+
+  const handleSubmitCandidateWithHighlight = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    handleSubmitCandidate(e);
+  };
+
   return (
     <>
      <div className="flex justify-between items-center mb-4 mt-4">
@@ -732,7 +754,7 @@ const CallDetails = () => {
                   type="text"
                   placeholder="Search candidate..."
                   ref={candidateRef}
-                  onChange={(e) => handleSubmitCandidate(e)}
+                  onChange={(e) => handleSubmitCandidateWithHighlight(e)}
                   className="pl-4 pr-3 py-2 h-10 w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none rounded-l-md"
                 />
               </div>
@@ -1125,6 +1147,8 @@ const CallDetails = () => {
                 onView={handleView}
                 onEdit={handleEdit}
                 handleDuplicityCheck={handleDuplicityCheck}
+                searchTerm={searchTerm}
+                highlightText={highlightText}
               />
             </Table>
           )}

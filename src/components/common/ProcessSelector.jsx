@@ -69,7 +69,6 @@ const ProcessSelector = ({
             className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
             title="View Process Details"
           >
-            <MdInfo className="w-5 h-5" />
           </button>
         )}
       </div>

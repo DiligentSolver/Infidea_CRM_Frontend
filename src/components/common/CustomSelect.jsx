@@ -64,6 +64,22 @@ const CustomSelect = ({
     })
   });
 
+  const handleChange = (selectedOption) => {
+    onChange(selectedOption?.value || "");
+    
+    // Find the next focusable element
+    const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const currentSelect = document.activeElement;
+    const allFocusable = Array.from(document.querySelectorAll(focusableElements));
+    const currentIndex = allFocusable.indexOf(currentSelect);
+    const nextElement = allFocusable[currentIndex + 1];
+    
+    // Focus the next element if found
+    if (nextElement) {
+      nextElement.focus();
+    }
+  };
+
   return (
     <div className={`flex flex-col relative ${className}`}>
       <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -75,7 +91,7 @@ const CustomSelect = ({
         <div className="flex-1">
           <Select
             value={options?.find(opt => opt.value === value)}
-            onChange={(selectedOption) => onChange(selectedOption?.value || "")}
+            onChange={handleChange}
             options={options}
             isDisabled={isDisabled || loading}
             isRequired={isRequired}

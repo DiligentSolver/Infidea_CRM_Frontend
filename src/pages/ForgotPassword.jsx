@@ -42,10 +42,10 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="flex items-center min-h-screen p-2 bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="flex-1 max-w-5xl mx-auto overflow-hidden rounded-xl shadow-lg bg-white dark:bg-gray-800">
+    <div className="flex items-center min-h-screen p-2 sm:p-6 bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="flex-1 w-full max-w-5xl mx-auto overflow-hidden rounded-xl shadow-lg bg-white dark:bg-gray-800">
         <div className="flex flex-col md:flex-row">
-          <div className="relative h-20 md:w-5/12 md:h-auto">
+          <div className="relative h-32 md:h-auto md:w-5/12">
             <img
               aria-hidden="true"
               className="object-cover w-full h-full dark:hidden"
@@ -60,11 +60,11 @@ const ForgotPassword = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/70 to-indigo-700/70 flex items-center justify-center">
               <div className="px-4 py-2 text-center">
-                <h1 className="text-2xl font-bold text-white mb-1">Infidea CRM</h1>
-                <p className="text-white text-sm opacity-90">
+                <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Infidea CRM</h1>
+                <p className="text-white text-xs sm:text-sm opacity-90">
                   Your all-in-one customer relationship solution
                 </p>
-                <div className="mt-2 flex flex-col space-y-0.5">
+                <div className="mt-2 hidden sm:flex flex-col space-y-0.5">
                   <div className="flex items-center text-white text-xs">
                     <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -88,13 +88,13 @@ const ForgotPassword = () => {
             </div>
           </div>
           
-          <main className="flex items-center justify-center p-6 sm:p-12 md:w-7/12 relative">
-            <div className="absolute top-4 right-4 z-10">
+          <main className="flex items-center justify-center p-4 sm:p-6 md:p-8 md:w-7/12 relative">
+            <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
               <ThemeToggle />
             </div>
 
             <div className="w-full max-w-xs mx-auto">
-              <h1 className="mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
+              <h1 className="mb-2 text-xl font-semibold text-gray-700 dark:text-gray-200">
                 Forgot Password
               </h1>
               <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
@@ -120,7 +120,7 @@ const ForgotPassword = () => {
                       })}
                       type="email"
                       placeholder="your@email.com"
-                      className="pl-7 py-1 h-7 text-sm w-full"
+                      className="pl-7 py-2 h-9 sm:h-8 text-sm w-full"
                     />
                   </div>
                   <Error errorName={errors.email} />
@@ -133,7 +133,7 @@ const ForgotPassword = () => {
                 ) : (
                   <Button
                     type="submit"
-                    className="w-full my-1 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-medium py-1 px-3 rounded-md transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-sm h-7"
+                    className="w-full my-1 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-medium py-2 px-3 rounded-md transition-all duration-200 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-sm h-9 sm:h-8"
                   >
                     Send Verification Code
                   </Button>

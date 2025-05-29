@@ -41,6 +41,8 @@ import {
   sourceOptions
 } from "@/utils/optionsData";
 import ProcessSelector from "@/components/common/ProcessSelector";
+import SearchableDropdown from "@/components/common/SearchableDropdown";
+import SearchableProcessDropdown from "@/components/common/SearchableProcessDropdown";
 import { formatLongDateAndTime } from "@/utils/dateFormatter";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -50,6 +52,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
   const [phoneError, setPhoneError] = useState("");
   const [sameAsContact, setSameAsContact] = useState(false);
   const contactInputRef = useRef(null);
+  const callSummaryRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
@@ -211,6 +214,29 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       observer.disconnect();
     };
   }, []);
+
+  // Add keyboard shortcut listener for Ctrl+"
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Check for Ctrl + Quote (keyCode 222)
+      if (e.ctrlKey && (e.key === '"' || e.key === "'" || e.keyCode === 222 || e.which === 222)) {
+        e.preventDefault();
+        if (callSummaryRef.current) {
+          callSummaryRef.current.focus();
+          // Optional: scroll into view if needed
+          callSummaryRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    };
+
+    // Add the event listener
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Clean up the event listener
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
 
   // Fetch qualifications, states on component mount or when modal opens
   useEffect(() => {
@@ -424,15 +450,15 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       // Validate lineup fields if status is "lineup"
       if (formData.callStatus === "Lineup" && 
           (!formData.lineupCompany || !formData.lineupProcess || 
-           !formData.lineupDate || !formData.interviewDate || !formData.lineupRemarks)) {
-        notifyError("Please fill in all lineup fields including remarks");
+           !formData.lineupDate || !formData.interviewDate)) {
+        notifyError("Please fill in all lineup fields");
         setLoading(false);
         return;
       }
 
       // Validate walkin date if status is "walkin"
-      if (formData.callStatus === "Walkin at Infidea" && (!formData.walkinDate || !formData.walkinRemarks)) {
-        notifyError("Please provide a walkin date and remarks");
+      if (formData.callStatus === "Walkin at Infidea" && (!formData.walkinDate)) {
+        notifyError("Please provide a walkin date");
         setLoading(false);
         return;
       }
@@ -546,7 +572,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
     })) || [])
   ];
   
-  // Create locality options from API data (for Indore only)
+  // Create locality options from API data
   const localityOptions = [
     { value: "", label: "Select Locality" },
     ...(localities?.map(locality => ({ 
@@ -682,19 +708,16 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
             {label}
             {required && <span className="text-red-500">*</span>}
           </label>
-          <ProcessSelector
-            name={key}
-            value={formData[key] || ""}
-            onChange={(e) => handleChange(key, e.target.value)}
+          <SearchableProcessDropdown
             options={options}
+            value={formData[key]}
+            onChange={(e) => handleChange(key, e.target.value)}
+            placeholder={`Search ${label}...`}
             required={required}
             disabled={loading}
-            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
-                loading ? 'cursor-wait opacity-70' : ''
-              }`}
-            showInfoButton={true}
+            darkMode={darkMode}
+            className={inputClass || ''}
+            phoneNumber={formData.whatsappNumber}
           />
           
           {/* Custom inputs for "others" options */}
@@ -796,19 +819,15 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
             {label}
             {required && <span className="text-red-500">*</span>}
           </label>
-          <ProcessSelector
-            name={key}
-            value={formData[key] || ""}
-            onChange={(e) => handleChange(key, e.target.value)}
+          <SearchableProcessDropdown
             options={options}
+            value={formData[key]}
+            onChange={(e) => handleChange(key, e.target.value)}
+            placeholder={`Search ${label}...`}
             required={required}
             disabled={loading}
-            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
-                loading ? 'cursor-not-allowed opacity-70' : ''
-              }`}
-            showInfoButton={true}
+            darkMode={darkMode}
+            className={inputClass || ''}
             phoneNumber={formData.whatsappNumber}
           />
         </div>
@@ -819,7 +838,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       key: "lineupRemarks", 
       icon: <MdNotes />, 
       type: "textarea",
-      required: formData.callStatus === "Lineup",
+      required: false,
       inputClass: "w-full",
       hidden: formData.callStatus !== "Lineup",
       span: "md:col-span-4 lg:col-span-4"
@@ -829,7 +848,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       key: "walkinRemarks", 
       icon: <MdNotes />, 
       type: "textarea",
-      required: formData.callStatus === "Walkin at Infidea",
+      required: false,
       inputClass: "w-full",
       hidden: formData.callStatus !== "Walkin at Infidea",
       span: "md:col-span-4 lg:col-span-4"
@@ -908,23 +927,16 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
                           {required && <span className="text-red-500">*</span>}
                         </label>
                         {type === "select" ? (
-                          <select
+                          <SearchableDropdown
+                            options={options}
                             value={formData[key]}
                             onChange={(e) => handleChange(key, e.target.value)}
+                            placeholder={`Search ${label}...`}
                             required={required}
                             disabled={loading}
-                            className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-                              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
-                                loading ? 'cursor-wait opacity-70' : ''
-                              }`}
-                          >
-                            {options && options.map(option => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
+                            darkMode={darkMode}
+                            className={inputClass || ''}
+                          />
                         ) : type === "textarea" ? (
                           <textarea
                             value={formData[key]}
@@ -968,23 +980,16 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
                           Locality
                           <span className="text-red-500">*</span>
                         </label>
-                        <select
+                        <SearchableDropdown
+                          options={localityOptions}
                           value={formData.locality}
                           onChange={(e) => handleChange("locality", e.target.value)}
+                          placeholder="Search locality..."
                           required={true}
                           disabled={loadingDropdownData.localities}
-                          className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-                            ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full ${
-                              loadingDropdownData.localities ? 'cursor-wait opacity-70' : ''
-                            }`}
-                        >
-                          {localityOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+                          darkMode={darkMode}
+                          className="w-full"
+                        />
                       </div>
                     </React.Fragment>
                   );
@@ -1025,23 +1030,16 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
                     
                     {type === "select" ? (
                       <>
-                        <select
+                        <SearchableDropdown
+                          options={options}
                           value={formData[key]}
                           onChange={(e) => handleChange(key, e.target.value)}
+                          placeholder={`Search ${label}...`}
                           required={required}
                           disabled={loading}
-                          className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
-                            ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
-                            : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass} ${
-                              loading ? 'cursor-wait opacity-70' : ''
-                            }`}
-                        >
-                          {options && options.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+                          darkMode={darkMode}
+                          className={inputClass || ''}
+                        />
                         
                         {/* Custom inputs for "others" options */}
                         {key === "lineupCompany" && (formData.lineupCompany.toLowerCase() === "others" || formData.lineupProcess.toLowerCase() === "others") && (
@@ -1192,6 +1190,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
                 </div>
               </div>
               <textarea
+                ref={callSummaryRef}
                 value={formData.callSummary}
                 onChange={(e) => handleChange("callSummary", e.target.value)}
                 placeholder="Enter call summary..."
@@ -1200,6 +1199,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
                   ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                   : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none`}
               />
+              <div className="mt-1">
+                <span className="text-xs text-gray-500 dark:text-gray-400">Ctrl + " to focus on call summary</span>
+              </div>
             </div>
           </div>
 

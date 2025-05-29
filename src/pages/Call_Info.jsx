@@ -22,7 +22,8 @@ import {
   MdComment,
   MdTask,
   MdClose,
-  MdPeople
+  MdPeople,
+  MdMenu
 } from "react-icons/md";
 import { FaSave } from "react-icons/fa";
 import { IoCashOutline } from "react-icons/io5";
@@ -30,7 +31,9 @@ import EmployeeServices from "@/services/EmployeeServices";
 import { notifySuccess, notifyError } from "@/utils/toast";
 import Loader from "../components/sprinkleLoader/Loader";
 import { useLocation, useNavigate } from "react-router";
-import CustomSelect from "@/components/common/CustomSelect";
+import ProcessSelector from "@/components/common/ProcessSelector";
+import SearchableDropdown from "@/components/common/SearchableDropdown";
+import SearchableProcessDropdown from "@/components/common/SearchableProcessDropdown";
 import { 
   companyOptions as lineupCompanyOptions, 
   callStatusOptions,
@@ -42,13 +45,11 @@ import {
   relocationOptions,
   getProcessesByCompany,
   workModeOptions,
-  genderOptions,
-  callDurationOptions,
-  passingYearOptions
+  genderOptions
 } from "@/utils/optionsData";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
+import Cookies from "js-cookie";
 
 function CallInfo() {
   const location = useLocation();
@@ -79,7 +80,7 @@ function CallInfo() {
   });
 
   // Add a new state for filtered process options
-  const [filteredProcessOptions, setFilteredProcessOptions] = useState([{ value: "", label: "" }]);
+  const [filteredProcessOptions, setFilteredProcessOptions] = useState([{ value: "", label: "Select Process" }]);
 
   // Move formData declaration here, before any useEffects that reference it
   const [formData, setFormData] = useState({
@@ -549,15 +550,15 @@ function CallInfo() {
       // Validate lineup fields if status is "lineup"
       if (formData.callStatus === "Lineup" && 
           (!formData.lineupCompany || !formData.lineupProcess || 
-           !formData.lineupDate || !formData.interviewDate || !formData.lineupRemarks)) {
-        notifyError("Please fill in all lineup fields including remarks");
+           !formData.lineupDate || !formData.interviewDate)) {
+        notifyError("Please fill in all lineup fields");
         setLoading(false);
         return;
       }
 
       // Validate walkin date if status is "walkin"
-      if (formData.callStatus === "Walkin at Infidea" && (!formData.walkinDate || !formData.walkinRemarks)) {
-        notifyError("Please provide a walkin date and remarks");
+      if (formData.callStatus === "Walkin at Infidea" && (!formData.walkinDate)) {
+        notifyError("Please provide a walkin date");
         setLoading(false);
         return;
       }
@@ -677,7 +678,12 @@ function CallInfo() {
     }
   };
 
-
+  // Generate call duration options
+  const callDurationOptions = Array.from({ length: 30 }, (_, i) => ({
+    value: `${i + 1}`, 
+    label: `${i + 1} ${i === 0 ? 'Minute' : 'Minutes'}`
+  }));
+  callDurationOptions.unshift({ value: "", label: "" });
 
   // Create qualification options from API data
   const qualificationOptions = [
@@ -761,7 +767,13 @@ function CallInfo() {
       key: "passingYear", 
       icon: <MdSchool />, 
       type: "select",
-        options: passingYearOptions,
+      options: [
+        { value: "", label: "" },
+        ...Array.from({ length: 101 }, (_, i) => ({
+          value: String(1980 + i),
+          label: String(1980 + i)
+        }))
+      ],
       required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus),
       inputClass: "w-full"
     },
@@ -829,50 +841,17 @@ function CallInfo() {
             {label}
             {required && <span className="text-red-500">*</span>}
           </label>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <CustomSelect
-                label={label}
-                icon={icon}
-                value={formData[key]}
-                onChange={(value) => handleChange(key, value)}
-                options={options}
-                isDisabled={loading}
-                isRequired={required}
-                darkMode={darkMode}
-                loading={loading}
-                customInput={key === "companyProfile" || key === "lineupCompany" || key === "lineupProcess"}
-                customValue={
-                  key === "companyProfile" ? formData.customCompanyProfile :
-                  key === "lineupCompany" ? formData.customLineupCompany :
-                  key === "lineupProcess" ? formData.customLineupProcess : ""
-                }
-                onCustomChange={(value) => {
-                  if (key === "companyProfile") handleChange("customCompanyProfile", value);
-                  else if (key === "lineupCompany") handleChange("customLineupCompany", value);
-                  else if (key === "lineupProcess") handleChange("customLineupProcess", value);
-                }}
-                customPlaceholder={
-                  key === "companyProfile" ? "Custom profile" :
-                  key === "lineupCompany" ? "Custom company" :
-                  key === "lineupProcess" ? "Custom process" : ""
-                }
-                hasWhatsAppButton={key === "lineupProcess" || key === "jdReferenceProcess"}
-                whatsAppNumber={formData.whatsappNumber}
-                processDetails={options?.find(opt => opt.value === formData[key])?.label || ''}
-              />
-            </div>
-            {formData.whatsappNumber && (
-              <button
-                type="button"
-                onClick={() => window.open(`https://wa.me/91${formData.whatsappNumber}?text=Process%20Details:%20${encodeURIComponent(options?.find(opt => opt.value === formData[key])?.label || '')}`)}
-                className={`px-3 rounded-md ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white`}
-                title="Send process details on WhatsApp"
-              >
-                <MdOutlineWhatsapp className="text-xl" />
-              </button>
-            )}
-          </div>
+          <SearchableProcessDropdown
+            options={options}
+            value={formData[key]}
+            onChange={(e) => handleChange(key, e.target.value)}
+            placeholder={`Search ${label}...`}
+            required={required}
+            disabled={loading}
+            darkMode={darkMode}
+            className={inputClass || ''}
+            phoneNumber={formData.whatsappNumber}
+          />
           
           {/* Custom input for "others" options */}
           {(formData.lineupCompany.toLowerCase() === "others" || formData.lineupProcess.toLowerCase() === "others") && (
@@ -963,59 +942,31 @@ function CallInfo() {
       inputClass: "w-full"
     },
     { 
-      label: "Process JD", 
+      label: "JD Process", 
       key: "jdReferenceProcess", 
       icon: <MdTask />, 
       type: "custom", 
       options: filteredProcessOptions,
       required: false,
       inputClass: "w-full",
-      render: ({ key, label, options, required, icon }) => (
+      render: ({ key, label, options, required, inputClass }) => (
         <div className="flex flex-col relative">
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <CustomSelect
-                label={label}
-                icon={icon}
-                value={formData[key]}
-                onChange={(value) => handleChange(key, value)}
-                options={options}
-                isDisabled={loading}
-                isRequired={required}
-                darkMode={darkMode}
-                loading={loading}
-                customInput={key === "companyProfile" || key === "lineupCompany" || key === "lineupProcess"}
-                customValue={
-                  key === "companyProfile" ? formData.customCompanyProfile :
-                  key === "lineupCompany" ? formData.customLineupCompany :
-                  key === "lineupProcess" ? formData.customLineupProcess : ""
-                }
-                onCustomChange={(value) => {
-                  if (key === "companyProfile") handleChange("customCompanyProfile", value);
-                  else if (key === "lineupCompany") handleChange("customLineupCompany", value);
-                  else if (key === "lineupProcess") handleChange("customLineupProcess", value);
-                }}
-                customPlaceholder={
-                  key === "companyProfile" ? "Custom profile" :
-                  key === "lineupCompany" ? "Custom company" :
-                  key === "lineupProcess" ? "Custom process" : ""
-                }
-                hasWhatsAppButton={key === "lineupProcess" || key === "jdReferenceProcess"}
-                whatsAppNumber={formData.whatsappNumber}
-                processDetails={options?.find(opt => opt.value === formData[key])?.label || ''}
-              />
-            </div>
-            {formData.whatsappNumber && (
-              <button
-                type="button"
-                onClick={() => window.open(`https://wa.me/91${formData.whatsappNumber}?text=Process%20Details:%20${encodeURIComponent(options?.find(opt => opt.value === formData[key])?.label || '')}`)}
-                className={`px-3 rounded-md ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white`}
-                title="Send process details on WhatsApp"
-              >
-                <MdOutlineWhatsapp className="text-xl" />
-              </button>
-            )}
-          </div>
+          <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-base"><MdTask /></span>
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </label>
+          <SearchableProcessDropdown
+            options={options}
+            value={formData[key]}
+            onChange={(e) => handleChange(key, e.target.value)}
+            placeholder={`Search ${label}...`}
+            required={required}
+            disabled={loading}
+            darkMode={darkMode}
+            className={inputClass || ''}
+            phoneNumber={formData.whatsappNumber}
+          />
         </div>
       )
     },
@@ -1025,7 +976,7 @@ function CallInfo() {
       key: "lineupRemarks", 
       icon: <MdComment />, 
       type: "textarea",
-      required: formData.callStatus === "Lineup",
+      required: false,
       inputClass: "w-full",
       hidden: formData.callStatus !== "Lineup",
       span: "lg:col-span-5 md:col-span-3"
@@ -1035,7 +986,7 @@ function CallInfo() {
       key: "walkinRemarks", 
       icon: <MdComment />, 
       type: "textarea",
-      required: formData.callStatus === "Walkin at Infidea",
+      required: false,
       inputClass: "w-full",
       hidden: formData.callStatus !== "Walkin at Infidea",
       span: "lg:col-span-5 md:col-span-3"
@@ -1052,6 +1003,8 @@ function CallInfo() {
     designation: "",
     companyName: ""
   });
+
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Add client modal component
   const ClientModal = () => {
@@ -1106,20 +1059,20 @@ function CallInfo() {
 
     return (
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       >
         <div 
-          className={`relative w-full max-w-md p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+          className={`relative w-full max-w-md p-4 sm:p-6 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
         >
           <button
             type="button"
             onClick={handleClose}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
             <MdClose className="text-xl" />
           </button>
           
-          <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+          <h2 className={`text-lg sm:text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
             Add Client Details
           </h2>
           
@@ -1225,16 +1178,16 @@ function CallInfo() {
   };
 
   return (
-    <div className="px-4 py-3 dark:bg-gray-900 dark:text-gray-100 text-gray-800 overflow-hidden">
+    <div className="px-2 sm:px-4 py-3 dark:bg-gray-900 dark:text-gray-100 text-gray-800 overflow-hidden">
       <div className="h-full mx-auto flex flex-col">
-        <div className="flex justify-between items-center mb-3">
-          <h1 className="text-2xl font-bold dark:text-[#e2692c] text-[#1a5d96]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold dark:text-[#e2692c] text-[#1a5d96] flex items-center">
             Call Information
           </h1>
           
-          <div className="flex items-stretch gap-3">
+          <div className="flex flex-wrap items-stretch gap-2 w-full sm:w-auto">
             {formSavedTimestamp && (
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
                 Last saved: {new Date(formSavedTimestamp).toLocaleTimeString()}
               </span>
             )}
@@ -1242,7 +1195,7 @@ function CallInfo() {
             <button
               type="button"
               onClick={() => setShowClientModal(true)}
-              className={`h-10 px-3 py-0 ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white rounded-md text-sm flex items-center gap-1.5 transition-colors whitespace-nowrap`}
+              className={`h-10 px-3 py-0 ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white rounded-md text-sm flex items-center gap-1.5 transition-colors whitespace-nowrap flex-1 sm:flex-initial justify-center`}
               style={{ minWidth: 'fit-content' }}
               title="Add Client"
             >
@@ -1253,7 +1206,7 @@ function CallInfo() {
             <button
               type="button"
               onClick={resetForm}
-              className={`h-10 px-3 py-0 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-md text-sm flex items-center gap-1.5 transition-colors whitespace-nowrap`}
+              className={`h-10 px-3 py-0 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-md text-sm flex items-center gap-1.5 transition-colors whitespace-nowrap flex-1 sm:flex-initial justify-center`}
               style={{ minWidth: 'fit-content' }}
               title="Reset form"
             >
@@ -1263,13 +1216,54 @@ function CallInfo() {
           </div>
         </div>
 
+        {/* Mobile menu */}
+        {menuOpen && (
+          <div className="block sm:hidden bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 mb-3">
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (candidateNameRef.current) {
+                    candidateNameRef.current.focus();
+                    candidateNameRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setMenuOpen(false);
+                  }
+                }}
+                className="text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              >
+                Go to Candidate Name
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (callSummaryRef.current) {
+                    callSummaryRef.current.focus();
+                    callSummaryRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setMenuOpen(false);
+                  }
+                }}
+                className="text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              >
+                Go to Call Summary
+              </button>
+              <button
+                type="submit"
+                form="call-info-form"
+                className="text-left px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              >
+                Submit Form
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Show client modal when button is clicked */}
         {showClientModal && <ClientModal />}
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-auto">
+        <form id="call-info-form" onSubmit={handleSubmit} className="flex-1 overflow-auto">
           {/* All fields in a grid layout */}
-          <div className="rounded-lg p-4 shadow-md border dark:bg-gray-800 dark:border-gray-700">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-3">
+          <div className="rounded-lg p-3 sm:p-4 shadow-md border dark:bg-gray-800 dark:border-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-3 sm:gap-x-4 gap-y-3">
               {fields.map(({ label, key, type, icon, inputClass, options, required, pattern, maxLength, ref, hasCheckbox, checkboxLabel, disabled, hidden, loading, span, render }) => {
                 // Skip rendering if the field should be hidden
                 if (hidden) {
@@ -1280,36 +1274,68 @@ function CallInfo() {
                 const requiresMandatoryFields = ["Lineup", "Walkin at Infidea"].includes(formData.callStatus);
                 const isFieldRequired = requiresMandatoryFields ? required : (key === "candidateName" || key === "contactNumber" || key === "callStatus" || key === "callDuration");
                 
-                // For the locality field
+                // Insert locality field right after city field when city is Indore
                 if (key === "city" && showLocalityField) {
                   return (
                     <React.Fragment key={key}>
                       <div className="flex flex-col relative">
-                        <CustomSelect
-                          label={label}
-                          icon={icon}
-                          value={formData[key]}
-                          onChange={(value) => handleChange(key, value)}
-                          options={options}
-                          isDisabled={loading}
-                          isRequired={isFieldRequired}
-                          darkMode={darkMode}
-                          loading={loading}
-                        />
+                        <label className="flex items-center gap-1.5 text-xs sm:text-sm font-medium mb-1.5 dark:text-gray-300 text-gray-700">
+                          <span className="text-base">{icon}</span>
+                          {label}
+                          {isFieldRequired && <span className="text-red-500">*</span>}
+                        </label>
+                        {type === "select" ? (
+                          <SearchableDropdown
+                            options={options}
+                            value={formData[key]}
+                            onChange={(e) => handleChange(key, e.target.value)}
+                            placeholder={`Search ${label}...`}
+                            required={isFieldRequired}
+                            disabled={loading}
+                            darkMode={darkMode}
+                            className={inputClass || ''}
+                          />
+                        ) : (
+                          <input
+                            type={type || "text"}
+                            value={formData[key]}
+                            onChange={(e) => handleChange(key, e.target.value)}
+                            placeholder={label}
+                            required={isFieldRequired}
+                            pattern={pattern}
+                            maxLength={maxLength}
+                            ref={ref}
+                            disabled={disabled}
+                            className={`px-2 sm:px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                              ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
+                              : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
+                                disabled ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
+                              } ${(key === "contactNumber" && duplicateInfo !== null) ? 'border-red-500 dark:border-red-500' : ''}`}
+                          />
+                        )}
                       </div>
-
-                      {/* Locality Field */}
+                      
+                      {/* Show validation error for contact number */}
+                      {key === "contactNumber" && phoneError && (
+                        <div className="text-xs text-red-500 mt-1">{phoneError}</div>
+                      )}
+                      
+                      {/* Locality Field as Dropdown */}
                       <div className="flex flex-col">
-                        <CustomSelect
-                          label="Locality"
-                          icon={<MdLocationOn />}
-                          value={formData.locality}
-                          onChange={(value) => handleChange("locality", value)}
+                        <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <span className="text-base"><MdLocationOn /></span>
+                          Locality
+                          {requiresMandatoryFields && <span className="text-red-500">*</span>}
+                        </label>
+                        <SearchableDropdown
                           options={localityOptions}
-                          isDisabled={loadingDropdownData.localities}
-                          isRequired={requiresMandatoryFields}
+                          value={formData.locality}
+                          onChange={(e) => handleChange("locality", e.target.value)}
+                          placeholder="Search locality..."
+                          required={requiresMandatoryFields}
+                          disabled={loadingDropdownData.localities}
                           darkMode={darkMode}
-                          loading={loadingDropdownData.localities}
+                          className="w-full"
                         />
                       </div>
                     </React.Fragment>
@@ -1323,24 +1349,14 @@ function CallInfo() {
                 if (type === "custom" && render) {
                   return (
                     <div key={key} className={span || ""}>
-                      <CustomSelect
-                        label={label}
-                        icon={icon}
-                        value={formData[key]}
-                        onChange={(value) => handleChange(key, value)}
-                        options={options}
-                        isDisabled={loading}
-                        isRequired={isFieldRequired}
-                        darkMode={darkMode}
-                        loading={loading}
-                        hasWhatsAppButton={key === "lineupProcess" || key === "jdReferenceProcess"}
-                        whatsAppNumber={formData.whatsappNumber}
-                        processDetails={options?.find(opt => opt.value === formData[key])?.label || ''}
-                        customInput={key === "lineupProcess"}
-                        customValue={key === "lineupProcess" ? formData.customLineupProcess : ""}
-                        onCustomChange={(value) => key === "lineupProcess" && handleChange("customLineupProcess", value)}
-                        customPlaceholder={key === "lineupProcess" ? "Custom process" : ""}
-                      />
+                      {render({ 
+                        key, 
+                        label, 
+                        icon, 
+                        options, 
+                        required: isFieldRequired,
+                        inputClass 
+                      })}
                     </div>
                   );
                 }
@@ -1348,20 +1364,19 @@ function CallInfo() {
                 // Special handling for textarea type (remarks)
                 if (type === "textarea") {
                   return (
-                    <div key={key} className={`flex flex-col relative ${span || ""}`}>
-                      <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <div key={key} className={`flex flex-col relative ${span || "sm:col-span-2 md:col-span-3 lg:col-span-5"}`}>
+                      <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                         <span className="text-base">{icon}</span>
                         {label}
                         {isFieldRequired && <span className="text-red-500">*</span>}
                       </label>
                       <textarea
-                        ref={callSummaryRef}
                         value={formData[key]}
                         onChange={(e) => handleChange(key, e.target.value)}
                         placeholder={`Enter ${label.toLowerCase()}...`}
                         required={isFieldRequired}
                         disabled={false}
-                        className={`px-2.5 py-1.5 h-20 text-sm rounded-md ${darkMode 
+                        className={`px-2 sm:px-2.5 py-1.5 h-20 text-sm rounded-md ${darkMode 
                           ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                           : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none ${inputClass || ''}`}
                       />
@@ -1369,45 +1384,9 @@ function CallInfo() {
                   );
                 }
                 
-                // For regular select fields
-                if (type === "select") {
-                  return (
-                    <CustomSelect
-                      label={label}
-                      icon={icon}
-                      value={formData[key]}
-                      onChange={(value) => handleChange(key, value)}
-                      options={options}
-                      isDisabled={loading}
-                      isRequired={isFieldRequired}
-                      darkMode={darkMode}
-                      loading={loading}
-                      customInput={key === "companyProfile" || key === "lineupCompany" || key === "lineupProcess"}
-                      customValue={
-                        key === "companyProfile" ? formData.customCompanyProfile :
-                        key === "lineupCompany" ? formData.customLineupCompany :
-                        key === "lineupProcess" ? formData.customLineupProcess : ""
-                      }
-                      onCustomChange={(value) => {
-                        if (key === "companyProfile") handleChange("customCompanyProfile", value);
-                        else if (key === "lineupCompany") handleChange("customLineupCompany", value);
-                        else if (key === "lineupProcess") handleChange("customLineupProcess", value);
-                      }}
-                      customPlaceholder={
-                        key === "companyProfile" ? "Custom profile" :
-                        key === "lineupCompany" ? "Custom company" :
-                        key === "lineupProcess" ? "Custom process" : ""
-                      }
-                      hasWhatsAppButton={key === "lineupProcess" || key === "jdReferenceProcess"}
-                      whatsAppNumber={formData.whatsappNumber}
-                      processDetails={options?.find(opt => opt.value === formData[key])?.label || ''}
-                    />
-                  );
-                }
-                
                 return (
                   <div key={key} className="flex flex-col relative">
-                    <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       <span className="text-base">{icon}</span>
                       {label}
                       {isFieldRequired && <span className="text-red-500">*</span>}
@@ -1415,35 +1394,15 @@ function CallInfo() {
                     
                     {type === "select" ? (
                       <>
-                        <CustomSelect
-                          label={label}
-                          icon={icon}
-                          value={formData[key]}
-                          onChange={(value) => handleChange(key, value)}
+                        <SearchableDropdown
                           options={options}
-                          isDisabled={loading}
-                          isRequired={isFieldRequired}
+                          value={formData[key]}
+                          onChange={(e) => handleChange(key, e.target.value)}
+                          placeholder={`Search ${label}...`}
+                          required={isFieldRequired}
+                          disabled={loading || disabled}
                           darkMode={darkMode}
-                          loading={loading}
-                          customInput={key === "companyProfile" || key === "lineupCompany" || key === "lineupProcess"}
-                          customValue={
-                            key === "companyProfile" ? formData.customCompanyProfile :
-                            key === "lineupCompany" ? formData.customLineupCompany :
-                            key === "lineupProcess" ? formData.customLineupProcess : ""
-                          }
-                          onCustomChange={(value) => {
-                            if (key === "companyProfile") handleChange("customCompanyProfile", value);
-                            else if (key === "lineupCompany") handleChange("customLineupCompany", value);
-                            else if (key === "lineupProcess") handleChange("customLineupProcess", value);
-                          }}
-                          customPlaceholder={
-                            key === "companyProfile" ? "Custom profile" :
-                            key === "lineupCompany" ? "Custom company" :
-                            key === "lineupProcess" ? "Custom process" : ""
-                          }
-                          hasWhatsAppButton={key === "lineupProcess" || key === "jdReferenceProcess"}
-                          whatsAppNumber={formData.whatsappNumber}
-                          processDetails={options?.find(opt => opt.value === formData[key])?.label || ''}
+                          className={inputClass || ''}
                         />
                         
                         {/* Custom inputs for "others" options */}
@@ -1454,7 +1413,7 @@ function CallInfo() {
                             onChange={(e) => handleChange("customLineupCompany", e.target.value)}
                             placeholder="Custom company"
                             required={isFieldRequired && formData.lineupCompany.toLowerCase() === "others"}
-                            className={`mt-1.5 px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                            className={`mt-1.5 px-2 sm:px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                               : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full`}
                           />
@@ -1467,7 +1426,7 @@ function CallInfo() {
                             onChange={(e) => handleChange("customLineupProcess", e.target.value)}
                             placeholder="Custom process"
                             required={isFieldRequired && formData.lineupProcess.toLowerCase() === "others"}
-                            className={`mt-1.5 px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                            className={`mt-1.5 px-2 sm:px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                               : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full`}
                           />
@@ -1480,7 +1439,7 @@ function CallInfo() {
                             onChange={(e) => handleChange("customCompanyProfile", e.target.value)}
                             placeholder="Custom profile"
                             required={isFieldRequired && formData.companyProfile === "others"}
-                            className={`mt-1.5 px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                            className={`mt-1.5 px-2 sm:px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                               : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} w-full`}
                           />
@@ -1498,7 +1457,7 @@ function CallInfo() {
                           maxLength={maxLength}
                           disabled={disabled}
                           ref={key === "candidateName" ? candidateNameRef : undefined}
-                          className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
+                          className={`px-2 sm:px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
                             ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                             : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass || ''} ${
                               disabled ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''
@@ -1508,8 +1467,8 @@ function CallInfo() {
                         {/* Show duplicate info for contact number */}
                         {key === "contactNumber" && duplicateInfo !== null && (
                           <div className="text-xs text-red-500 mt-1 flex items-center">
-                            <MdError className="mr-1" />
-                            <span>
+                            <MdError className="mr-1 flex-shrink-0" />
+                            <span className="line-clamp-2">
                               Duplicate entry: Registered by {duplicateInfo.registeredBy || 'someone'} 
                               {duplicateInfo.remainingDays !== undefined ? 
                                 ` ${duplicateInfo.remainingDays} remaining` : 
@@ -1562,7 +1521,7 @@ function CallInfo() {
 
             {/* Call Summary Field */}
             <div className="mt-3 grid grid-cols-1">
-              <label className={`flex items-center gap-1.5 text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 <span className="text-base"><MdNotes /></span>
                 Call Summary
                 <span className="text-red-500">*</span>
@@ -1574,7 +1533,7 @@ function CallInfo() {
                 placeholder="Enter call summary..."
                 required={true}
                 disabled={false}
-                className={`px-2.5 py-1.5 h-20 w-full text-sm rounded-md ${darkMode 
+                className={`px-2 sm:px-2.5 py-1.5 h-20 sm:h-24 w-full text-sm rounded-md ${darkMode 
                   ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                   : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none`}
               />
@@ -1582,18 +1541,18 @@ function CallInfo() {
           </div>
           
           <div className="flex flex-col gap-2 mt-3">
-              <span className="text-xs ml-2 text-gray-500 dark:text-gray-400">Ctrl + : to focus on candidate name</span>
-              <span className="text-xs ml-2 text-gray-500 dark:text-gray-400">Ctrl + " to focus on call summary</span>
+              <span className="text-xs ml-2 text-gray-500 dark:text-gray-400 hidden sm:block">Ctrl + : to focus on candidate name</span>
+              <span className="text-xs ml-2 text-gray-500 dark:text-gray-400 hidden sm:block">Ctrl + " to focus on call summary</span>
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-center mt-3">
+          <div className="flex justify-center mt-3 mb-4 sm:mb-0">
             {loading ? (
               <Loader size="30" speed="1.75" />
             ) : (
               <button
                 type="submit"
-                className={`px-5 py-2.5 ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white rounded-md text-sm shadow-md flex items-center gap-1.5 transition-colors`}
+                className={`px-5 py-2.5 w-full sm:w-auto ${darkMode ? 'bg-[#e2692c] hover:bg-[#d15a20]' : 'bg-[#1a5d96] hover:bg-[#154a7a]'} text-white rounded-md text-sm shadow-md flex items-center justify-center gap-1.5 transition-colors`}
                 disabled={loading}
               >
                 <FaSave className="text-base" />

@@ -425,10 +425,6 @@ function Joinings() {
         errors.customCompanyProcess = 'Custom process is required';
       }
 
-      if (!formData.remarks) {
-        errors.remarks = 'Remarks are required';
-      }
-
       if (!formData.salary) {
         errors.salary = 'Salary is required';
       }
@@ -1078,11 +1074,11 @@ function Joinings() {
               </div>
               <div>
                 <label className="block text-sm font-medium dark:text-gray-300 text-gray-700">
-                  Remarks <span className="text-red-500">*</span>
+                  Remarks
                 </label>
                 <textarea
                   name="remarks"
-                  required={true}
+                  required={false}
                   value={formData.remarks || ""}
                   onChange={handleChange}
                   placeholder="Add any additional notes or remarks"
