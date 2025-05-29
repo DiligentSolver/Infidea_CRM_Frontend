@@ -11,6 +11,44 @@ import { formatLongDate } from "@/utils/dateFormatter";
 import { uploadImage, deleteImage } from "@/services/CloudinaryService";
 import { AdminContext } from "@/context/AdminContext";
 
+// Function to calculate profile completion percentage
+const calculateProfileCompletion = (profile) => {
+  const fieldsToCheck = [
+    'name',
+    'designation',
+    'contact',
+    'dob',
+    'address',
+    'emergencyContactName',
+    'emergencyContactNumber',
+    'relation',
+    'bankName',
+    'branchName',
+    'ifsc',
+    'accountNumber',
+    'beneficiaryAddress',
+    'image'
+  ];
+
+  const filledFields = fieldsToCheck.filter(field => {
+    const value = profile[field];
+    return value && value.toString().trim() !== '';
+  });
+
+  return Math.round((filledFields.length / fieldsToCheck.length) * 100);
+};
+
+// Function to convert percentage to coordinates on the gauge arc
+const percentageToCoordinates = (percentage, radius) => {
+  // Convert percentage to angle (180 degrees = 100%)
+  const angle = (percentage / 100) * 180;
+  // Convert angle to radians
+  const radians = (angle - 90) * (Math.PI / 180);
+  // Calculate coordinates
+  const x = radius * Math.cos(radians) + radius;
+  const y = radius * Math.sin(radians) + radius;
+  return { x, y };
+};
 
 const EditProfile = () => {
   const { t } = useTranslation();
@@ -597,48 +635,102 @@ const EditProfile = () => {
       <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-800 dark:text-white">
         <div className="h-full flex flex-col">
           {/* User Information Header */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-3 flex justify-between items-center mt-5">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-5 flex justify-between items-center mt-5">
             <div className="flex items-center gap-3">
-              {/* Profile Image */}
-              <div className="relative w-14 h-14 rounded-full overflow-hidden group flex-shrink-0 shadow-md">
-                {loading && profile.image?.startsWith('data:') ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
-                    <div className="w-10 h-10 border-4 border-gray-300 border-t-[#1a5d96] dark:border-t-[#e2692c] rounded-full animate-spin"></div>
-                  </div>
-                ) : (
-                  <img
-                    src={
-                      profile.image && 
-                      (profile.image.startsWith('http') || profile.image.startsWith('data:'))
-                        ? profile.image
-                        : "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg"
-                    }
-                    alt="Profile"
-                    className="w-full h-full object-contain rounded-full bg-gray-100"
-                  />
-                )}
-                {editMode && (
-                  <>
-                    <label
-                      htmlFor="imageUpload"
-                      className={`absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center cursor-pointer ${loading ? 'opacity-70' : 'opacity-100'} transition-opacity duration-300`}
-                    >
-                      {loading ? (
-                        <span className="text-white text-xs">Uploading...</span>
-                      ) : (
-                        <FaCamera className="text-white text-base" />
-                      )}
-                    </label>
-                    <input
-                      type="file"
-                      id="imageUpload"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                      disabled={loading}
-                    />
-                  </>
-                )}
+              {/* Profile Image with Completion Gauge */}
+<div className="relative flex items-center">
+  <div className="relative w-16 h-16">
+    {/* Completion Gauge SVG - Perfectly aligned around profile image */}
+    <svg
+      className="absolute inset-0 w-16 h-16 transform -rotate-90"
+      viewBox="0 0 64 64"
+    >
+      {/* Background Circle */}
+      <circle
+        cx="32"
+        cy="32"
+        r="28"
+        fill="none"
+        stroke="#E5E7EB"
+        strokeWidth="3"
+        className="dark:stroke-gray-600"
+      />
+      
+      {/* Progress Circle */}
+      {(() => {
+        const percentage = calculateProfileCompletion(profile);
+        const circumference = 2 * Math.PI * 28;
+        const strokeDasharray = circumference;
+        const strokeDashoffset = circumference - (percentage / 100) * circumference;
+        
+        return (
+          <circle
+            cx="32"
+            cy="32"
+            r="28"
+            fill="none"
+            stroke="#10B981"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            className="transition-all duration-500 ease-in-out dark:stroke-emerald-400"
+          />
+        );
+      })()}
+    </svg>
+
+    {/* Profile Image Container */}
+    <div className="relative w-14 h-14 m-1 rounded-full overflow-hidden shadow-lg border-2 border-white dark:border-gray-700">
+      {loading && profile.image?.startsWith('data:') ? (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+          <div className="w-6 h-6 border-2 border-gray-300 border-t-green-500 rounded-full animate-spin"></div>
+        </div>
+      ) : (
+        <img
+          src={
+            profile.image && 
+            (profile.image.startsWith('http') || profile.image.startsWith('data:'))
+              ? profile.image
+              : "https://st3.depositphotos.com/6672868/13701/v/450/depositphotos_137014128-stock-illustration-user-profile-icon.jpg"
+          }
+          alt="Profile"
+          className="w-full h-full object-contain"
+        />
+      )}
+    </div>
+
+    {/* Completion Percentage Badge */}
+    <div className="absolute text-green-500 text-xs font-bold translate-x-1/2">
+      {calculateProfileCompletion(profile)}%
+    </div>
+
+    {/* Edit Overlay */}
+    {editMode && (
+      <>
+        <label
+          htmlFor="imageUpload"
+          className={`absolute inset-0 m-1 bg-black bg-opacity-50 flex items-center justify-center cursor-pointer rounded-full ${
+            loading ? 'opacity-70' : 'opacity-100'
+          } transition-opacity duration-300`}
+        >
+          {loading ? (
+            <span className="text-white text-xs">Uploading...</span>
+          ) : (
+            <FaCamera className="text-white text-base" />
+          )}
+        </label>
+        <input
+          type="file"
+          id="imageUpload"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
+          disabled={loading}
+        />
+      </>
+    )}
+                </div>
               </div>
               <div>
                 <h2 className="text-base font-bold text-[#1a5d96] dark:text-[#e2692c] tracking-tight">
