@@ -60,6 +60,11 @@ function CallInfo() {
   const contactInputRef = useRef(null);
   const callSummaryRef = useRef(null);
   const candidateNameRef = useRef(null);
+  const cityInputRef = useRef(null);
+  const localityInputRef = useRef(null);
+  const walkinDateRef = useRef(null);
+  const lineupDateRef = useRef(null);
+  const interviewDateRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
@@ -267,6 +272,13 @@ function CallInfo() {
         const citiesRes = await EmployeeServices.getCities(stateCode);
         if (citiesRes && Array.isArray(citiesRes)) {
           setCities(citiesRes);
+          
+          // Focus the city field after cities are loaded
+          setTimeout(() => {
+            if (cityInputRef.current) {
+              cityInputRef.current.focus();
+            }
+          }, 100);
         }
         setLoadingDropdownData(prev => ({ ...prev, cities: false }));
       } catch (error) {
@@ -293,6 +305,13 @@ function CallInfo() {
         const localitiesRes = await EmployeeServices.getLocalities();
         if (localitiesRes && Array.isArray(localitiesRes)) {
           setLocalities(localitiesRes);
+          
+          // Focus the locality field after localities are loaded
+          setTimeout(() => {
+            if (localityInputRef.current) {
+              localityInputRef.current.focus();
+            }
+          }, 100);
         }
         setLoadingDropdownData(prev => ({ ...prev, localities: false }));
       } catch (error) {
@@ -769,9 +788,9 @@ function CallInfo() {
       type: "select",
       options: [
         { value: "", label: "" },
-        ...Array.from({ length: 101 }, (_, i) => ({
-          value: String(1980 + i),
-          label: String(1980 + i)
+        ...Array.from({ length: 31 }, (_, i) => ({
+          value: String(2030 - i),
+          label: String(2030 - i)
         }))
       ],
       required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus),
@@ -808,9 +827,24 @@ function CallInfo() {
             dateFormat="dd/MM/yyyy"
             placeholderText="Select date"
             required={required}
+            ref={key === "walkinDate" ? walkinDateRef : undefined}
             className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
               : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
+            onKeyDown={(e) => {
+              // Handle tab key for better keyboard navigation
+              if (e.key === 'Tab') {
+                e.preventDefault();
+                const form = e.target.closest('form');
+                if (form) {
+                  const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]), select, textarea, button:not([type="button"])'));
+                  const currentIndex = inputs.indexOf(e.target);
+                  if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+                    inputs[currentIndex + 1].focus();
+                  }
+                }
+              }
+            }}
           />
         </div>
       )
@@ -894,9 +928,24 @@ function CallInfo() {
             dateFormat="dd/MM/yyyy"
             placeholderText="Select date"
             required={required}
+            ref={key === "lineupDate" ? lineupDateRef : undefined}
             className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
               : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
+            onKeyDown={(e) => {
+              // Handle tab key for better keyboard navigation
+              if (e.key === 'Tab') {
+                e.preventDefault();
+                const form = e.target.closest('form');
+                if (form) {
+                  const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]), select, textarea, button:not([type="button"])'));
+                  const currentIndex = inputs.indexOf(e.target);
+                  if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+                    inputs[currentIndex + 1].focus();
+                  }
+                }
+              }
+            }}
           />
         </div>
       )
@@ -923,9 +972,24 @@ function CallInfo() {
             dateFormat="dd/MM/yyyy"
             placeholderText="Select date"
             required={required}
+            ref={key === "interviewDate" ? interviewDateRef : undefined}
             className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
               : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
+            onKeyDown={(e) => {
+              // Handle tab key for better keyboard navigation
+              if (e.key === 'Tab') {
+                e.preventDefault();
+                const form = e.target.closest('form');
+                if (form) {
+                  const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]), select, textarea, button:not([type="button"])'));
+                  const currentIndex = inputs.indexOf(e.target);
+                  if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+                    inputs[currentIndex + 1].focus();
+                  }
+                }
+              }
+            }}
           />
         </div>
       )
@@ -1291,9 +1355,10 @@ function CallInfo() {
                             onChange={(e) => handleChange(key, e.target.value)}
                             placeholder={`Search ${label}...`}
                             required={isFieldRequired}
-                            disabled={loading}
+                            disabled={loading || disabled}
                             darkMode={darkMode}
                             className={inputClass || ''}
+                            ref={key === "city" ? cityInputRef : undefined}
                           />
                         ) : (
                           <input
@@ -1336,6 +1401,7 @@ function CallInfo() {
                           disabled={loadingDropdownData.localities}
                           darkMode={darkMode}
                           className="w-full"
+                          ref={localityInputRef}
                         />
                       </div>
                     </React.Fragment>
@@ -1403,6 +1469,7 @@ function CallInfo() {
                           disabled={loading || disabled}
                           darkMode={darkMode}
                           className={inputClass || ''}
+                          ref={key === "city" ? cityInputRef : undefined}
                         />
                         
                         {/* Custom inputs for "others" options */}

@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, forwardRef } from "react";
 import { MdInfo } from "react-icons/md";
 import ProcessJDModal from "./ProcessJDModal";
 import { getProcessJDData } from "@/utils/processJDData";
 
-const SearchableProcessDropdown = ({
+const SearchableProcessDropdown = forwardRef(({
   options,
   value,
   onChange,
@@ -13,7 +13,7 @@ const SearchableProcessDropdown = ({
   disabled = false,
   darkMode = false,
   phoneNumber
-}) => {
+}, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -23,6 +23,17 @@ const SearchableProcessDropdown = ({
   const inputRef = useRef(null);
   const listboxRef = useRef(null);
   const containerRef = useRef(null);
+
+  // Combine refs: external ref and internal inputRef
+  useEffect(() => {
+    if (ref) {
+      if (typeof ref === 'function') {
+        ref(inputRef.current);
+      } else {
+        ref.current = inputRef.current;
+      }
+    }
+  }, [ref]);
 
   // Find the currently selected option's label
   const selectedOption = options.find(option => option.value === value);
@@ -280,6 +291,6 @@ const SearchableProcessDropdown = ({
       />
     </div>
   );
-};
+});
 
 export default SearchableProcessDropdown; 
