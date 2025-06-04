@@ -145,13 +145,8 @@ const Login = () => {
                   <>
                     <div className="mb-2">
                       <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Verification code sent to:
+                        Verification code sent to: Administrators
                       </p>
-                      <div className="mt-1">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                          {userEmail}
-                        </span>
-                      </div>
                     </div>
                     
                     <div>

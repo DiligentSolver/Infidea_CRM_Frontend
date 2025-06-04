@@ -219,6 +219,20 @@ const CallDetails = () => {
     try {
       const response = await EmployeeServices.checkDuplicityofInputField(number);
 
+      // Set editable property to allow "Try a Call" button to show
+      if (response.candidate) {
+        response.candidate.editable = true;
+        // Make sure callSummary is properly formatted for the view modal
+        if (response.candidate.callSummary && !Array.isArray(response.candidate.callSummary)) {
+          response.candidate.callSummary = [
+            { 
+              date: response.candidate.updatedAt || response.candidate.createdAt || new Date(), 
+              summary: response.candidate.callSummary 
+            }
+          ];
+        }
+      }
+
       setShowViewModal(true);
       setSelectedCall(response.candidate);
 
@@ -355,6 +369,22 @@ const CallDetails = () => {
   };
 
   const handleView = (call) => {
+    // Ensure the call object has editable property and properly formatted callSummary
+    if (call) {
+      // Set editable property to control "Try a Call" button visibility
+      call.editable = true;
+      
+      // Make sure callSummary is properly formatted for the view modal
+      if (call.callSummary && !Array.isArray(call.callSummary)) {
+        call.callSummary = [
+          { 
+            date: call.updatedAt || call.createdAt || new Date(), 
+            summary: call.callSummary 
+          }
+        ];
+      }
+    }
+    
     setSelectedCall(call);
     setShowViewModal(true);
   };
@@ -650,7 +680,7 @@ const CallDetails = () => {
     
     return parts.map((part, index) => 
       part.toLowerCase() === highlight.toLowerCase() 
-        ? <span key={index} className="text-red-600 dark:text-red-300 font-medium">{part}</span> 
+        ? <span key={index} className="text-red-600 font-medium bg-yellow-100">{part}</span> 
         : part
     );
   };
@@ -1069,6 +1099,9 @@ const CallDetails = () => {
             <Table>
               <TableHeader > 
                 <tr className="h-14 bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                <TableCell className="text-center">
+                  <input type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </TableCell>
                   <TableCell className="text-center">
                   Actions
                   </TableCell>

@@ -60,6 +60,7 @@ function Joinings() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [minDate] = useState(new Date());
+  const [isLoadingCandidateName, setIsLoadingCandidateName] = useState(false);
 
 
   const { setIsUpdate } = useContext(SidebarContext);
@@ -176,6 +177,32 @@ function Joinings() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
+    // If contact number is changed and we're adding a new joining
+    if (name === "contactNumber" && value.length === 10) {
+      // Fetch candidate name using API
+      setIsLoadingCandidateName(true);
+      EmployeeServices.getCandidateName(value)
+        .then(response => {
+          if (response && response.name) {
+            setFormData(prev => ({ 
+              ...prev, 
+              [name]: value,
+              candidateName: response.name || ""
+            }));
+          } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching candidate name:", error);
+          setFormData(prev => ({ ...prev, [name]: value }));
+        })
+        .finally(() => {
+          setIsLoadingCandidateName(false);
+        });
+      return;
+    }
+    
     // If company is changed
     if (name === "company") {
       if (value.toLowerCase() === "others") {
@@ -245,6 +272,7 @@ function Joinings() {
       joiningType: "",
       remarks: "",
     });
+    setIsLoadingCandidateName(false);
     setShowForm(true);
   };
 
@@ -280,6 +308,21 @@ function Joinings() {
   };
 
  
+
+  // Add highlighting function
+  const highlightText = (text, highlight) => {
+    if (!highlight || !text) return text;
+    const parts = String(text).split(new RegExp(`(${highlight})`, 'gi'));
+    return parts.map((part, index) => 
+      part.toLowerCase() === highlight.toLowerCase() ? 
+        <span key={index} className="text-red-600 font-medium bg-yellow-100">{part}</span> : part
+    );
+  };
+
+  // Add handling for search with highlighting
+  const handleSubmitJoiningWithHighlight = (e) => {
+    handleSubmitJoinings(e);
+  };
 
   const renderTable = () => {
     return (
@@ -363,6 +406,8 @@ function Joinings() {
                   currentPage * itemsPerPage
                 )}
                 onView={handleView}
+                searchTerm={joiningsRef?.current?.value || ""}
+                highlightText={highlightText}
               />
             </Table>
           )}
@@ -397,7 +442,7 @@ function Joinings() {
       const errors = {};
       
       if (!formData.candidateName?.trim()) {
-        errors.candidateName = 'Candidate name is required';
+        errors.candidateName = 'No candidate found with this number. Please enter a valid contact number.';
       }
       
       const contactError = validateContactNumber(formData.contactNumber);
@@ -590,7 +635,7 @@ function Joinings() {
                   type="text"
                   placeholder="Search candidate..."
                   ref={joiningsRef}
-                  onChange={(e) => handleSubmitJoinings(e)}
+                  onChange={(e) => handleSubmitJoiningWithHighlight(e)}
                   className="pl-4 pr-3 py-0 h-10 w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none rounded-l-md"
                   style={{ minWidth: 0 }}
                 />
@@ -888,13 +933,20 @@ function Joinings() {
                   value={formData.candidateName}
                   onChange={handleChange}
                   required
-                  placeholder="Enter candidate's full name"
+                  readOnly={true}
+                  placeholder={isLoadingCandidateName ? "Loading candidate name..." : "Enter candidate's full name"}
                   className={`mt-1 block w-full rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm 
                   dark:bg-gray-700 border-gray-600 dark:text-white bg-white border-gray-300 text-gray-900 px-3 py-2
+                  ${true ? 'bg-gray-100 dark:bg-gray-600 cursor-not-allowed' : ''}
                   ${formErrors.candidateName ? 'border-red-500 dark:border-red-500' : ''}`}
                 />
                 {formErrors.candidateName && (
                   <p className="mt-1 text-xs text-red-500">{formErrors.candidateName}</p>
+                )}
+                {!formErrors.candidateName && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Enter a valid contact number to auto-populate candidate name
+                  </p>
                 )}
               </div>
               

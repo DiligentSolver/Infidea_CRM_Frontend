@@ -61,10 +61,10 @@ const Header = () => {
       const res = await EmployeeServices.getOnDeskData();
       setOnDeskData({
         date: res.date,
-        firstOnDeskTime: res.firstOnDeskTime,
-        productiveTimeInMinutes: res.todayProductiveTimeInMinutes,
-        formattedProductiveTime: res.todayFormattedProductiveTime,
-        onDeskActivitiesCount: res.todayOnDeskActivitiesCount,
+        firstOnDeskTime: res.firstActivityTime,
+        productiveTimeInMinutes: res.totalTimeInMinutes,
+        formattedProductiveTime: res.formattedTotalTime,
+        onDeskActivitiesCount: res.activitiesCount,
       });
     } catch (err) {
       notifyError(err?.response?.data?.message || err?.message);

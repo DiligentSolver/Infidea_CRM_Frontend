@@ -109,7 +109,12 @@ export default defineConfig({
     },
   },
   define: {
-    "process.env": process.env,
+    // Only expose specific environment variables that are needed for the client
+    // Replace with your required environment variables
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
+    "process.env.VITE_API_URL": JSON.stringify(process.env.VITE_API_URL),
+    // Add any other environment variables your app needs with the VITE_ prefix
+    // 'process.env.VITE_APP_TITLE': JSON.stringify(process.env.VITE_APP_TITLE),
     // global: {}, //enable this when running on dev/local mode
   },
 

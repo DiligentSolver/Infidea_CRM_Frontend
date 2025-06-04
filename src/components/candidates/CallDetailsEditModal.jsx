@@ -38,7 +38,8 @@ import {
   shiftPreferenceOptions,
   noticePeriodOptions,
   relocationOptions,
-  sourceOptions
+  sourceOptions,
+  workModeOptions
 } from "@/utils/optionsData";
 import ProcessSelector from "@/components/common/ProcessSelector";
 import SearchableDropdown from "@/components/common/SearchableDropdown";
@@ -100,9 +101,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
     customLineupCompany: "",
     lineupProcess: "",
     customLineupProcess: "",
-    lineupDate: "",
-    interviewDate: "",
-    walkinDate: "",
+    lineupDate: null,
+    interviewDate: null,
+    walkinDate: null,
     lineupRemarks: "",
     walkinRemarks: "",
     workMode: "",
@@ -146,9 +147,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         customLineupCompany: candidateData.customLineupCompany || "",
         lineupProcess: candidateData.lineupProcess || "",
         customLineupProcess: candidateData.customLineupProcess || "",
-        lineupDate: candidateData.lineupDate || "",
-        interviewDate: candidateData.interviewDate || "",
-        walkinDate: candidateData.walkinDate || "",
+        lineupDate: candidateData.lineupDate ? new Date(candidateData.lineupDate) : null,
+        interviewDate: candidateData.interviewDate ? new Date(candidateData.interviewDate) : null,
+        walkinDate: candidateData.walkinDate ? new Date(candidateData.walkinDate) : null,
         lineupRemarks: candidateData.lineupRemarks || "",
         walkinRemarks: candidateData.walkinRemarks || "",
         workMode: candidateData.workMode || "",
@@ -419,6 +420,35 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       return;
     }
     
+    // Handle call status changes
+    if (field === "callStatus") {
+      // Reset date fields when status changes to prevent invalid date errors
+      if (value === "Lineup") {
+        setFormData(prev => ({
+          ...prev,
+          [field]: value,
+          lineupDate: null,
+          interviewDate: null
+        }));
+      } else if (value === "Walkin at Infidea") {
+        setFormData(prev => ({
+          ...prev,
+          [field]: value,
+          walkinDate: null
+        }));
+      } else {
+        // For other statuses, clear all date fields
+        setFormData(prev => ({
+          ...prev,
+          [field]: value,
+          lineupDate: null,
+          interviewDate: null,
+          walkinDate: null
+        }));
+      }
+      return;
+    }
+    
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -489,9 +519,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         customLineupCompany: formData.customLineupCompany,
         lineupProcess: formData.lineupProcess === "others" ? formData.customLineupProcess : formData.lineupProcess,
         customLineupProcess: formData.customLineupProcess,
-        lineupDate: formData.lineupDate,
-        interviewDate: formData.interviewDate,
-        walkinDate: formData.walkinDate,
+        lineupDate: formData.lineupDate && formData.lineupDate instanceof Date && !isNaN(formData.lineupDate) ? formData.lineupDate.toISOString() : null,
+        interviewDate: formData.interviewDate && formData.interviewDate instanceof Date && !isNaN(formData.interviewDate) ? formData.interviewDate.toISOString() : null,
+        walkinDate: formData.walkinDate && formData.walkinDate instanceof Date && !isNaN(formData.walkinDate) ? formData.walkinDate.toISOString() : null,
         lineupRemarks: formData.lineupRemarks,
         walkinRemarks: formData.walkinRemarks,
         workMode: formData.workMode,
@@ -512,7 +542,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       onClose();
       setLoading(false);
     } catch (error) {
-      notifyError(error?.response?.data?.message||error?.response?.data?.error || "Failed to update candidate data");
+
+      console.log("Printing the error",error);
+      notifyError(error?.response?.data?.message||error?.response?.error || "Failed to update candidate data");
       setLoading(false);
     }
   };
@@ -630,9 +662,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       type: "select",
       options: [
         { value: "", label: "Select Year" },
-        ...Array.from({ length: 101 }, (_, i) => ({
-          value: String(1980 + i),
-          label: String(1980 + i)
+        ...Array.from({ length: 31 }, (_, i) => ({
+          value: String(2030 - i),
+          label: String(2030 - i)
         }))
       ],
       required: true,
@@ -645,12 +677,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
     { label: "Notice Period", key: "noticePeriod", icon: <MdTimer />, type: "select", options: noticePeriodOptions, required: true, inputClass: "w-full" },
     { label: "Shift Preference", key: "shiftPreference", icon: <MdAccessTime />, type: "select", options: shiftPreferenceOptions, required: true, inputClass: "w-full" },
     { label: "Relocation", key: "relocation", icon: <MdShare />, type: "select", options: relocationOptions, required: true, inputClass: "w-full" },
-    { label: "Work Mode", key: "workMode", icon: <MdBusinessCenter />, type: "select", options: [
-      { value: "", label: "Select Work Mode" },
-      { value: "Office", label: "Office" },
-      { value: "Hybrid", label: "Hybrid" },
-      { value: "Any Mode", label: "Any Mode" }
-    ], required: true, inputClass: "w-full" },
+    { label: "Work Mode", key: "workMode", icon: <MdBusinessCenter />, type: "select", options: workModeOptions, required: true, inputClass: "w-full" },
     { label: "Job Profile", key: "companyProfile", icon: <MdBusinessCenter />, type: "select", options: jobProfileOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.jobProfiles },
     { label: "Call Status", key: "callStatus", icon: <MdWifiCalling3 />, type: "select", options: callStatusOptions, required: true, inputClass: "w-full" },
     { 
@@ -669,8 +696,8 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
             {required && <span className="text-red-500">*</span>}
           </label>
           <DatePicker
-            selected={formData[key] ? new Date(formData[key]) : null}
-            onChange={(date) => handleChange(key, date ? date.toISOString() : "")}
+            selected={formData[key]}
+            onChange={(date) => handleChange(key, date)}
             minDate={minDate}
             dateFormat="dd/MM/yyyy"
             placeholderText="Select date"
@@ -752,8 +779,8 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
             {required && <span className="text-red-500">*</span>}
           </label>
           <DatePicker
-            selected={formData[key] ? new Date(formData[key]) : null}
-            onChange={(date) => handleChange(key, date ? date.toISOString() : "")}
+            selected={formData[key]}
+            onChange={(date) => handleChange(key, date)}
             minDate={minDate}
             dateFormat="dd/MM/yyyy"
             placeholderText="Select date"
@@ -781,8 +808,8 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
             {required && <span className="text-red-500">*</span>}
           </label>
           <DatePicker
-            selected={formData[key] ? new Date(formData[key]) : null}
-            onChange={(date) => handleChange(key, date ? date.toISOString() : "")}
+            selected={formData[key]}
+            onChange={(date) => handleChange(key, date)}
             minDate={minDate}
             dateFormat="dd/MM/yyyy"
             placeholderText="Select date"

@@ -373,5 +373,9 @@ const EmployeeServices = {
       `/joinings/financial-year-summary?startDate=${startDate}&endDate=${endDate}`
     );
   },
+
+  getCandidateName: async (mobileNo) => {
+    return requests.get(`/candidates/get-by-mobile/${mobileNo}`);
+  },
 };
 export default EmployeeServices;

@@ -6,7 +6,7 @@ import { formatLongDate, formatLongDateAndTime } from "@/utils/dateFormatter";
 import { FaEdit, FaEye } from "react-icons/fa";
 import { getStatusColorClass } from "@/utils/optionsData";
 
-const LineupsTable = ({lineups, onView, onEdit}) => {
+const LineupsTable = ({lineups, onView, onEdit, searchTerm = "", highlightText}) => {
 
   // Helper function to get status color
   const getStatusColor = (status) => {
@@ -61,30 +61,38 @@ const LineupsTable = ({lineups, onView, onEdit}) => {
 
           {/* Name */}
           <TableCell>
-            <span className="text-sm">{lineup?.name || lineup?.candidateName}</span>
+            <span className="text-sm">
+              {searchTerm ? highlightText(lineup?.name || lineup?.candidateName, searchTerm) : (lineup?.name || lineup?.candidateName)}
+            </span>
           </TableCell>
 
           {/* Contact Number */}
           <TableCell>
-            <span className="text-sm">{lineup?.contactNumber}</span>
+            <span className="text-sm">
+              {searchTerm ? highlightText(lineup?.contactNumber, searchTerm) : lineup?.contactNumber}
+            </span>
           </TableCell>
 
           
           {/* Status*/}
           <TableCell>
           <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(lineup?.status)}`}>
-          {lineup?.status}
-        </span>
+            {searchTerm ? highlightText(lineup?.status, searchTerm) : lineup?.status}
+          </span>
           </TableCell>
 
           {/* Company */}
           <TableCell>
-            <span className="text-sm">{lineup?.company}</span>
+            <span className="text-sm">
+              {searchTerm ? highlightText(lineup?.company, searchTerm) : lineup?.company}
+            </span>
           </TableCell>
           
           {/* Process */}
           <TableCell>
-            <span className="text-sm">{lineup?.process}</span>
+            <span className="text-sm">
+              {searchTerm ? highlightText(lineup?.process, searchTerm) : lineup?.process}
+            </span>
           </TableCell>
 
         {/* Lineup Date */}

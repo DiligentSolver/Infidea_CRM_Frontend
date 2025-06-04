@@ -6,7 +6,7 @@ import { formatLongDate, formatLongDateAndTime } from "@/utils/dateFormatter";
 import { FaEdit, FaEye } from "react-icons/fa";
 import { joiningStatusOptions } from "@/utils/optionsData";
 
-const JoiningsTable = ({joinings, onView}) => {
+const JoiningsTable = ({joinings, onView, searchTerm = "", highlightText}) => {
 
   // Helper function to get status color
   const getStatusColor = (status) => {
@@ -51,32 +51,36 @@ const JoiningsTable = ({joinings, onView}) => {
 
           {/* Name */}
           <TableCell>
-            <span className="text-sm">{joining?.name || joining?.candidateName}</span>
+            <span className="text-sm">
+              {searchTerm ? highlightText(joining?.name || joining?.candidateName, searchTerm) : (joining?.name || joining?.candidateName)}
+            </span>
           </TableCell>
 
           {/* Contact Number */}
           <TableCell>
-            <span className="text-sm">{joining?.contactNumber}</span>
+            <span className="text-sm">
+              {searchTerm ? highlightText(joining?.contactNumber, searchTerm) : joining?.contactNumber}
+            </span>
           </TableCell>
 
         {/* Company */}
         <TableCell>
-          <span className="text-sm" >
-            {joining?.company}
+          <span className="text-sm">
+            {searchTerm ? highlightText(joining?.company, searchTerm) : joining?.company}
           </span>
         </TableCell>
         
         {/* Process */}
         <TableCell>
-          <span className="text-sm" >
-            {joining?.process}
+          <span className="text-sm">
+            {searchTerm ? highlightText(joining?.process, searchTerm) : joining?.process}
           </span>
         </TableCell>
 
         {/* Joining Type */}
         <TableCell>
-          <span className="text-sm" >
-            {joining?.joiningType}
+          <span className="text-sm">
+            {searchTerm ? highlightText(joining?.joiningType, searchTerm) : joining?.joiningType}
           </span>
         </TableCell>
 
@@ -92,7 +96,7 @@ const JoiningsTable = ({joinings, onView}) => {
           <TableCell>
           {joining?.status ? (
             <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(joining?.status)}`}>
-              {joining.status}
+              {searchTerm ? highlightText(joining.status, searchTerm) : joining.status}
             </span>
           ) : (
             <span className="text-sm text-gray-500">No status</span>

@@ -6,7 +6,7 @@ import {formatLongDateAndTime } from "@/utils/dateFormatter";
 import { FaEdit, FaEye } from "react-icons/fa";
 import { getStatusColorClass } from "@/utils/optionsData";
 
-const WalkinsTable = ({walkins, onView, onEdit}) => {
+const WalkinsTable = ({walkins, onView, onEdit, searchTerm = "", highlightText}) => {
 
   // Helper function to get status color
   const getStatusColor = (status) => {
@@ -54,12 +54,16 @@ const WalkinsTable = ({walkins, onView, onEdit}) => {
 
           {/* Name */}
           <TableCell>
-            <span className="text-sm">{walkin?.candidateName}</span>
+            <span className="text-sm">
+              {searchTerm ? highlightText(walkin?.candidateName, searchTerm) : walkin?.candidateName}
+            </span>
           </TableCell>
 
           {/* Contact Number */}
           <TableCell>
-            <span className="text-sm">{walkin?.contactNumber}</span>
+            <span className="text-sm">
+              {searchTerm ? highlightText(walkin?.contactNumber, searchTerm) : walkin?.contactNumber}
+            </span>
           </TableCell>
 
         {/* Walkin Date */}
@@ -72,8 +76,8 @@ const WalkinsTable = ({walkins, onView, onEdit}) => {
           {/* Status*/}
           <TableCell>
           <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(walkin?.status)}`}>
-          {walkin?.status}
-        </span>
+            {searchTerm ? highlightText(walkin?.status, searchTerm) : walkin?.status}
+          </span>
           </TableCell>
       
       </TableRow>

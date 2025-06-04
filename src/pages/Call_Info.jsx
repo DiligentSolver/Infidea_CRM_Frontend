@@ -831,20 +831,6 @@ function CallInfo() {
             className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
               : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
-            onKeyDown={(e) => {
-              // Handle tab key for better keyboard navigation
-              if (e.key === 'Tab') {
-                e.preventDefault();
-                const form = e.target.closest('form');
-                if (form) {
-                  const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]), select, textarea, button:not([type="button"])'));
-                  const currentIndex = inputs.indexOf(e.target);
-                  if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
-                    inputs[currentIndex + 1].focus();
-                  }
-                }
-              }
-            }}
           />
         </div>
       )
@@ -932,20 +918,6 @@ function CallInfo() {
             className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
               : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
-            onKeyDown={(e) => {
-              // Handle tab key for better keyboard navigation
-              if (e.key === 'Tab') {
-                e.preventDefault();
-                const form = e.target.closest('form');
-                if (form) {
-                  const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]), select, textarea, button:not([type="button"])'));
-                  const currentIndex = inputs.indexOf(e.target);
-                  if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
-                    inputs[currentIndex + 1].focus();
-                  }
-                }
-              }
-            }}
           />
         </div>
       )
@@ -976,20 +948,6 @@ function CallInfo() {
             className={`px-2.5 py-1.5 h-9 text-sm rounded-md ${darkMode 
               ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
               : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} ${inputClass}`}
-            onKeyDown={(e) => {
-              // Handle tab key for better keyboard navigation
-              if (e.key === 'Tab') {
-                e.preventDefault();
-                const form = e.target.closest('form');
-                if (form) {
-                  const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]), select, textarea, button:not([type="button"])'));
-                  const currentIndex = inputs.indexOf(e.target);
-                  if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
-                    inputs[currentIndex + 1].focus();
-                  }
-                }
-              }
-            }}
           />
         </div>
       )

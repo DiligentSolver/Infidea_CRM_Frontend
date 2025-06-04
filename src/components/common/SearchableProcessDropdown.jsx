@@ -86,14 +86,18 @@ const SearchableProcessDropdown = forwardRef(({
     setHighlightedIndex(0);
   }, [filteredOptions.length]);
 
-  // Focus next field after selection
-  const focusNextField = () => {
+  // Focus previous or next field based on shift key
+  const focusAdjacentField = (isShift) => {
     if (inputRef.current) {
       const form = inputRef.current.closest('form');
       if (form) {
         const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]), select, textarea, button:not([type="button"])'));
         const currentIndex = inputs.indexOf(inputRef.current);
-        if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+        if (isShift && currentIndex > 0) {
+          // Focus previous field
+          inputs[currentIndex - 1].focus();
+        } else if (!isShift && currentIndex >= 0 && currentIndex < inputs.length - 1) {
+          // Focus next field
           inputs[currentIndex + 1].focus();
         }
       }
@@ -110,6 +114,32 @@ const SearchableProcessDropdown = forwardRef(({
       setIsJDModalOpen(true);
     }
   };
+
+  // Add state to track if we're shift-tabbing
+  const [isShiftTabbing, setIsShiftTabbing] = useState(false);
+
+  // Track key down/up for shift key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Tab' && e.shiftKey) {
+        setIsShiftTabbing(true);
+      }
+    };
+    
+    const handleKeyUp = (e) => {
+      if (e.key === 'Shift') {
+        setIsShiftTabbing(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
@@ -164,7 +194,8 @@ const SearchableProcessDropdown = forwardRef(({
         e.preventDefault(); // Prevent default tab behavior
         handleOptionSelect(filteredOptions[highlightedIndex]);
       }
-      // Otherwise, let the default tab behavior proceed
+      // For Shift+Tab or regular Tab when dropdown is closed, just let the default browser behavior happen
+      // Don't prevent default, don't call preventDefault()
     }
   };
 
@@ -176,13 +207,21 @@ const SearchableProcessDropdown = forwardRef(({
     }
   };
 
+  // Focus next field after selection
+  const focusNextField = () => {
+    if (inputRef.current) {
+      // No explicit focus management - just close the dropdown
+      // The browser's default tab order will take care of navigation
+    }
+  };
+
   // Handle option selection
   const handleOptionSelect = (option) => {
     onChange({ target: { value: option.value } });
     setSearchTerm(option.label);
     setIsOpen(false);
     
-    // Focus next field after selection
+    // Just close the dropdown without explicit focus management
     setTimeout(focusNextField, 10);
   };
 
@@ -198,7 +237,12 @@ const SearchableProcessDropdown = forwardRef(({
           value={searchTerm}
           onChange={handleInputChange}
           onClick={() => setIsOpen(true)}
-          onFocus={() => setIsOpen(true)}
+          onFocus={(e) => {
+            // Don't open dropdown if we're shift-tabbing into this field
+            if (!isShiftTabbing) {
+              setIsOpen(true);
+            }
+          }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           required={required}

@@ -81,19 +81,18 @@ const CandidatesTable = ({candidates, onView, onEdit, searchTerm = "", highlight
     <>
       <TableBody className="dark:bg-gray-900">
         {candidates?.map((candidate, i) => {
-          // Check if this candidate matches the search term
-          const isMatch = candidateMatchesSearch(candidate);
           
           return (
           <TableRow 
             key={i} 
-            className={`text-center cursor-pointer transition-colors duration-150 ${
-              isMatch 
-                ? 'bg-yellow-50 dark:bg-stone-900 hover:bg-yellow-100 dark:hover:bg-stone-800' 
-                : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-            }`} 
+            className="text-center cursor-pointer transition-colors duration-150
+              hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={()=>onView(candidate)}
           >
+
+<TableCell className="text-center">
+                  <input type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </TableCell>
         
           {/* Actions*/}
           <TableCell className="flex justify-center items-center">
