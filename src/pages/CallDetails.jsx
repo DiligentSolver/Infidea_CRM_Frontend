@@ -16,7 +16,7 @@ import AnimatedContent from "@/components/common/AnimatedContent";
 import { SidebarContext } from "@/context/SidebarContext";
 import DatePicker from "react-datepicker";  
 import 'react-datepicker/dist/react-datepicker.css';
-import { FaSearch, FaPlus, FaTimesCircle, FaChevronLeft, FaChevronRight, FaUserCheck, FaUpload, FaFileExcel, FaFilter, FaCheck } from "react-icons/fa";
+import { FaSearch, FaPlus, FaTimesCircle, FaChevronLeft, FaChevronRight, FaUserCheck, FaUpload, FaFileExcel, FaFilter, FaCheck, FaCopy } from "react-icons/fa";
 import { MdError, MdClose, MdExpandMore, MdExpandLess } from "react-icons/md";
 import CandidatesTable from "@/components/candidates/CandidatesTable";
 import useAsync from "@/hooks/useAsync";
@@ -141,6 +141,10 @@ const CallDetails = () => {
   const navigate = useNavigate();
 
   const [duplicityCheckCount, setDuplicityCheckCount] = useState(0);
+
+  // Add selected candidates state
+  const [selectedCandidates, setSelectedCandidates] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   const handleResetField = () => {
     if (candidateRef && candidateRef.current) {
@@ -691,6 +695,76 @@ const CallDetails = () => {
     handleSubmitCandidate(e);
   };
 
+  // Add function to handle copying selected mobile numbers
+  const handleCopySelectedNumbers = () => {
+    if (selectedCandidates.length === 0) {
+      toast.error("No candidates selected");
+      return;
+    }
+
+    // Get only mobile numbers from selected candidates
+    const selectedNumbers = selectedCandidates
+      .map(candidateId => {
+        const candidate = filteredData.find(c => c._id === candidateId);
+        return candidate?.mobileNo;
+      })
+      .filter(Boolean) // Remove any undefined/null values
+      .join('\n'); // Join with newline, not comma
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(selectedNumbers)
+      .then(() => {
+        toast.success(`${selectedCandidates.length} numbers copied to clipboard`);
+      })
+      .catch(err => {
+        console.error('Failed to copy numbers:', err);
+        toast.error("Failed to copy numbers");
+      });
+  };
+
+  // Handle select all checkbox
+  const handleSelectAll = () => {
+    if (selectAll) {
+      // If currently all selected, deselect all
+      setSelectedCandidates([]);
+    } else {
+      // Select all currently visible candidates
+      const visibleCandidates = filteredData
+        .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+        .map(candidate => candidate._id);
+      setSelectedCandidates(visibleCandidates);
+    }
+    setSelectAll(!selectAll);
+  };
+
+  // Handle individual candidate selection
+  const handleCandidateSelection = (candidateId, isSelected) => {
+    if (isSelected) {
+      setSelectedCandidates(prev => [...prev, candidateId]);
+    } else {
+      setSelectedCandidates(prev => prev.filter(id => id !== candidateId));
+    }
+  };
+
+  // Effect to update selectAll state when page changes
+  useEffect(() => {
+    const visibleCandidates = filteredData
+      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+      .map(candidate => candidate._id);
+
+    // Check if all visible candidates are selected
+    const allSelected = visibleCandidates.length > 0 && 
+      visibleCandidates.every(id => selectedCandidates.includes(id));
+    
+    setSelectAll(allSelected);
+  }, [currentPage, selectedCandidates, filteredData, itemsPerPage]);
+
+  // Reset selection when filters change
+  useEffect(() => {
+    setSelectedCandidates([]);
+    setSelectAll(false);
+  }, [filters, dateRange, searchTerm]);
+
   return (
     <>
      <div className="flex justify-between items-center mb-4 mt-4">
@@ -1036,6 +1110,19 @@ const CallDetails = () => {
                 </select>
               </div>
               
+              {/* Copy Numbers Button */}
+              {selectedCandidates.length > 0 && (
+                <div className="w-full sm:w-auto md:w-auto sm:flex-none">
+                  <button
+                    onClick={handleCopySelectedNumbers}
+                    className="flex items-center justify-center w-full px-3 py-1.5 rounded-md text-xs bg-teal-600 hover:bg-teal-700 text-white"
+                  >
+                    <FaCopy className="mr-1.5" />
+                    Copy {selectedCandidates.length} number{selectedCandidates.length !== 1 ? 's' : ''}
+                  </button>
+                </div>
+              )}
+              
               {/* Pagination controls - moved from bottom to top */}
               {filteredData.length > 0 && (
                 <div className="w-full sm:w-auto md:w-auto sm:flex-none sm:ml-auto">
@@ -1100,7 +1187,12 @@ const CallDetails = () => {
               <TableHeader > 
                 <tr className="h-14 bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                 <TableCell className="text-center">
-                  <input type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <input 
+                    type="checkbox" 
+                    checked={selectAll}
+                    onChange={handleSelectAll}
+                    className="form-checkbox h-5 w-5 text-blue-600 dark:text-blue-400 cursor-pointer" 
+                  />
                   </TableCell>
                   <TableCell className="text-center">
                   Actions
@@ -1182,6 +1274,8 @@ const CallDetails = () => {
                 handleDuplicityCheck={handleDuplicityCheck}
                 searchTerm={searchTerm}
                 highlightText={highlightText}
+                selectedCandidates={selectedCandidates}
+                onCandidateSelection={handleCandidateSelection}
               />
             </Table>
           )}

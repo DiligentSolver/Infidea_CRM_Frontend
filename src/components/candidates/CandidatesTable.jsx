@@ -7,7 +7,16 @@ import { formatLongDateAndTime } from "@/utils/dateFormatter";
 import { MdInfo } from "react-icons/md";
 import { getStatusColorClass } from "@/utils/optionsData";
 
-const CandidatesTable = ({candidates, onView, onEdit, searchTerm = "", highlightText}) => {
+const CandidatesTable = ({
+  candidates, 
+  onView, 
+  onEdit, 
+  handleDuplicityCheck,
+  searchTerm = "", 
+  highlightText, 
+  selectedCandidates = [], 
+  onCandidateSelection
+}) => {
 
   // Use a wrapper function that handles null/undefined status values
   const getStatusColor = (status) => {
@@ -38,7 +47,7 @@ const CandidatesTable = ({candidates, onView, onEdit, searchTerm = "", highlight
       new Date(b.date) - new Date(a.date)
     );
     
-    return sortedHistory.sort((a, b) => new Date(b.date) - new Date(a.date)).map((call, index) => (
+    return sortedHistory.map((call, index) => (
       `Call ${employeeCallHistory.length - index}: ${call.duration<=1?`${call.duration} minute`:`${call.duration} minutes`} (${formatLongDateAndTime(call.date)})`
     )).join('\n');
   };
@@ -49,277 +58,259 @@ const CandidatesTable = ({candidates, onView, onEdit, searchTerm = "", highlight
     return employeeCallHistory?.map((call) => call.summary).join('\n');
   };
 
-  // Function to check if candidate matches search term
-  const candidateMatchesSearch = (candidate) => {
-    if (!searchTerm || searchTerm.trim() === '') return false;
+  // Get formatted call summary text - properly handle objects or arrays
+  const getCallSummaryText = (callSummary) => {
+    if (!callSummary) return "";
     
-    const lowerSearchTerm = searchTerm.toLowerCase();
+    // If it's an array, extract and join the summaries
+    if (Array.isArray(callSummary)) {
+      return callSummary.map(item => {
+        if (typeof item === 'object' && item.summary) {
+          return item.summary;
+        }
+        return typeof item === 'string' ? item : '';
+      }).join(', ');
+    }
     
-    // Check all text fields for matches
-    return (
-      (candidate?.name && candidate.name.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.mobileNo && candidate.mobileNo.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.whatsappNo && candidate.whatsappNo.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.qualification && candidate.qualification.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.city && candidate.city.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.locality && candidate.locality.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.experience && candidate.experience.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.communication && candidate.communication.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.companyProfile && candidate.companyProfile.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.salaryExpectation && candidate.salaryExpectation.toString().toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.shift && candidate.shift.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.noticePeriod && candidate.noticePeriod.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.gender && candidate.gender.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.source && candidate.source.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.callStatus && candidate.callStatus.toLowerCase().includes(lowerSearchTerm)) ||
-      (candidate?.lastRegisteredByName && candidate.lastRegisteredByName.toLowerCase().includes(lowerSearchTerm))
-    );
+    // If it's an object with a summary property
+    if (typeof callSummary === 'object' && callSummary.summary) {
+      return callSummary.summary;
+    }
+    
+    // If it's a string, use it directly
+    if (typeof callSummary === 'string') {
+      return callSummary;
+    }
+    
+    // Fallback to empty string for any other type
+    return "";
   };
 
+  // Handle checkbox click without triggering row click
+  const handleCheckboxClick = (e, candidate) => {
+    e.stopPropagation(); // Prevent row click event
+    const isSelected = selectedCandidates.includes(candidate._id);
+    onCandidateSelection(candidate._id, !isSelected);
+  };
 
   return (
     <>
       <TableBody className="dark:bg-gray-900">
         {candidates?.map((candidate, i) => {
+          const isSelected = selectedCandidates.includes(candidate._id);
           
           return (
-          <TableRow 
-            key={i} 
-            className="text-center cursor-pointer transition-colors duration-150
-              hover:bg-gray-100 dark:hover:bg-gray-800"
-            onClick={()=>onView(candidate)}
-          >
+            <TableRow 
+              key={i} 
+              className={`text-center transition-colors duration-150
+                hover:bg-gray-100 dark:hover:bg-gray-800 ${isSelected ? 'bg-blue-50 dark:bg-blue-900' : ''}`}
+            >
+              {/* Selection Checkbox */}
+              <TableCell className="text-center" onClick={(e) => handleCheckboxClick(e, candidate)}>
+                <input 
+                  type="checkbox" 
+                  checked={isSelected}
+                  onChange={() => {}} // Controlled component
+                  className="form-checkbox h-5 w-5 text-blue-600 dark:text-blue-400 cursor-pointer" 
+                />
+              </TableCell>
+              
+              {/* Actions*/}
+              <TableCell className="flex justify-center items-center">
+                <div className="flex space-x-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onView(candidate);
+                    }}
+                    className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-blue-600 hover:text-blue-700 dark:hover:text-blue-500"
+                    title="View details"
+                  >
+                    <FaEye className="w-3.5 h-3.5" />
+                  </button>
+                  {candidate?.editable && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(candidate);
+                      }}
+                      className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-green-600 hover:text-green-700 dark:hover:text-green-500"
+                      title="Edit"
+                    >
+                      <FaEdit className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </TableCell>
 
-<TableCell className="text-center">
-                  <input type="checkbox" className="form-checkbox h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </TableCell>
-        
-          {/* Actions*/}
-          <TableCell className="flex justify-center items-center">
-            <div className="flex space-x-2">
-              <button
-                onClick={() => onView(candidate)}
-                className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-blue-600 hover:text-blue-700 dark:hover:text-blue-500"
-                title="View details"
-              >
-                <FaEye className="w-3.5 h-3.5" />
-              </button>
-              {candidate?.editable && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(candidate);
-                  }}
-                  className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-900 text-green-600 hover:text-green-700 dark:hover:text-green-500"
-                  title="Edit"
-                >
-                  <FaEdit className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          </TableCell>
-
-          {/*Entry By*/}
-          <TableCell>
-            <span className="text-sm">
-              {searchTerm ? highlightText(candidate?.lastRegisteredByName, searchTerm) : candidate?.lastRegisteredByName}
-            </span>
-          </TableCell>
-
-          {/* Updated Date */}
-          <TableCell>
-            <span className="text-sm">{formatLongDateAndTime(candidate?.updatedAt)}</span>
-          </TableCell>
-
-             {/* Locked */}
-             {/* <TableCell>
-              {candidate?.isLocked ? (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 text-xs font-medium">
-                  <FaLock className="w-3 h-3 mr-1" />
-                  {candidate?.isLockedByMe ? 'Under me' : 'Locked'}
+              {/* Last Registered By */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.lastRegisteredByName, searchTerm) : candidate?.lastRegisteredByName}
                 </span>
-              ) : (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 text-xs font-medium">
-                  <FaUnlock className="w-3 h-3 mr-1" />
-                  Open for All
-                </span>
-              )}
-            </TableCell> */}
+              </TableCell>
 
-              {/* Call Status*/}
-          <TableCell>
-          <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(candidate?.callStatus)}`}>
-            {searchTerm ? highlightText(candidate?.callStatus || 'No status', searchTerm) : (candidate?.callStatus || 'No status')}
-          </span>
-          </TableCell>
-          
-             {/* Expiry */}
-             <TableCell>
-              {candidate?.remainingTime
-                ? (
+              {/* Updated Date */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">{formatLongDateAndTime(candidate?.updatedAt)}</span>
+              </TableCell>
+
+              {/* Call Status */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className={`px-1.5 py-0.5 text-xs rounded-full ${getStatusColor(candidate?.callStatus)}`}>
+                  {searchTerm ? highlightText(candidate?.callStatus || 'No status', searchTerm) : (candidate?.callStatus || 'No status')}
+                </span>
+              </TableCell>
+              
+              {/* Remaining Days */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                {candidate?.remainingTime ? (
                   <span className="text-sm rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs font-medium px-1.5 py-0.5">
                     {candidate.remainingTime}
                   </span>
-                )
-                : candidate?.remainingDays
-                  ? (
-                    <span className="text-sm rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs font-medium px-1.5 py-0.5">
-                      {candidate.remainingDays==1?`${candidate.remainingDays} day`:`${candidate.remainingDays} days`}
-                    </span>
-                  )
-                  : (
-                    <span className="text-sm inline-flex items-center rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-300 text-xs font-medium px-1.5 py-0.5">
-                  Free to use
-                    </span>
-                  )
-                  
-              }
-            </TableCell>
-            
-          {/* Call Duration*/}
-          <TableCell>
-            <div className="flex items-center justify-center space-x-1">
-              <span className="text-sm">{getTotalCallDuration(candidate?.employeeCallHistory)}</span>
-              {candidate?.employeeCallHistory && candidate.employeeCallHistory.length > 0 && (
-                <div className="group inline-block">
-                  <MdInfo 
-                    className="w-3.5 h-3.5 text-blue-500 cursor-help hover:text-blue-700" 
-                  />
-                  <div className="hidden group-hover:block fixed z-[9000] w-64 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg text-left transform -translate-y-full -translate-x-1/2 mt-1">
-                    <div className="text-xs font-medium text-gray-800 dark:text-gray-200 whitespace-pre-line overflow-y-auto max-h-40">
-                      {formatCallHistory(candidate.employeeCallHistory)}
+                ) : candidate?.remainingDays ? (
+                  <span className="text-sm rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 text-xs font-medium px-1.5 py-0.5">
+                    {candidate.remainingDays === 1 ? `${candidate.remainingDays} day` : `${candidate.remainingDays} days`}
+                  </span>
+                ) : (
+                  <span className="text-sm inline-flex items-center rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-300 text-xs font-medium px-1.5 py-0.5">
+                    Free to use
+                  </span>
+                )}
+              </TableCell>
+                
+              {/* Time Spent */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <div className="flex items-center justify-center space-x-1">
+                  <span className="text-sm">{getTotalCallDuration(candidate?.employeeCallHistory)}</span>
+                  {candidate?.employeeCallHistory && candidate.employeeCallHistory.length > 0 && (
+                    <div className="group inline-block">
+                      <MdInfo 
+                        className="w-3.5 h-3.5 text-blue-500 cursor-help hover:text-blue-700" 
+                      />
+                      <div className="hidden group-hover:block fixed z-[9000] w-64 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg text-left transform -translate-y-full -translate-x-1/2 mt-1">
+                        <div className="text-xs font-medium text-gray-800 dark:text-gray-200 whitespace-pre-line overflow-y-auto max-h-40">
+                          {formatCallHistory(candidate.employeeCallHistory)}
+                        </div>
+                        <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white dark:border-t-gray-800 mx-auto"></div>
+                      </div>
                     </div>
-                    <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white dark:border-t-gray-800 mx-auto"></div>
-                  </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </TableCell>
+              </TableCell>
 
-          {/* Name*/}
-          <TableCell onClick={() => onView(candidate)} className="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
-            <span className="text-sm">
-              {searchTerm ? highlightText(candidate?.name, searchTerm) : candidate?.name}
-            </span>
-          </TableCell>
+              {/* Name */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.name, searchTerm) : candidate?.name}
+                </span>
+              </TableCell>
 
-          {/* Contact Number */}
-          <TableCell>
-            <span className="text-sm">
-              {searchTerm ? highlightText(candidate?.mobileNo, searchTerm) : candidate?.mobileNo}
-            </span>
-          </TableCell>
+              {/* Contact Number */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.mobileNo, searchTerm) : candidate?.mobileNo}
+                </span>
+              </TableCell>
 
-          {/* WhatsApp Number*/}
-          <TableCell>
-            <span className="text-sm">
-              {searchTerm ? highlightText(candidate?.whatsappNo, searchTerm) : candidate?.whatsappNo}
-            </span>
-          </TableCell>
+              {/* WhatsApp Number */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.whatsappNo, searchTerm) : candidate?.whatsappNo}
+                </span>
+              </TableCell>
 
-          {/* Qualification*/}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.qualification, searchTerm) : candidate?.qualification}
-            </span>
-          </TableCell>
+              {/* Qualification */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.qualification, searchTerm) : candidate?.qualification}
+                </span>
+              </TableCell>
 
-          {/* Location*/}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.city, searchTerm) : candidate?.city}
-            </span>
-          </TableCell>
+              {/* Location */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.city, searchTerm) : candidate?.city}
+                </span>
+              </TableCell>
 
-          {/* Locality*/}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.locality || "-", searchTerm) : (candidate?.locality || "-")}
-            </span>
-          </TableCell>
+              {/* Locality */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.locality || "-", searchTerm) : (candidate?.locality || "-")}
+                </span>
+              </TableCell>
 
-          {/* Experience Level*/}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.experience, searchTerm) : candidate?.experience}
-            </span>
-          </TableCell>
+              {/* Experience */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.experience, searchTerm) : candidate?.experience}
+                </span>
+              </TableCell>
 
-          {/* Communication */}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.communication, searchTerm) : candidate?.communication}
-            </span>
-          </TableCell>
+              {/* Communication */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.communication, searchTerm) : candidate?.communication}
+                </span>
+              </TableCell>
 
-          {/* Company Profile */}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.companyProfile, searchTerm) : candidate?.companyProfile}
-            </span>
-          </TableCell>
+              {/* Profile */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.companyProfile, searchTerm) : candidate?.companyProfile}
+                </span>
+              </TableCell>
 
-          {/* Salary Expectation */}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.salaryExpectation, searchTerm) : candidate?.salaryExpectation}
-            </span>
-          </TableCell>
+              {/* Salary Expectation */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.salaryExpectation, searchTerm) : candidate?.salaryExpectation}
+                </span>
+              </TableCell>
 
-          {/* Work Shift*/}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.shift, searchTerm) : candidate?.shift}
-            </span>
-          </TableCell>
+              {/* Shift Preference */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.shift, searchTerm) : candidate?.shift}
+                </span>
+              </TableCell>
 
-          {/* Notice Period*/}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.noticePeriod, searchTerm) : candidate?.noticePeriod}
-            </span>
-          </TableCell>
+              {/* Notice Period */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.noticePeriod, searchTerm) : candidate?.noticePeriod}
+                </span>
+              </TableCell>
 
-          {/* Gender*/}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.gender, searchTerm) : candidate?.gender}
-            </span>
-          </TableCell>
+              {/* Gender */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.gender, searchTerm) : candidate?.gender}
+                </span>
+              </TableCell>
 
-          {/* Call Source*/}
-          <TableCell>
-            <span className="text-sm" >
-              {searchTerm ? highlightText(candidate?.source, searchTerm) : candidate?.source}
-            </span>
-          </TableCell>
+              {/* Source */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm">
+                  {searchTerm ? highlightText(candidate?.source, searchTerm) : candidate?.source}
+                </span>
+              </TableCell>
 
-          {/* Call Summary*/}
-          <TableCell>
-            <span className="text-sm max-w-xs inline-block overflow-hidden text-ellipsis whitespace-nowrap" title={formatCallSummary(candidate?.callDurationHistory)}>
-              {searchTerm 
-                ? highlightText(
-                    formatCallSummary(candidate?.callDurationHistory) 
-                      ? (formatCallSummary(candidate?.callDurationHistory).length > 50 
-                        ? formatCallSummary(candidate?.callDurationHistory).substring(0, 50) + '...' 
-                        : formatCallSummary(candidate?.callDurationHistory)) 
-                      : '',
-                    searchTerm
-                  ) 
-                : (formatCallSummary(candidate?.callDurationHistory) 
-                  ? (formatCallSummary(candidate?.callDurationHistory).length > 50 
-                    ? formatCallSummary(candidate?.callDurationHistory).substring(0, 50) + '...' 
-                    : formatCallSummary(candidate?.callDurationHistory)) 
-                  : '')
-              }
-            </span>
-          </TableCell>
-        
-      </TableRow>
-        )})}
-  </TableBody>
-</>
-);
+              {/* Call Summary */}
+              <TableCell onClick={() => onView(candidate)} className="cursor-pointer">
+                <span className="text-sm max-w-xs inline-block overflow-hidden text-ellipsis whitespace-nowrap" title={formatCallSummary(candidate?.callDurationHistory)}>
+                  {searchTerm ? 
+                    highlightText(getCallSummaryText(candidate?.callSummary), searchTerm) : 
+                    getCallSummaryText(candidate?.callSummary)}
+                </span>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </>
+  );
 };
 
 export default CandidatesTable; 

@@ -2,12 +2,13 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import isToday from "dayjs/plugin/isToday";
 import isYesterday from "dayjs/plugin/isYesterday";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import FlipCard from "@/components/flipcard/Flipcard";
 import useError from "@/hooks/useError";
 import { ErrorBoundary } from 'react-error-boundary';
+import { AdminContext } from "@/context/AdminContext";
 
 //internal import
 import useAsync from "@/hooks/useAsync";
@@ -43,6 +44,9 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { handleErrorNotification } = useError();
+  const { state } = useContext(AdminContext);
+  const adminInfo = state?.adminInfo;
+  const employeeName = adminInfo?.user?.name || '';
   
   // Use the global socket context
   // const { 
@@ -186,13 +190,23 @@ const Dashboard = () => {
     }
   };
 
+  // Function to get greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t("Good morning");
+    if (hour < 18) return t("Good afternoon");
+    return t("Good evening");
+  };
+
   return (
     <AnimatedContent>
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Page Header */}
         <header className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-[#1a5d96] dark:text-[#e2692c] flex items-center">
-            <span className="border-l-4 border-[#1a5d96] dark:border-[#e2692c] pl-3">{t("Dashboard Overview")}</span>
+            <span className="border-l-4 border-[#1a5d96] dark:border-[#e2692c] pl-3">
+              {employeeName.en ? `${getGreeting()}, ${employeeName.en}` : t("Welcome")}
+            </span>
           </h1>
         </header>
         
