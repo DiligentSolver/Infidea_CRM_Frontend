@@ -24,9 +24,7 @@ const useNotification = () => {
         audio.preload = "auto"; // Preload the sound
 
         // Add event listeners for debugging
-        audio.addEventListener("canplaythrough", () => {
-          console.log("Notification sound loaded and ready to play");
-        });
+        audio.addEventListener("canplaythrough", () => {});
 
         audio.addEventListener("error", (e) => {
           console.error("Error loading notification sound:", e);
@@ -55,7 +53,6 @@ const useNotification = () => {
     if (adminInfo && adminInfo.user && adminInfo.user._id) {
       // Listen for new notifications
       socket.on("new_notification", (data) => {
-        console.log("New notification received:", data);
         setUpdated(true);
         fetchUnreadCount();
 
@@ -70,19 +67,16 @@ const useNotification = () => {
 
       // Listen for notification read events
       socket.on("notification_read", () => {
-        console.log("Notification marked as read");
         fetchUnreadCount();
       });
 
       // Listen for all notifications read events
       socket.on("all_notifications_read", () => {
-        console.log("All notifications marked as read");
         fetchUnreadCount();
       });
 
       // Listen for notification deleted events
       socket.on("notification_deleted", () => {
-        console.log("Notification deleted");
         fetchUnreadCount();
       });
     }
@@ -146,7 +140,6 @@ const useNotification = () => {
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              console.log("Notification sound played successfully");
               resolve();
             })
             .catch((error) => {

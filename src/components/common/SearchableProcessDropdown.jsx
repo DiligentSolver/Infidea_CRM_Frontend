@@ -19,6 +19,10 @@ const SearchableProcessDropdown = forwardRef(({
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [isJDModalOpen, setIsJDModalOpen] = useState(false);
   const [selectedProcessJD, setSelectedProcessJD] = useState(null);
+  // Store the original selected value label
+  const [selectedLabel, setSelectedLabel] = useState("");
+  // Track if the focus is from tabbing
+  const [isTabbing, setIsTabbing] = useState(false);
   
   const inputRef = useRef(null);
   const listboxRef = useRef(null);
@@ -52,6 +56,7 @@ const SearchableProcessDropdown = forwardRef(({
   useEffect(() => {
     if (selectedOption && isOpen === false) {
       setSearchTerm(selectedOption.label);
+      setSelectedLabel(selectedOption.label);
     }
   }, [selectedOption, isOpen]);
 
@@ -59,6 +64,7 @@ const SearchableProcessDropdown = forwardRef(({
   useEffect(() => {
     if (selectedOption) {
       setSearchTerm(selectedOption.label);
+      setSelectedLabel(selectedOption.label);
     }
   }, []);
 
@@ -153,10 +159,18 @@ const SearchableProcessDropdown = forwardRef(({
       return;
     }
     
+    // Set tabbing flag when Tab key is pressed
+    if (e.key === "Tab") {
+      setIsTabbing(true);
+      setTimeout(() => setIsTabbing(false), 100);
+    }
+    
     if (e.key === "ArrowDown") {
       e.preventDefault();
       if (!isOpen) {
         setIsOpen(true);
+        // Clear search term when opening dropdown with arrow key
+        setSearchTerm("");
       } else {
         setHighlightedIndex(prev => 
           prev < filteredOptions.length - 1 ? prev + 1 : prev
@@ -219,10 +233,37 @@ const SearchableProcessDropdown = forwardRef(({
   const handleOptionSelect = (option) => {
     onChange({ target: { value: option.value } });
     setSearchTerm(option.label);
+    setSelectedLabel(option.label);
     setIsOpen(false);
     
     // Just close the dropdown without explicit focus management
     setTimeout(focusNextField, 10);
+  };
+
+  // Handle click to open dropdown and clear search term
+  const handleClick = () => {
+    setIsOpen(true);
+    setSearchTerm("");
+    if (inputRef.current) {
+      inputRef.current.select();
+    }
+  };
+
+  // Handle focus to open dropdown and clear search term
+  const handleFocus = (e) => {
+    // Don't open dropdown if we're shift-tabbing into this field
+    if (!isShiftTabbing) {
+      setIsOpen(true);
+      
+      // Only clear the search term if we're not tabbing or there's no selected value
+      if (!isTabbing || !selectedOption) {
+        setSearchTerm("");
+      }
+      
+      if (inputRef.current) {
+        inputRef.current.select();
+      }
+    }
   };
 
   return (
@@ -236,13 +277,8 @@ const SearchableProcessDropdown = forwardRef(({
           type="text"
           value={searchTerm}
           onChange={handleInputChange}
-          onClick={() => setIsOpen(true)}
-          onFocus={(e) => {
-            // Don't open dropdown if we're shift-tabbing into this field
-            if (!isShiftTabbing) {
-              setIsOpen(true);
-            }
-          }}
+          onClick={handleClick}
+          onFocus={handleFocus}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           required={required}

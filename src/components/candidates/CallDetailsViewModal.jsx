@@ -59,7 +59,6 @@ const formatCallHistory = (callDurationHistory) => {
 };
 
   const formatCallSummary = (callSummary) => {
-    console.log(callSummary);
     if (!callSummary || callSummary.length === 0) return "No call summary";
     
     return callSummary?.sort((a, b) => new Date(b.date) - new Date(a.date)).map((call) => `${formatLongDateAndTime(call.date)} - ${call.summary}`).join('\n');

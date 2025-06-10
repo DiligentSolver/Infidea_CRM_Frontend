@@ -68,6 +68,30 @@ function Lineups() {
   const [minDate] = useState(new Date());
   const { handleErrorNotification } = useError();
 
+  // Add useEffect for Escape key handling
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        // Close any open modals
+        if (showForm) {
+          handleCancel();
+        }
+        if (showViewModal) {
+          setShowViewModal(false);
+          setSelectedLineup(null);
+        }
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('keydown', handleEscapeKey);
+
+    // Remove event listener on cleanup
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [showForm, showViewModal]);
+
   const { setIsUpdate } = useContext(SidebarContext);
   // Add filter state
   const [filters, setFilters] = useState({
@@ -118,7 +142,6 @@ function Lineups() {
 
   const { data, loading, error} = useAsync(EmployeeServices.getLineupsData);
 
-  console.log(data);
 
   // Show loading notification
   useEffect(() => {
@@ -520,7 +543,7 @@ function Lineups() {
               </button>
             </div>
       ) : (
-        <NotFound title="Sorry, There are no lineups available." />
+        <NotFound title="Lineups" />
       )}
       </>
     );

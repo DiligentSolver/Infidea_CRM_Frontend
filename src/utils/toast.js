@@ -24,4 +24,20 @@ const notifyError = (message) =>
     progress: undefined,
   });
 
-export { notifySuccess, notifyError };
+// Custom hook to use toast functionality
+const useToast = () => {
+  const addToast = ({ type, title, message }) => {
+    if (type === "success") {
+      notifySuccess(message);
+    } else if (type === "danger" || type === "error") {
+      notifyError(message);
+    } else {
+      // Default to using success toast
+      notifySuccess(message);
+    }
+  };
+
+  return { addToast };
+};
+
+export { notifySuccess, notifyError, useToast };

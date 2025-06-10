@@ -45,7 +45,8 @@ import {
   relocationOptions,
   getProcessesByCompany,
   workModeOptions,
-  genderOptions
+  genderOptions,
+  pursuingInOptions
 } from "@/utils/optionsData";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -56,7 +57,7 @@ function CallInfo() {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
   const [phoneError, setPhoneError] = useState("");
-  const [sameAsContact, setSameAsContact] = useState(false);
+  const [sameAsContact, setSameAsContact] = useState(true);
   const contactInputRef = useRef(null);
   const callSummaryRef = useRef(null);
   const candidateNameRef = useRef(null);
@@ -94,23 +95,24 @@ function CallInfo() {
     gender: "",
     contactNumber: "",
     whatsappNumber: "",
-    sameAsContact: false,
+    sameAsContact: true,
     experience: "",
     qualification: "",
     passingYear: "",
+    pursuingIn: "",
     state: "",
     city: "",
     locality: "",
     salaryExpectations: "",
     levelOfCommunication: "",
-    noticePeriod: "",
-    shiftPreference: "",
+    noticePeriod: "Immediate Joiner",
+    shiftPreference: "Any Shift Works",
     relocation: "",
     companyProfile: "",
     customCompanyProfile: "",
     callStatus: "",
-    callSummary: "",
-    callDuration: "",
+    callSummary: "-",
+    callDuration: "1",
     jdReferenceCompany: "",
     jdReferenceProcess: "",
     lineupCompany: "",
@@ -122,7 +124,7 @@ function CallInfo() {
     walkinDate: "",
     lineupRemarks: "",
     walkinRemarks: "",
-    workMode: ""
+    workMode: "Work From Home"
   });
 
   // Add this after your formData state initialization
@@ -394,11 +396,9 @@ function CallInfo() {
         }
       }
       
-      // Update WhatsApp number if checkbox is checked
-      if (sameAsContact) {
-        setFormData(prev => ({ ...prev, [field]: value, whatsappNumber: value }));
-        return;
-      }
+      // Always update WhatsApp number when contact number changes (since sameAsContact is always true)
+      setFormData(prev => ({ ...prev, [field]: value, whatsappNumber: value }));
+      return;
     }
     
     if (field === "state") {
@@ -518,22 +518,23 @@ function CallInfo() {
         gender: "",
         contactNumber: "",
         whatsappNumber: "",
-        sameAsContact: false,
+        sameAsContact: true,
         experience: "",
         qualification: "",
         passingYear: "",
+        pursuingIn: "",
         state: "",
         city: "",
         locality: "",
         salaryExpectations: "",
         levelOfCommunication: "",
-        noticePeriod: "",
-        shiftPreference: "",
+        noticePeriod: "Immediate Joiner",
+        shiftPreference: "Any Shift Works",
         relocation: "",
         companyProfile: "",
         callStatus: "",
-        callSummary: "",
-        callDuration: "",
+        callSummary: "-",
+        callDuration: "1",
         jdReferenceCompany: "",
         jdReferenceProcess: "",
         lineupCompany: "",
@@ -545,9 +546,9 @@ function CallInfo() {
         walkinDate: "",
         lineupRemarks: "",
         walkinRemarks: "",
-        workMode: ""
+        workMode: "Work From Home"
       });
-      setSameAsContact(false);
+      setSameAsContact(true);
       setDuplicateInfo(null);
       setPhoneError("");
       
@@ -596,6 +597,7 @@ function CallInfo() {
         experience: formData.experience,
         qualification: formData.qualification,
         passingYear: formData.passingYear,
+        pursuingIn: formData.passingYear === "pursuing" ? formData.pursuingIn : "",
         state: formData.state,
         city: formData.city,
         salaryExpectation: formData.salaryExpectations,
@@ -631,22 +633,23 @@ function CallInfo() {
         gender: "",
         contactNumber: "",
         whatsappNumber: "",
-        sameAsContact: false,
+        sameAsContact: true,
         experience: "",
         qualification: "",
         passingYear: "",
+        pursuingIn: "",
         state: "",
         city: "",
         locality: "",
         salaryExpectations: "",
         levelOfCommunication: "",
-        noticePeriod: "",
-        shiftPreference: "",
+        noticePeriod: "Immediate Joiner",
+        shiftPreference: "Any Shift Works",
         relocation: "",
         companyProfile: "",
         callStatus: "",
-        callSummary: "",
-        callDuration: "",
+        callSummary: "-",
+        callDuration: "1",
         jdReferenceCompany: "",
         jdReferenceProcess: "",
         lineupCompany: "",
@@ -658,9 +661,9 @@ function CallInfo() {
         walkinDate: "",
         lineupRemarks: "",
         walkinRemarks: "",
-        workMode: ""
+        workMode: "Work From Home"
       });
-      setSameAsContact(false);
+      setSameAsContact(true);
       
       // Clear localStorage
       localStorage.removeItem('callInfoFormData');
@@ -706,7 +709,6 @@ function CallInfo() {
 
   // Create qualification options from API data
   const qualificationOptions = [
-    { value: "", label: "" },
     ...(qualifications?.map(qual => ({ 
       value: qual.name || qual, 
       label: qual.name || qual 
@@ -715,7 +717,6 @@ function CallInfo() {
 
   // Create state options from API data
   const stateOptions = [
-    { value: "", label: "" },
     ...(states?.map(state => ({ 
       value: state.name, 
       label: state.name 
@@ -724,7 +725,6 @@ function CallInfo() {
 
   // Create city options from API data
   const cityOptions = [
-    { value: "", label: "" },
     ...(cities?.map(city => ({ 
       value: city.name || city, 
       label: city.name || city 
@@ -733,7 +733,6 @@ function CallInfo() {
 
   // Create locality options from API data (for Indore only)
   const localityOptions = [
-    { value: "", label: "" },
     ...(localities?.map(locality => ({ 
       value: locality.name || locality, 
       label: locality.name || locality 
@@ -742,7 +741,6 @@ function CallInfo() {
 
   // Create job profile options from API data
   const jobProfileOptions = useMemo(() => [
-    { value: "", label: "" },
     ...(jobProfiles?.map(profile => ({ 
       value: profile.name || profile, 
       label: profile.name || profile 
@@ -787,7 +785,7 @@ function CallInfo() {
       icon: <MdSchool />, 
       type: "select",
       options: [
-        { value: "", label: "" },
+        { value: "pursuing", label: "Pursuing" },
         ...Array.from({ length: 31 }, (_, i) => ({
           value: String(2030 - i),
           label: String(2030 - i)
@@ -796,6 +794,16 @@ function CallInfo() {
       required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus),
       inputClass: "w-full"
     },
+    { 
+      label: "Current Sem/Year", 
+      key: "pursuingIn", 
+      icon: <MdSchool />, 
+      type: "select",
+      options: pursuingInOptions,
+      required: formData.passingYear === "pursuing",
+      inputClass: "w-full",
+      hidden: formData.passingYear !== "pursuing"
+    },
     { label: "State", key: "state", icon: <MdPublic />, type: "select", options: stateOptions, required: ["Lineup", "Walkin at Infidea"].includes(formData.callStatus), inputClass: "w-full", loading: loadingDropdownData.states },
     { label: "City", key: "city", icon: <MdLocationCity />, type: "select", options: cityOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.cities },
     { label: "Salary Expectation", key: "salaryExpectations", icon: <IoCashOutline />, required: true, inputClass: "w-full" },
@@ -803,7 +811,7 @@ function CallInfo() {
     { label: "Shift Preference", key: "shiftPreference", icon: <MdAccessTime />, type: "select", options: shiftPreferenceOptions, required: true, inputClass: "w-full" },
     { label: "Relocation", key: "relocation", icon: <MdShare />, type: "select", options: relocationOptions, required: true, inputClass: "w-full" },
     { label: "Work Mode", key: "workMode", icon: <MdBusinessCenter />, type: "select", options: workModeOptions, required: true, inputClass: "w-full" },
-    { label: "Job Profile", key: "companyProfile", icon: <MdBusinessCenter />, type: "select", options: jobProfileOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.jobProfiles },
+    { label: "Process/Profile", key: "companyProfile", icon: <MdBusinessCenter />, type: "select", options: jobProfileOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.jobProfiles },
     { label: "Call Status", key: "callStatus", icon: <MdWifiCalling3 />, type: "select", options: callStatusOptions, required: true, inputClass: "w-full" },
     { 
       label: "Walkin Date", 
@@ -952,7 +960,7 @@ function CallInfo() {
         </div>
       )
     },
-    { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: true, inputClass: "w-full" },
+    { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: false, inputClass: "w-full" },
     { label: "Communication", key: "levelOfCommunication", icon: <MdMessage />, type: "select", options: communicationOptions, required: true, inputClass: "w-full" },
     { 
       label: "Company JD", 
@@ -1023,7 +1031,8 @@ function CallInfo() {
     name: "",
     number: "",
     designation: "",
-    companyName: ""
+    companyName: "",
+    clientRemarks: ""
   });
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1034,7 +1043,8 @@ function CallInfo() {
       name: "",
       number: "",
       designation: "",
-      companyName: ""
+      companyName: "",
+      clientRemarks: ""
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -1060,7 +1070,8 @@ function CallInfo() {
           name: "",
           number: "",
           designation: "",
-          companyName: ""
+          companyName: "",
+          clientRemarks: ""
         });
       } catch (error) {
         notifyError(error?.response?.data?.message || 'Error saving client details');
@@ -1075,7 +1086,8 @@ function CallInfo() {
         name: "",
         number: "",
         designation: "",
-        companyName: ""
+        companyName: "",
+        clientRemarks: ""
       });
     };
 
@@ -1168,6 +1180,23 @@ function CallInfo() {
                     ? 'bg-gray-700 border-gray-600 text-white' 
                     : 'bg-white border-gray-300 text-gray-800'
                 } border focus:ring-1 focus:ring-[#1a5d96] dark:focus:ring-[#e2692c]`}
+              />
+            </div>
+            
+            <div>
+              <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Remarks
+              </label>
+              <textarea
+                name="clientRemarks"
+                value={localClientData.clientRemarks}
+                onChange={handleInputChange}
+                rows="3"
+                className={`w-full px-3 py-2 rounded-md ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                } border focus:ring-1 focus:ring-[#1a5d96] dark:focus:ring-[#e2692c] resize-none`}
               />
             </div>
             
@@ -1549,14 +1578,13 @@ function CallInfo() {
               <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-medium mb-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 <span className="text-base"><MdNotes /></span>
                 Call Summary
-                <span className="text-red-500">*</span>
               </label>
               <textarea
                 ref={callSummaryRef}
                 value={formData.callSummary}
                 onChange={(e) => handleChange("callSummary", e.target.value)}
                 placeholder="Enter call summary..."
-                required={true}
+                required={false}
                 disabled={false}
                 className={`px-2 sm:px-2.5 py-1.5 h-20 sm:h-24 w-full text-sm rounded-md ${darkMode 
                   ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 

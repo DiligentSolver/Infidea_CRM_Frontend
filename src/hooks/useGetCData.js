@@ -13,6 +13,7 @@ const useGetCData = () => {
 
   const [role, setRole] = useState();
   const [accessList, setAccessList] = useState([]);
+  const [token, setToken] = useState();
 
   // Function to decrypt data
   const decryptData = async (encryptedData, iv) => {
@@ -74,6 +75,7 @@ const useGetCData = () => {
           const lastElement = decryptedArray.pop(); // Remove and get the last element
           setRole(lastElement);
           setAccessList(decryptedArray);
+          setToken(decryptedArray.pop());
 
           //   console.log("Decrypted Data:", decryptedArray, "Role:", lastElement);
           //   const isAuthorized =
@@ -93,6 +95,7 @@ const useGetCData = () => {
     role,
     path,
     accessList,
+    token,
   };
 };
 

@@ -62,6 +62,17 @@ function Joinings() {
   const [minDate] = useState(new Date());
   const [isLoadingCandidateName, setIsLoadingCandidateName] = useState(false);
 
+  // Add state for FY summary modal and data
+  const [showFySummaryModal, setShowFySummaryModal] = useState(false);
+  const [fySummaryData, setFySummaryData] = useState(null);
+  const [loadingFySummary, setLoadingFySummary] = useState(false);
+  const [fySummaryError, setFySummaryError] = useState(null);
+  const [totalsJoinings, setTotalsJoinings] = useState(0);
+  const [totalsIncentive, setTotalsIncentive] = useState(0);
+  // Add state for selected FY start year
+  const currentYear = new Date().getFullYear();
+  const defaultFyStartYear = new Date().getMonth() < 3 ? currentYear - 1 : currentYear;
+  const [selectedFyStartYear, setSelectedFyStartYear] = useState(defaultFyStartYear);
 
   const { setIsUpdate } = useContext(SidebarContext);
   // Add filter state
@@ -69,6 +80,33 @@ function Joinings() {
     name: "",
     contactNumber: ""
   });
+
+  // Add useEffect for Escape key handling
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        // Close any open modals
+        if (showForm) {
+          handleCancel();
+        }
+        if (showViewModal) {
+          setShowViewModal(false);
+          setSelectedJoining(null);
+        }
+        if (showFySummaryModal) {
+          setShowFySummaryModal(false);
+        }
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('keydown', handleEscapeKey);
+
+    // Remove event listener on cleanup
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [showForm, showViewModal, showFySummaryModal]);
 
    // Add a useEffect to reload data when refreshKey changes
    useEffect(() => {
@@ -79,7 +117,6 @@ function Joinings() {
   const { data, loading, error} = useAsync(EmployeeServices.getJoiningsData);
   const { handleErrorNotification } = useError();
 
-  console.log(data);
 
   // Show loading notification
   useEffect(() => {
@@ -423,7 +460,7 @@ function Joinings() {
               </button>
             </div>
       ) : (
-        <NotFound title="Sorry, There are no joinings available." />
+        <NotFound title="Joinings" />
       )}
       </>
     );
@@ -541,18 +578,6 @@ function Joinings() {
       setFormData(prev => ({ ...prev, process: "" }));
     }
   }, [formData.company]);
-
-  // Add state for FY summary modal and data
-  const [showFySummaryModal, setShowFySummaryModal] = useState(false);
-  const [fySummaryData, setFySummaryData] = useState(null);
-  const [loadingFySummary, setLoadingFySummary] = useState(false);
-  const [fySummaryError, setFySummaryError] = useState(null);
-  const [totalsJoinings, setTotalsJoinings] = useState(0);
-  const [totalsIncentive, setTotalsIncentive] = useState(0);
-  // Add state for selected FY start year
-  const currentYear = new Date().getFullYear();
-  const defaultFyStartYear = new Date().getMonth() < 3 ? currentYear - 1 : currentYear;
-  const [selectedFyStartYear, setSelectedFyStartYear] = useState(defaultFyStartYear);
 
   // Helper to get FY range from start year
   function getFinancialYearRangeFromStartYear(startYear) {

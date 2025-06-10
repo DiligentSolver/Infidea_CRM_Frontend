@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
 import { NavLink } from "react-router";
-import Cookies from "js-cookie";
 import { useTranslation } from "react-i18next";
 import { WindmillContext } from "@windmill/react-ui";
 import { IoLogOutOutline, IoSettingsOutline, IoPersonOutline } from "react-icons/io5";

@@ -46,6 +46,52 @@ export const removeCookie = (name) => {
   Cookies.remove(name, { sameSite: "None", secure: true });
 };
 
+// Function to decrypt data
+const decryptData = async (encryptedData, iv) => {
+  const secretKey = import.meta.env.VITE_APP_ENCRYPT_PASSWORD; // Your secret password
+
+  // Ensure the secret key is exactly 32 bytes
+  const keyBuffer = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(secretKey)
+  );
+
+  // Convert the encrypted data from hex to a Uint8Array
+  const encryptedArray = new Uint8Array(
+    encryptedData.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+  );
+
+  // Decode IV from hex to ArrayBuffer (must be 16 bytes)
+  const ivBuffer = new Uint8Array(
+    iv.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+  );
+
+  // Decrypt using Web Crypto API
+  try {
+    const decrypted = await crypto.subtle.decrypt(
+      {
+        name: "AES-CBC",
+        iv: ivBuffer, // IV should be 16 bytes long
+      },
+      await crypto.subtle.importKey(
+        "raw",
+        keyBuffer,
+        { name: "AES-CBC" },
+        false,
+        ["decrypt"]
+      ),
+      encryptedArray // The encrypted data as Uint8Array
+    );
+
+    // Convert the decrypted bytes back to a string
+    const decodedData = new TextDecoder().decode(decrypted);
+    return decodedData;
+  } catch (error) {
+    console.error("Decryption failed:", error);
+    return null;
+  }
+};
+
 const useLoginSubmit = () => {
   const [loading, setLoading] = useState(false);
   const [otpRequired, setOtpRequired] = useState(false);
@@ -61,14 +107,49 @@ const useLoginSubmit = () => {
     setValue,
   } = useForm();
 
-  // Function to set admin cookie with consistent configuration
-  const setAdminCookie = (data) => {
+  // Function to set admin cookie with consistent configuration and decrypted data
+  const setAdminCookie = async (data) => {
     const next9PMIST = getNext9PMIST();
-    Cookies.set("adminInfo", JSON.stringify(data), {
-      expires: next9PMIST,
-      sameSite: "None",
-      secure: true,
-    });
+
+    // Check if data contains encrypted information
+    if (data?.data && data?.iv) {
+      try {
+        const decryptedString = await decryptData(data.data, data.iv);
+
+        // Parse the decrypted string to get the array
+        const decryptedArray = JSON.parse(decryptedString);
+
+        const token =
+          decryptedArray.length > 0 ? [...decryptedArray].pop() : null;
+
+        // Store both the original encrypted data and the decrypted information
+        const cookieData = {
+          ...data,
+          token,
+        };
+
+        Cookies.set("adminInfo", JSON.stringify(cookieData), {
+          expires: next9PMIST,
+          sameSite: "None",
+          secure: true,
+        });
+      } catch (error) {
+        console.error("Failed to decrypt data for cookie:", error);
+        // Fall back to storing original data if decryption fails
+        Cookies.set("adminInfo", JSON.stringify(data), {
+          expires: next9PMIST,
+          sameSite: "None",
+          secure: true,
+        });
+      }
+    } else {
+      // If no encrypted data is present, store as is
+      Cookies.set("adminInfo", JSON.stringify(data), {
+        expires: next9PMIST,
+        sameSite: "None",
+        secure: true,
+      });
+    }
   };
 
   // Function to remove admin cookie
@@ -101,8 +182,36 @@ const useLoginSubmit = () => {
           const res = await EmployeeServices.verifyLoginOtp({ userId, otp });
           if (res) {
             notifySuccess("Login successful!");
-            dispatch({ type: "USER_LOGIN", payload: res });
-            setAdminCookie(res);
+
+            // Decrypt data and prepare payload with decrypted information
+            if (res?.data && res?.iv) {
+              try {
+                const decryptedString = await decryptData(res.data, res.iv);
+                const decryptedArray = JSON.parse(decryptedString);
+
+                // Extract role, token and accessList
+                const token =
+                  decryptedArray.length > 0 ? [...decryptedArray].pop() : null;
+
+                // Create enriched payload with decrypted data
+                const enrichedPayload = {
+                  ...res,
+                  token,
+                };
+
+                await setAdminCookie(enrichedPayload);
+
+                // Dispatch enriched payload
+                dispatch({ type: "USER_LOGIN", payload: enrichedPayload });
+              } catch (error) {
+                console.error("Failed to decrypt data for dispatch:", error);
+                // Fall back to original response if decryption fails
+                dispatch({ type: "USER_LOGIN", payload: res });
+              }
+            } else {
+              // If no encrypted data, dispatch original response
+              dispatch({ type: "USER_LOGIN", payload: res });
+            }
 
             // Reset OTP state
             setOtpRequired(false);
@@ -136,8 +245,37 @@ const useLoginSubmit = () => {
             } else {
               // Direct login
               notifySuccess("Login Success!");
-              dispatch({ type: "USER_LOGIN", payload: res });
-              setAdminCookie(res);
+
+              // Decrypt data and prepare payload with decrypted information
+              if (res?.data && res?.iv) {
+                try {
+                  const decryptedString = await decryptData(res.data, res.iv);
+                  const decryptedArray = JSON.parse(decryptedString);
+
+                  const token =
+                    decryptedArray.length > 0
+                      ? [...decryptedArray].pop()
+                      : null;
+
+                  // Create enriched payload with decrypted data
+                  const enrichedPayload = {
+                    ...res,
+                    token,
+                  };
+
+                  await setAdminCookie(enrichedPayload);
+
+                  // Dispatch enriched payload
+                  dispatch({ type: "USER_LOGIN", payload: enrichedPayload });
+                } catch (error) {
+                  console.error("Failed to decrypt data for dispatch:", error);
+                  // Fall back to original response if decryption fails
+                  dispatch({ type: "USER_LOGIN", payload: res });
+                }
+              } else {
+                // If no encrypted data, dispatch original response
+                dispatch({ type: "USER_LOGIN", payload: res });
+              }
 
               // Redirect to the intended page or dashboard
               const redirectTo = location.state?.from || "/dashboard";

@@ -24,11 +24,8 @@ export const SocketProvider = ({ children }) => {
         cleanupSocket();
       }
 
-      console.log('Initializing WebSocket connection...');
-      
       // Get the socket URL from the environment
       const socketURL = import.meta.env.VITE_APP_API_SOCKET_URL;
-      console.log('WebSocket URL:', socketURL);
       
       if (!socketURL) {
         console.error('WebSocket URL not defined in environment variables');
@@ -60,7 +57,6 @@ export const SocketProvider = ({ children }) => {
   // Clean up socket connection
   const cleanupSocket = () => {
     if (socketRef.current) {
-      console.log('Cleaning up WebSocket connection');
       socketRef.current.disconnect();
       socketRef.current.off();
       socketRef.current = null;
@@ -72,7 +68,6 @@ export const SocketProvider = ({ children }) => {
   const setupSocketListeners = (socket) => {
     // Connection events
     socket.on('connect', () => {
-      console.log('WebSocket successfully connected!');
       setIsConnected(true);
       setSocketError(null);
       
@@ -81,7 +76,6 @@ export const SocketProvider = ({ children }) => {
       
       // Join employee-specific room if logged in
       if (adminInfo && adminInfo.user && adminInfo.user._id) {
-        console.log('Joining employee room:', `employee-${adminInfo.user._id}`);
         socket.emit('join-employee-room', adminInfo.user._id);
       }
     });
@@ -93,19 +87,16 @@ export const SocketProvider = ({ children }) => {
     });
     
     socket.on('disconnect', (reason) => {
-      console.log('WebSocket disconnected, reason:', reason);
       setIsConnected(false);
       
       if (reason === 'io server disconnect') {
         // The server forcefully disconnected the socket
-        console.log('Server disconnected the socket, attempting to reconnect');
         socket.connect();
       }
     });
     
     // Reconnection events
     socket.on('reconnect', (attemptNumber) => {
-      console.log('Socket reconnected after', attemptNumber, 'attempts');
       setIsConnected(true);
       setSocketError(null);
     });
@@ -129,7 +120,6 @@ export const SocketProvider = ({ children }) => {
   // Manually reconnect socket
   const reconnect = () => {
     if (socketRef.current && !isConnected) {
-      console.log('Manually reconnecting socket...');
       socketRef.current.connect();
     } else if (!socketRef.current) {
       initializeSocket();

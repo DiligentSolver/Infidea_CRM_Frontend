@@ -10,6 +10,7 @@ import {
   FiPhoneCall,
   FiActivity,
   FiCalendar,
+  FiFileText,
 } from "react-icons/fi";
 import { IoDocument } from "react-icons/io5";
 import {
@@ -67,6 +68,11 @@ const sidebar = [
     path: "/activities",
     icon: MdHistory,
     name: "Activities",
+  },
+  {
+    path: "/notes",
+    icon: FiFileText,
+    name: "Notes",
   },
 
   // {

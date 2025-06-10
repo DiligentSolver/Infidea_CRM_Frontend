@@ -78,8 +78,6 @@ const Dashboard = () => {
   const dashboardVisualData = dashboardVisualResponse?.data;
   const incentivesData = incentivesResponse?.data;
 
-  console.log("dashboardVisualData", dashboardVisualData);
-  console.log("incentivesData", incentivesData);
 
   // Format currency
   const formatCurrency = (value) => {

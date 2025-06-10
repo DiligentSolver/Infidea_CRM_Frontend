@@ -18,7 +18,6 @@ instance.interceptors.request.use(function (config) {
   let adminInfo;
   if (Cookies.get("adminInfo")) {
     adminInfo = JSON.parse(Cookies.get("adminInfo"));
-    console.log("adminInfo.token", adminInfo.token);
   }
 
   let company;

@@ -61,6 +61,29 @@ const Leaves = () => {
   const [isEarlyLogoutValid, setIsEarlyLogoutValid] = useState(true);
   const [minDate] = useState(new Date());
   
+  // Add useEffect for Escape key handling
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        // Close any open modals
+        if (isModalOpen) {
+          toggleModal();
+        }
+        if (isCalendarModalOpen) {
+          toggleCalendarModal();
+        }
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('keydown', handleEscapeKey);
+
+    // Remove event listener on cleanup
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isModalOpen, isCalendarModalOpen]);
+
   const { 
     register, 
     handleSubmit, 
@@ -188,8 +211,6 @@ const Leaves = () => {
     const { status } = filters;
     if (!status) return leaves;
     
-    console.log("Filtering by status:", status);
-    console.log("Leave statuses:", leaves.map(leave => leave.status));
     
     return leaves.filter(leave => leave.status.toLowerCase() === status.toLowerCase());
   };
@@ -212,7 +233,6 @@ const Leaves = () => {
       setLoading(true);
       const response = await EmployeeServices.getEmployeeLeaves();
 
-      console.log(response);
 
       if (response.success) {
         setLeaves(response.data);
@@ -375,7 +395,7 @@ const Leaves = () => {
     <>
       <div className="flex justify-between items-center mb-4 mt-4">
           <h1 className="text-2xl font-bold dark:text-[#e2692c] text-[#1a5d96]">
-            Leave Management
+            Leaves
           </h1>
         </div>
 

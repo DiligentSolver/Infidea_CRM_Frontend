@@ -82,7 +82,6 @@ const CallDetails = () => {
 
   const { data, loading, error} = useAsync(EmployeeServices.getCandidatesData);
 
-  console.log(data);
 
   // Add states for API data
   const [qualifications, setQualifications] = useState([]);
@@ -145,6 +144,34 @@ const CallDetails = () => {
   // Add selected candidates state
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
+
+  // Add useEffect for Escape key handling
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        // Close any open modals
+        if (showViewModal) {
+          setShowViewModal(false);
+          setSelectedCall(null);
+        }
+        if (showEditModal) {
+          setShowEditModal(false);
+          setSelectedCall(null);
+        }
+        if (showBulkUploadModal) {
+          setShowBulkUploadModal(false);
+        }
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('keydown', handleEscapeKey);
+
+    // Remove event listener on cleanup
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [showViewModal, showEditModal, showBulkUploadModal]);
 
   const handleResetField = () => {
     if (candidateRef && candidateRef.current) {
@@ -241,7 +268,6 @@ const CallDetails = () => {
       setSelectedCall(response.candidate);
 
     } catch (error) {
-      console.log("Error in duplicity check:", error);
       
       if (error.response && error.response.data) {
         // Candidate not found
@@ -313,10 +339,6 @@ const CallDetails = () => {
   const applyFilters = (data) => {
     if (!data) return [];
     
-    // Debug first item in data to see its structure
-    if (data.length > 0) {
-      console.log('Sample data item:', data[0]);
-    }
     
     return data.filter(item => {
       // Check each filter
@@ -503,7 +525,6 @@ const CallDetails = () => {
 
           // Send to backend using existing service
           const response = await EmployeeServices.bulkUploadCandidates({ candidates });
-          console.log('Bulk upload response:', response);
           setUploadResult(response);
           
           // Refresh the table data after successful upload
@@ -1291,7 +1312,7 @@ const CallDetails = () => {
               </button>
             </div>
       ) : (
-        <NotFound title="Sorry, There are no candidates available." />
+        <NotFound title="Call Details" />
       )}
 
       {showViewModal && (
@@ -1514,8 +1535,6 @@ const CallDetails = () => {
                               </thead>
                               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 {uploadResult.results.details.map((item, index) => {
-                                  // Debug each item
-                                  console.log('Result item:', item);
                                   
                                   // Determine if it's a success based on multiple potential attributes
                                   const isSuccess = 

@@ -169,7 +169,11 @@ const Activities = () => {
 
   return (
     <>
-      <PageTitle>Activity History</PageTitle>
+    <div className="flex justify-between items-center mb-4 mt-4">
+          <h1 className="text-2xl font-bold dark:text-[#e2692c] text-[#1a5d96]">
+            Activities
+          </h1>
+        </div>
       <div className="relative pb-4">
 <AnimatedContent>
       {/* Compact Filter Bar */}
@@ -408,7 +412,7 @@ const Activities = () => {
           </button>
         </div>
       ) : (
-        <NotFound title="Sorry, There are no activities available." />
+        <NotFound title="Activities" />
       )}
     </>
   );

@@ -24,7 +24,6 @@ const StaffDrawer = ({ id }) => {
     handleSubmit,
     onSubmit,
     errors,
-    adminInfo,
     imageUrl,
     setImageUrl,
     isSubmitting,

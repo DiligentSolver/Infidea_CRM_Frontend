@@ -12,6 +12,7 @@ const Lineups = lazy(() => import("@/pages/Lineups"));
 const Walkins = lazy(() => import("@/pages/Walkins"));
 const Activities = lazy(() => import("@/pages/Activities"));
 const Leaves = lazy(() => import("@/pages/Leaves"));
+const Notes = lazy(() => import("@/pages/Notes"));
 
 /*
 //  * ⚠ These are internal routes!
@@ -69,6 +70,10 @@ const routes = [
     path: "/walkins",
     component: Walkins,
   },
+  {
+    path: "/notes",
+    component: Notes,
+  },
 ];
 
 const routeAccessList = [
@@ -87,6 +92,7 @@ const routeAccessList = [
   { label: "Walkins", value: "walkins" },
   { label: "Activities", value: "activities" },
   { label: "Leaves", value: "leaves" },
+  { label: "Notes", value: "notes" },
 ];
 
 export { routeAccessList, routes };

@@ -89,7 +89,6 @@ const EditProfile = () => {
       try {
         setLoading(true);
         const response = await EmployeeServices.getEmployeeProfile();
-        console.log("API Response:", response.employee);
         
         if (response) {
           // Directly use the response object that contains employee data
@@ -170,8 +169,8 @@ const EditProfile = () => {
   const isFieldDisabled = (key, defaultDisabled = false) => {
     if (defaultDisabled) return true; // Fields like empCode, email, joiningDate are always disabled
     
-    // Address is always editable
-    if (key === 'address') {
+    // Address and designation are always editable
+    if (key === 'address' || key === 'designation') {
       return false;
     }
     
@@ -208,7 +207,6 @@ const EditProfile = () => {
         if (profile.imagePublicId) {
           try {
             await deleteImage(profile.imagePublicId);
-            console.log("Previous profile image deleted successfully");
           } catch (deleteError) {
             console.error("Error deleting previous profile image:", deleteError);
             // Continue with upload even if delete fails
@@ -228,11 +226,8 @@ const EditProfile = () => {
               
               const publicId = pathParts.slice(startIndex).join('/').split('.')[0];
               
-              console.log("Extracted public ID:", publicId);
-              
               if (publicId) {
                 await deleteImage(publicId);
-                console.log("Previous profile image deleted successfully");
               }
             } else {
               console.warn("Could not extract public ID from URL:", profile.image);
@@ -307,17 +302,18 @@ const EditProfile = () => {
       profileData.email = profile.email;
       profileData.mobile = profile.contact;
       
-      // Always include address since it's always editable
+      // Always include address and designation since they're always editable
       if (profile.address !== undefined) {
         profileData.address = profile.address;
+      }
+      
+      if (profile.designation !== undefined) {
+        profileData.designation = profile.designation;
       }
       
       // Include other fields only if they were empty on server and now have values
       if (!serverValues.name && profile.name) {
         profileData.name = { en: profile.name };
-      }
-      if (!serverValues.designation && profile.designation) {
-        profileData.designation = profile.designation;
       }
       if (!serverValues.dob && profile.dob) {
         profileData.dateOfBirth = profile.dob;
@@ -593,13 +589,13 @@ const EditProfile = () => {
           <label className="flex items-center gap-1.5 text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
             <span className="text-base">{icon}</span>
             {label}
-            {key === 'address' && (
+            {(key === 'address' || key === 'designation') && (
               <span className="text-xs text-green-600 ml-1">(Always Editable)</span>
             )}
-            {fieldDisabled && key !== 'address' && (
+            {fieldDisabled && key !== 'address' && key !== 'designation' && (
               <span className="text-xs text-gray-500 ml-1">(Already filled)</span>
             )}
-            {!fieldDisabled && key !== 'address' && (
+            {!fieldDisabled && key !== 'address' && key !== 'designation' && (
               <span className="text-xs text-blue-600 ml-1">(Can be filled)</span>
             )}
           </label>

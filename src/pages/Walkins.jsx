@@ -60,8 +60,32 @@ function Walkins() {
     contactNumber: ""
   });
 
-   // Add a useEffect to reload data when refreshKey changes
-   useEffect(() => {
+  // Add useEffect for Escape key handling
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        // Close any open modals
+        if (showForm) {
+          handleCancel();
+        }
+        if (showViewModal) {
+          setShowViewModal(false);
+          setSelectedWalkin(null);
+        }
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('keydown', handleEscapeKey);
+
+    // Remove event listener on cleanup
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [showForm, showViewModal]);
+
+  // Add a useEffect to reload data when refreshKey changes
+  useEffect(() => {
     // This will trigger the useAsync hook to refetch data
     setIsUpdate(true);
   }, [refreshKey, setIsUpdate]);
@@ -69,7 +93,6 @@ function Walkins() {
   const { data, loading, error} = useAsync(EmployeeServices.getWalkinsData);
   const { handleErrorNotification } = useError();
 
-  console.log(data);
 
   // Show loading notification
   useEffect(() => {
@@ -374,7 +397,7 @@ function Walkins() {
               </button>
             </div>
       ) : (
-        <NotFound title="Sorry, There are no walkins available." />
+        <NotFound title="Walkins" />
       )}
       </>
     );

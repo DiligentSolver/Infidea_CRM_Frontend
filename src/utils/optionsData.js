@@ -1,5 +1,22 @@
 // Options data file for centralized management of all dropdown options
 
+// Pursuing In options for filters
+export const pursuingInOptions = [
+  { value: "1st Semester", label: "1st Semester" },
+  { value: "2nd Semester", label: "2nd Semester" },
+  { value: "3rd Semester", label: "3rd Semester" },
+  { value: "4th Semester", label: "4th Semester" },
+  { value: "5th Semester", label: "5th Semester" },
+  { value: "6th Semester", label: "6th Semester" },
+  { value: "7th Semester", label: "7th Semester" },
+  { value: "8th Semester", label: "8th Semester" },
+  { value: "1st Year", label: "1st Year" },
+  { value: "2nd Year", label: "2nd Year" },
+  { value: "3rd Year", label: "3rd Year" },
+  { value: "4th Year", label: "4th Year" },
+  { value: "5th Year", label: "5th Year" },
+];
+
 // Status options with color classes
 export const statusOptions = [
   {
@@ -192,7 +209,6 @@ export const getStatusColorClass = (status) => {
 
 // Company options
 export const companyOptions = [
-  { value: "", label: "" },
   { value: "Teleperformance", label: "Teleperformance" },
   { value: "Taskus", label: "TaskUs" },
   { value: "ICICI Lombard", label: "ICICI Lombard" },
@@ -204,7 +220,6 @@ export const companyOptions = [
 
 // Process options
 export const processOptions = [
-  { value: "", label: "" },
   { value: "Airtel Black", label: "Airtel Black" },
   { value: "Airtel Broadband", label: "Airtel Broadband" },
   { value: "IPru", label: "IPru" },
@@ -305,7 +320,6 @@ export const getProcessesByCompany = (company) => {
 
   const processes = companyProcessMap[company] || [];
   return [
-    { value: "", label: "" },
     ...processOptions.filter(
       (option) =>
         option.value !== "" &&
@@ -338,7 +352,6 @@ export const dateRangeTypeOptions = [
 
 // Leave status options
 export const leaveStatusOptions = [
-  { value: "", label: "" },
   { value: "Approved", label: "Approved" },
   { value: "Rejected", label: "Rejected" },
   { value: "Pending", label: "Pending" },
@@ -346,7 +359,6 @@ export const leaveStatusOptions = [
 
 // Define joining type options (specific to this page)
 export const joiningTypeOptions = [
-  { value: "", label: "" },
   { value: "Domestic", label: "Domestic" },
   { value: "International", label: "International" },
   { value: "Mid-Lateral", label: "Mid-Lateral" },
@@ -354,7 +366,6 @@ export const joiningTypeOptions = [
 
 // Call Status options for filters
 export const callStatusOptions = [
-  { value: "", label: "" },
   { value: "Call Back Requested", label: "Call Back Requested" },
   { value: "Pipeline", label: "Pipeline" },
   { value: "Shared with Inhouse HR", label: "Shared with Inhouse HR" },
@@ -376,7 +387,6 @@ callDurationOptions.unshift({ value: "", label: "" });
 
 // Passing Year options for filters
 export const passingYearOptions = [
-  { value: "", label: "" },
   ...Array.from({ length: 31 }, (_, i) => ({
     value: String(2000 + i),
     label: String(2000 + i),
@@ -385,14 +395,12 @@ export const passingYearOptions = [
 
 // Experience options for filters
 export const experienceOptions = [
-  { value: "", label: "" },
   { value: "Fresher", label: "Fresher" },
   { value: "Experienced", label: "Experienced" },
 ];
 
 // Gender options for filters
 export const genderOptions = [
-  { value: "", label: "" },
   { value: "Male", label: "Male" },
   { value: "Female", label: "Female" },
   { value: "Others", label: "Others" },
@@ -400,7 +408,6 @@ export const genderOptions = [
 
 // Communication options for filters
 export const communicationOptions = [
-  { value: "", label: "" },
   { value: "Hindi", label: "Hindi" },
   { value: "Below Average", label: "Below Average" },
   { value: "Average", label: "Average" },
@@ -411,15 +418,13 @@ export const communicationOptions = [
 
 // Shift Preference options for filters
 export const shiftPreferenceOptions = [
-  { value: "", label: "" },
   { value: "Day Shift", label: "Day Shift" },
   { value: "Night Shift", label: "Night Shift" },
-  { value: "Any Shift", label: "Any Shift Works" },
+  { value: "Any Shift Works", label: "Any Shift Works" },
 ];
 
 // Work Mode options for filters
 export const workModeOptions = [
-  { value: "", label: "" },
   { value: "Office", label: "Office" },
   { value: "Work From Home", label: "Work From Home" },
   { value: "Hybrid", label: "Hybrid" },
@@ -428,8 +433,7 @@ export const workModeOptions = [
 
 // Notice Period options for filters
 export const noticePeriodOptions = [
-  { value: "", label: "" },
-  { value: "Immediate", label: "Immediate Joiner" },
+  { value: "Immediate Joiner", label: "Immediate Joiner" },
   { value: "7 Days", label: "7 Days" },
   { value: "15 Days", label: "15 Days" },
   { value: "30 Days", label: "30 Days" },
@@ -441,14 +445,12 @@ export const noticePeriodOptions = [
 
 // Relocation options for filters
 export const relocationOptions = [
-  { value: "", label: "" },
   { value: "Yes", label: "Yes" },
   { value: "No", label: "No" },
 ];
 
 // Source options for filters
 export const sourceOptions = [
-  { value: "", label: "" },
   { value: "Candidate Reference", label: "Candidate Reference" },
   { value: "Incoming Call", label: "Incoming Call" },
   { value: "Indeed", label: "Indeed" },
@@ -486,7 +488,6 @@ export const dateOptions = (() => {
 
 // Month options
 export const monthOptions = [
-  { value: "", label: "" },
   { value: "01", label: "January" },
   { value: "02", label: "February" },
   { value: "03", label: "March" },

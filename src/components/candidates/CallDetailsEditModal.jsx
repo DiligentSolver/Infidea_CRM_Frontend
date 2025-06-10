@@ -142,7 +142,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         companyProfile: candidateData.companyProfile || "",
         customCompanyProfile: candidateData.customCompanyProfile || "",
         callStatus: candidateData.callStatus || "",
-        callDuration: candidateData.callDuration || "",
+        callDuration: candidateData.callDuration || "1",
         lineupCompany: candidateData.lineupCompany || "",
         customLineupCompany: candidateData.customLineupCompany || "",
         lineupProcess: candidateData.lineupProcess || "",
@@ -508,11 +508,11 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         communication: formData.levelOfCommunication,
         noticePeriod: formData.noticePeriod,
         shift: formData.shiftPreference,
-        relocation: formData.relocation,
+        relocation: formData.relocation || "",
         companyProfile: formData.companyProfile === "others" ? formData.customCompanyProfile : formData.companyProfile,
         callStatus: formData.callStatus,
-        callDuration: formData.callDuration,
-        callSummary: formData.callSummary,
+        callDuration: formData.callDuration || "0",
+        callSummary: formData.callSummary || "",
         locality: formData.locality,
         lineupCompany: formData.lineupCompany === "others" ? formData.customLineupCompany : formData.lineupCompany,
         customCompanyProfile: formData.customCompanyProfile,
@@ -543,7 +543,6 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
       setLoading(false);
     } catch (error) {
 
-      console.log("Printing the error",error);
       notifyError(error?.response?.data?.message||error?.response?.error || "Failed to update candidate data");
       setLoading(false);
     }
@@ -571,9 +570,9 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
   };
 
   // Generate call duration options
-  const callDurationOptions = Array.from({ length: 30 }, (_, i) => ({
-    value: `${i + 1}`, 
-    label: `${i + 1} ${i === 0 ? 'Minute' : 'Minutes'}`
+  const callDurationOptions = Array.from({ length: 31 }, (_, i) => ({
+    value: `${i}`, 
+    label: `${i} ${i === 1 ? 'Minute' : 'Minutes'}`
   }));
   callDurationOptions.unshift({ value: "", label: "Select Duration" });
 
@@ -676,7 +675,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
     { label: "Communication", key: "levelOfCommunication", icon: <MdMessage />, type: "select", options: communicationOptions, required: true, inputClass: "w-full" },
     { label: "Notice Period", key: "noticePeriod", icon: <MdTimer />, type: "select", options: noticePeriodOptions, required: true, inputClass: "w-full" },
     { label: "Shift Preference", key: "shiftPreference", icon: <MdAccessTime />, type: "select", options: shiftPreferenceOptions, required: true, inputClass: "w-full" },
-    { label: "Relocation", key: "relocation", icon: <MdShare />, type: "select", options: relocationOptions, required: true, inputClass: "w-full" },
+    { label: "Relocation", key: "relocation", icon: <MdShare />, type: "select", options: relocationOptions, required: false, inputClass: "w-full" },
     { label: "Work Mode", key: "workMode", icon: <MdBusinessCenter />, type: "select", options: workModeOptions, required: true, inputClass: "w-full" },
     { label: "Job Profile", key: "companyProfile", icon: <MdBusinessCenter />, type: "select", options: jobProfileOptions, required: true, inputClass: "w-full", loading: loadingDropdownData.jobProfiles },
     { label: "Call Status", key: "callStatus", icon: <MdWifiCalling3 />, type: "select", options: callStatusOptions, required: true, inputClass: "w-full" },
@@ -821,7 +820,7 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
         </div>
       )
     },
-    { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: true, inputClass: "w-full" },
+    { label: "Call Duration", key: "callDuration", icon: <MdWatch />, type: "select", options: callDurationOptions, required: false, inputClass: "w-full" },
     { 
       label: "Company JD", 
       key: "jdReferenceCompany", 
@@ -1198,7 +1197,6 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
                 <label className={`flex items-center gap-1.5 text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   <span className="text-base"><MdNotes /></span>
                   Call Summary
-                  <span className="text-red-500">*</span>
                 </label>
                 <div className="relative inline-block">
                   <MdInfo 
@@ -1221,7 +1219,6 @@ function CallDetailsEditModal({ isOpen, onClose, candidateData, onUpdate, isLock
                 value={formData.callSummary}
                 onChange={(e) => handleChange("callSummary", e.target.value)}
                 placeholder="Enter call summary..."
-                required
                 className={`px-2.5 py-1.5 h-20 w-full text-sm rounded-md ${darkMode 
                   ? 'border-gray-600 bg-gray-700 text-white focus:border-[#e2692c]' 
                   : 'border-gray-300 bg-white text-gray-800 focus:border-[#1a5d96]'} border focus:ring-1 ${darkMode ? 'focus:ring-[#e2692c]' : 'focus:ring-[#1a5d96]'} resize-none`}

@@ -12,6 +12,7 @@ import "rc-tree/assets/index.css";
 import "react-loading-skeleton/dist/skeleton.css";
 import "@/assets/css/custom.css";
 import "@/assets/css/tailwind.css";
+import "@/assets/css/scrollbar.css";
 import App from "@/App";
 import myTheme from "@/assets/theme/myTheme";
 import { AdminProvider } from "@/context/AdminContext";
